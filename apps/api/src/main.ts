@@ -1,4 +1,6 @@
 import "reflect-metadata";
+// Required at runtime by ValidationPipe({ transform: true }) below.
+import "class-transformer";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import compression from "compression";

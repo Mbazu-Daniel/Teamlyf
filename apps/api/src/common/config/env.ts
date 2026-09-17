@@ -7,7 +7,7 @@ function loadEnv(): void {
   config({ path: resolve(process.cwd(), ".env"), quiet: true });
 }
 
-export const apiEnvSchema = z.object({
+const apiEnvSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(3101),
   WEB_ORIGIN: z.string().url().default("http://localhost:3100"),
   DATABASE_URL: z.string().nonempty(),

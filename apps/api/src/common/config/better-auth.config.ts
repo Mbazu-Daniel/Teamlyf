@@ -7,16 +7,17 @@ import type { CreateAuthOptions } from "../types/index";
 
 export const API_VERSION_PATH = "/api/v1";
 
+function resolveSocialProviders(google: CreateAuthOptions["google"]) {
+  if (google === undefined) return undefined;
+  const { clientId, clientSecret } = google;
+  if (!clientId || !clientSecret) return undefined;
+  return {
+    google: { clientId, clientSecret },
+  };
+}
+
 export function createAuth(options: CreateAuthOptions) {
-  const socialProviders =
-    options.google && options.google.clientId && options.google.clientSecret
-      ? {
-          google: {
-            clientId: options.google.clientId,
-            clientSecret: options.google.clientSecret,
-          },
-        }
-      : undefined;
+  const socialProviders = resolveSocialProviders(options.google);
 
   return betterAuth({
     basePath: `${API_VERSION_PATH}/auth`,
