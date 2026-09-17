@@ -12,13 +12,15 @@
     "db:down": "docker compose down",
     "db:generate": "pnpm --filter @teamlyf/db db:generate",
     "db:migrate": "pnpm --filter @teamlyf/db db:migrate",
-    "db:studio": "pnpm --filter @teamlyf/db db:studio"
+    "db:studio": "pnpm --filter @teamlyf/db db:studio",
+    "ci:local": "act -P ubuntu-latest=catthehacker/ubuntu:act-22.04 --pull=false --bind -v",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "oxfmt": "latest",
-    "oxlint": "latest",
-    "pnpm": "latest",
-    "turbo": "latest"
+    "husky": "^9.1.7",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "turbo": "^2.10.13"
   },
   "engines": {
     "node": ">=24"

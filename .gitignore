@@ -7,7 +7,11 @@ dist/
 .env.*
 !.env.example
 apps/web/src/routeTree.gen.ts
+
+# Local-only agent / docs / tooling (work on disk; not for GitHub)
 *.md
 .agents/
 .cursor/
-workspace-platform-foundation
+.scratch/
+.husky/
+.fallowrc.json
