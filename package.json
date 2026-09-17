@@ -1,0 +1,27 @@
+{
+  "name": "teamlyf",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:generate": "pnpm --filter @teamlyf/db db:generate",
+    "db:migrate": "pnpm --filter @teamlyf/db db:migrate",
+    "db:studio": "pnpm --filter @teamlyf/db db:studio"
+  },
+  "devDependencies": {
+    "oxfmt": "latest",
+    "oxlint": "latest",
+    "pnpm": "latest",
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.4.2"
+}
