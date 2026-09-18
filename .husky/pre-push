@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 
+# ── Branch name validation ──────────────────────────────────────────
 MAX_FILES=50
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 BRANCH_PATTERN='^(feat|fix|refactor|chore|docs|test|ci|build|perf|style|hotfix)/[a-z0-9][a-z0-9/-]*$'
@@ -17,13 +18,7 @@ case "$BRANCH" in
     ;;
 esac
 
-# Skip file-count gate on protected branches
-case "$BRANCH" in
-  main|master|dev)
-    exit 0
-    ;;
-esac
-
+# ── Fallow audit (runs on EVERY branch) ─────────────────────────────
 BASE=""
 if git show-ref --verify --quiet refs/heads/main; then
   BASE="main"
@@ -35,8 +30,26 @@ elif git show-ref --verify --quiet refs/remotes/origin/master; then
   BASE="origin/master"
 fi
 
+if [ -n "$BASE" ]; then
+  echo "Running fallow audit against $BASE …"
+  npx fallow audit --base "$BASE" --format human --quiet || {
+    echo ""
+    echo "BLOCKED: fallow audit failed. Fix findings or add a suppression comment."
+    echo "Docs: https://fallow.mintlify.app/"
+    exit 1
+  }
+else
+  echo "WARNING: no main/master base found; skipping fallow audit"
+fi
+
+# ── File-count gate (skip on protected branches) ────────────────────
+case "$BRANCH" in
+  main|master|dev)
+    exit 0
+    ;;
+esac
+
 if [ -z "$BASE" ]; then
-  echo "WARNING: no main/master base found; skipping branch file-count check"
   exit 0
 fi
 
@@ -48,13 +61,4 @@ if [ "$CHANGED_FILES" -gt "$MAX_FILES" ]; then
   echo "Keep branches small. Split the work into multiple PRs/branches."
   echo "Base compared: $BASE"
   exit 1
-fi
-
-echo "Running fallow audit on changed work…"
-if command -v pnpm >/dev/null 2>&1; then
-  pnpm exec fallow audit --base "$BASE" --format json --quiet || {
-    echo "BLOCKED: fallow audit failed. Fix findings or model intentional exceptions."
-    echo "Docs: https://fallow.mintlify.app/"
-    exit 1
-  }
 fi
