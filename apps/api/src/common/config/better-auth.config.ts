@@ -1,6 +1,8 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { organization } from "better-auth/plugins";
 import * as schema from "@teamlyf/db/schema";
+import * as organizationSchema from "@teamlyf/db/organization-schema";
 import { generateId } from "@teamlyf/db";
 import { hashPassword, verifyPassword } from "../helpers/hash-password";
 import type { CreateAuthOptions } from "../types/index";
@@ -23,7 +25,7 @@ export function createAuth(options: CreateAuthOptions) {
     basePath: `${API_VERSION_PATH}/auth`,
     database: drizzleAdapter(options.db, {
       provider: "pg",
-      schema,
+      schema: { ...schema, ...organizationSchema },
     }),
     secret: options.secret,
     baseURL: options.baseURL,
@@ -47,6 +49,14 @@ export function createAuth(options: CreateAuthOptions) {
         trustedProviders: socialProviders ? ["google", "email-password"] : ["email-password"],
       },
     },
+    plugins: [
+      organization({
+        // ponytail: invitation IDs are uuidv7 (opaque, not guessable), so the verified-email
+        // gate on by-ID invitation actions is not load-bearing yet and no email-verification
+        // flow exists. Flip to `true` once email verification is wired.
+        requireEmailVerificationOnInvitation: false,
+      }),
+    ],
   });
 }
 

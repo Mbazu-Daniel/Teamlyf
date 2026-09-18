@@ -1,6 +1,11 @@
 import { Controller, Post, Get, Body, Req, Res } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import type { Request, Response as ExpressResponse } from "express";
+import {
+  forwardSetCookies,
+  readResponseBody,
+  toFetchHeaders,
+} from "../../common/better-auth/better-auth-http";
 import { AuthService } from "./auth.service";
 import { SignUpDto, SignInDto } from "./dto";
 
@@ -19,11 +24,11 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    const headers = this.extractHeaders(req);
+    const headers = toFetchHeaders(req);
     const response = await this.authService.signUpEmail(body, headers);
 
-    this.forwardCookies(res, response);
-    return this.readBody(response);
+    forwardSetCookies(res, response);
+    return readResponseBody(response);
   }
 
   @Post("sign-in/email")
@@ -35,11 +40,11 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    const headers = this.extractHeaders(req);
+    const headers = toFetchHeaders(req);
     const response = await this.authService.signInEmail(body, headers);
 
-    this.forwardCookies(res, response);
-    return this.readBody(response);
+    forwardSetCookies(res, response);
+    return readResponseBody(response);
   }
 
   @Get("session")
@@ -47,61 +52,31 @@ export class AuthController {
   @ApiResponse({ status: 200, description: "Session returned" })
   @ApiResponse({ status: 401, description: "Not authenticated" })
   async session(@Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
-    const headers = this.extractHeaders(req);
+    const headers = toFetchHeaders(req);
     const response = await this.authService.getSession(headers);
 
-    this.forwardCookies(res, response);
-    return this.readBody(response);
+    forwardSetCookies(res, response);
+    return readResponseBody(response);
   }
 
   @Post("sign-out")
   @ApiOperation({ summary: "Sign out" })
   @ApiResponse({ status: 200, description: "Signed out" })
   async signOut(@Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
-    const headers = this.extractHeaders(req);
+    const headers = toFetchHeaders(req);
     const response = await this.authService.signOut(headers);
 
-    this.forwardCookies(res, response);
-    return this.readBody(response);
+    forwardSetCookies(res, response);
+    return readResponseBody(response);
   }
 
   @Get("sessions")
   @ApiOperation({ summary: "List all sessions" })
   @ApiResponse({ status: 200, description: "Sessions returned" })
   async sessions(@Req() req: Request) {
-    const headers = this.extractHeaders(req);
+    const headers = toFetchHeaders(req);
     const response = await this.authService.listSessions(headers);
 
-    return this.readBody(response);
-  }
-
-  private forwardCookies(res: ExpressResponse, upstream: globalThis.Response): void {
-    const cookies = upstream.headers.getSetCookie?.() ?? [];
-    for (const cookie of cookies) {
-      res.append("Set-Cookie", cookie);
-    }
-  }
-
-  private async readBody(response: globalThis.Response): Promise<unknown> {
-    if (response.status === 204) {
-      return null;
-    }
-    const text = await response.text();
-    if (!text) return null;
-    try {
-      return JSON.parse(text);
-    } catch {
-      return text;
-    }
-  }
-
-  private extractHeaders(req: Request): Headers {
-    const headers = new globalThis.Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (value !== undefined) {
-        headers.set(key, Array.isArray(value) ? value.join(", ") : String(value));
-      }
-    }
-    return headers;
+    return readResponseBody(response);
   }
 }
