@@ -35,6 +35,7 @@ export class OrganizationController {
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Organization returned" })
   @ApiResponse({ status: 404, description: "Organization not found" })
+  // fallow-ignore-next-line code-duplication
   async getOrganization(
     @Param("orgId") orgId: string,
     @Req() req: Request,

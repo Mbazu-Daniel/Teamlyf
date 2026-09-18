@@ -32,12 +32,33 @@ fi
 
 if [ -n "$BASE" ]; then
   echo "Running fallow audit against $BASE …"
-  npx fallow audit --base "$BASE" --format human --quiet || {
-    echo ""
-    echo "BLOCKED: fallow audit failed. Fix findings or add a suppression comment."
+  FALLOW_JSON="$(npx fallow audit --base "$BASE" --format json 2>/dev/null)"
+  FALLOW_EXIT=$?
+
+  # Parse verdict from JSON — CLI exits 0 for warn, so we check explicitly
+  VERDICT="$(echo "$FALLOW_JSON" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).verdict||'pass')}catch{console.log('pass')}})" 2>/dev/null)"
+
+  if [ "$FALLOW_EXIT" -ne 0 ] || [ "$VERDICT" = "fail" ] || [ "$VERDICT" = "warn" ]; then
+    echo "$FALLOW_JSON" | node -e "
+      let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{
+        const r=JSON.parse(d);
+        const s=r.summary||{};
+        const findings=[];
+        if(s.dead_code_issues) findings.push('  dead code: '+s.dead_code_issues+' issues');
+        if(s.complexity_findings) findings.push('  complexity: '+s.complexity_findings+' findings');
+        if(s.duplication_clone_groups) findings.push('  duplication: '+s.duplication_clone_groups+' clone groups');
+        console.log('Fallow verdict: '+r.verdict);
+        if(findings.length) console.log(findings.join('\n'));
+        console.log('');
+      });
+    " 2>/dev/null
+    echo "BLOCKED: fallow audit found issues (verdict: $VERDICT)."
+    echo "Fix findings or add a suppression comment (// fallow-ignore-next-line)."
     echo "Docs: https://fallow.mintlify.app/"
     exit 1
-  }
+  fi
+
+  echo "Fallow audit passed ✓"
 else
   echo "WARNING: no main/master base found; skipping fallow audit"
 fi
