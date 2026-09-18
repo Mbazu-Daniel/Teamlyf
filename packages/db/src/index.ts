@@ -11,3 +11,4 @@ export function createDb(connectionString: string): { db: Database; client: post
 export { generateId } from "./id";
 export * from "./env";
 export * as schema from "./auth";
+export * as organizationSchema from "./organization";
