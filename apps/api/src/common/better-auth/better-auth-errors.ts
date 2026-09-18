@@ -20,28 +20,20 @@ const ERROR_MAP: Record<string, string> = {
   ONLY_OWNER: "The owner cannot be removed from the organization.",
 };
 
-const FALLBACK_MESSAGE = "Something went wrong. Please try again.";
+const FALLBACK = "Something went wrong. Please try again.";
 
 export interface BetterAuthErrorBody {
   message?: string;
   code?: string;
 }
 
-export function sanitizeBetterAuthError(body: unknown): { message: string } {
-  if (!body || typeof body !== "object") return { message: FALLBACK_MESSAGE };
-
-  const { code, message } = body as BetterAuthErrorBody;
-
-  if (!code) return body as { message: string };
-
-  return { message: ERROR_MAP[code] ?? message ?? FALLBACK_MESSAGE };
+export function sanitizeBetterAuthError(body: BetterAuthErrorBody): { message: string } {
+  const msg = body.code ? (ERROR_MAP[body.code] ?? body.message) : body.message;
+  return { message: msg ?? FALLBACK };
 }
 
 export function isBetterAuthError(body: unknown): body is BetterAuthErrorBody {
-  return (
-    typeof body === "object" &&
-    body !== null &&
-    "code" in body &&
-    typeof (body as BetterAuthErrorBody).code === "string"
-  );
+  if (typeof body !== "object" || body === null) return false;
+  const b = body as Record<string, unknown>;
+  return "code" in b && typeof b.code === "string";
 }

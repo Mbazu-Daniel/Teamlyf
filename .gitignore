@@ -13,5 +13,4 @@ apps/web/src/routeTree.gen.ts
 .agents/
 .cursor/
 .scratch/
-.husky/
 .fallowrc.json
