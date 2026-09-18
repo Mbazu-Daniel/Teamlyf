@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsBoolean, IsOptional } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { OrganizationRolesField } from "./organization-roles-field.decorator";
+import { OrganizationRolesField } from "../../../common/better-auth/organization-roles-field.decorator";
 import type { OrganizationRole } from "../../member/types";
 
 export class InviteMemberDto {

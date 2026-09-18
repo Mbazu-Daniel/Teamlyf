@@ -5,7 +5,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import {
   ORGANIZATION_ROLES,
   parseOrganizationRoles,
-} from "../types";
+} from "../../modules/member/types";
 
 export function OrganizationRolesField(example: string[]) {
   return applyDecorators(

@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { OrganizationRolesField } from "./organization-roles-field.decorator";
+import { OrganizationRolesField } from "../../../common/better-auth/organization-roles-field.decorator";
 import type { OrganizationRole } from "../types";
 
 export class UpdateMemberRoleDto {
