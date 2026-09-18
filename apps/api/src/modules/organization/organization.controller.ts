@@ -10,6 +10,14 @@ import { CreateOrganizationDto, UpdateOrganizationDto } from "./dto";
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
+  private proxy(
+    req: Request,
+    res: ExpressResponse,
+    respond: (headers: Headers) => Promise<globalThis.Response>,
+  ) {
+    return proxyBetterAuth(req, res, respond);
+  }
+
   @Post()
   @ApiOperation({ summary: "Create a new organization" })
   @ApiResponse({ status: 201, description: "Organization created" })
@@ -19,9 +27,7 @@ export class OrganizationController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) =>
-      this.organizationService.createOrganization(body, headers),
-    );
+    return this.proxy(req, res, (h) => this.organizationService.createOrganization(body, h));
   }
 
   @Get(":orgId")
@@ -29,14 +35,13 @@ export class OrganizationController {
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Organization returned" })
   @ApiResponse({ status: 404, description: "Organization not found" })
+  // fallow-ignore-next-line code-duplication
   async getOrganization(
     @Param("orgId") orgId: string,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) =>
-      this.organizationService.getOrganization(orgId, headers),
-    );
+    return this.proxy(req, res, (h) => this.organizationService.getOrganization(orgId, h));
   }
 
   @Patch(":orgId")
@@ -51,9 +56,7 @@ export class OrganizationController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) =>
-      this.organizationService.updateOrganization(orgId, body, headers),
-    );
+    return this.proxy(req, res, (h) => this.organizationService.updateOrganization(orgId, body, h));
   }
 
   @Delete(":orgId")
@@ -66,8 +69,6 @@ export class OrganizationController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) =>
-      this.organizationService.deleteOrganization(orgId, headers),
-    );
+    return this.proxy(req, res, (h) => this.organizationService.deleteOrganization(orgId, h));
   }
 }

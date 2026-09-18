@@ -13,6 +13,7 @@
     "db:generate": "pnpm --filter @teamlyf/db db:generate",
     "db:migrate": "pnpm --filter @teamlyf/db db:migrate",
     "db:studio": "pnpm --filter @teamlyf/db db:studio",
+    "fallow:audit": "npx fallow audit --format json --quiet",
     "ci:local": "act -P ubuntu-latest=catthehacker/ubuntu:act-22.04 --pull=false --bind -v",
     "prepare": "husky"
   },
