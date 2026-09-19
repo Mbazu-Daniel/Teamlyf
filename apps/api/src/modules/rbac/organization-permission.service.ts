@@ -5,8 +5,6 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
 import { DATABASE } from "../../common/db/db.provider";
 import { AuthService } from "../auth/auth.service";
-import type { MemberRequest } from "./org-member.guard";
-
 @Injectable()
 export class OrganizationPermissionService {
   constructor(
@@ -15,18 +13,19 @@ export class OrganizationPermissionService {
   ) {}
 
   async checkUserPermission(
-    req: MemberRequest,
+    userId: string,
+    headers: Headers,
     orgId: string,
     resource: string,
     action: string,
     resourceId?: string,
   ): Promise<boolean> {
-    const isMember = await this.isOrganizationMember(orgId, req.user.id);
+    const isMember = await this.isOrganizationMember(orgId, userId);
     if (!isMember) return false;
 
     const result = await this.authService.auth.api
       .hasPermission({
-        headers: toFetchHeaders(req),
+        headers,
         body: {
           organizationId: orgId,
           permissions: { [resource]: [action] },
@@ -39,7 +38,7 @@ export class OrganizationPermissionService {
     return this.hasGrant({
       orgId,
       subjectKind: "user",
-      subjectId: req.user.id,
+      subjectId: userId,
       resource,
       action,
       resourceId,
