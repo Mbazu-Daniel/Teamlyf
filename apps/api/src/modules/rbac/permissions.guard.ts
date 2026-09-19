@@ -2,34 +2,29 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import type { Database } from "@teamlyf/db";
-import { permissionGrant } from "@teamlyf/db/organization-schema";
-import { and, eq, isNull, or } from "drizzle-orm";
-import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
-import { DATABASE } from "../../common/db/db.provider";
-import { AuthService } from "../auth/auth.service";
 import type { MemberRequest } from "./org-member.guard";
 import {
   REQUIRE_PERMISSION_KEY,
   type RequirePermissionMeta,
 } from "./require-permission.decorator";
+import { OrganizationPermissionService } from "./organization-permission.service";
 
 /**
- * Two-step check:
- * 1. better-auth hasPermission (role-level, user subjects)
- * 2. permission_grant fallback for resourceId overrides or agent subjects
+ * Organization-scoped permission enforcement for authenticated HTTP requests.
+ *
+ * User permissions are resolved from Better Auth role permissions with
+ * organization-scoped grant fallback. Agent permissions are resolved by the
+ * shared permission service and do not use Better Auth roles.
  */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly authService: AuthService,
-    @Inject(DATABASE) private readonly db: Database,
+    private readonly permissionService: OrganizationPermissionService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -51,87 +46,18 @@ export class PermissionsGuard implements CanActivate {
       : undefined;
     const resourceId = Array.isArray(resourceIdRaw) ? resourceIdRaw[0] : resourceIdRaw;
 
-    const allowed = await this.checkUserPermission(
+    const allowed = await this.permissionService.checkUserPermission(
       req,
       orgId,
       meta.resource,
       meta.action,
       resourceId,
     );
+
     if (!allowed) {
       throw new ForbiddenException("Missing permission");
     }
+
     return true;
-  }
-
-  /** Public for agent workers later — agents skip better-auth entirely. */
-  async checkAgentPermission(
-    orgId: string,
-    agentId: string,
-    resource: string,
-    action: string,
-    resourceId?: string,
-  ): Promise<boolean> {
-    return this.hasGrant({
-      orgId,
-      subjectKind: "agent",
-      subjectId: agentId,
-      resource,
-      action,
-      resourceId,
-    });
-  }
-
-  private async checkUserPermission(
-    req: MemberRequest,
-    orgId: string,
-    resource: string,
-    action: string,
-    resourceId?: string,
-  ): Promise<boolean> {
-    const result = await this.authService.auth.api
-      .hasPermission({
-        headers: toFetchHeaders(req),
-        body: {
-          organizationId: orgId,
-          permissions: { [resource]: [action] },
-        },
-      })
-      .catch(() => null);
-
-    if (result?.success) return true;
-
-    return this.hasGrant({
-      orgId,
-      subjectKind: "user",
-      subjectId: req.user.id,
-      resource,
-      action,
-      resourceId,
-    });
-  }
-
-  private async hasGrant(input: {
-    orgId: string;
-    subjectKind: "user" | "agent";
-    subjectId: string;
-    resource: string;
-    action: string;
-    resourceId?: string;
-  }): Promise<boolean> {
-    const rows = await this.db.query.permissionGrant.findMany({
-      where: and(
-        eq(permissionGrant.organizationId, input.orgId),
-        eq(permissionGrant.subjectKind, input.subjectKind),
-        eq(permissionGrant.subjectId, input.subjectId),
-        eq(permissionGrant.module, input.resource),
-        eq(permissionGrant.action, input.action),
-        input.resourceId
-          ? or(eq(permissionGrant.resourceId, input.resourceId), isNull(permissionGrant.resourceId))
-          : isNull(permissionGrant.resourceId),
-      ),
-      limit: 1,
-    });
-    return rows.length > 0;
   }
 }
