@@ -2,7 +2,6 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { member, permissionGrant } from "@teamlyf/db/organization-schema";
 import { and, eq, isNull, or } from "drizzle-orm";
-import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
 import { DATABASE } from "../../common/db/db.provider";
 import { AuthService } from "../auth/auth.service";
 @Injectable()
