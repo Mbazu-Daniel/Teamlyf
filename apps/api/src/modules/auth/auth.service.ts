@@ -71,7 +71,7 @@ export class AuthService {
     });
   }
 
-  async listSessions(headers: Headers) {
+  async getSessions(headers: Headers) {
     return this.auth.api.listSessions({
       headers,
       asResponse: true,

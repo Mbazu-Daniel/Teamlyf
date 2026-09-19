@@ -90,13 +90,13 @@ export class InvitationController {
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Invitations returned" })
   @ApiResponse({ status: 400, description: "Missing session headers" })
-  async listUserInvitations(
+  async getUserInvitations(
     @Query() query: ListUserInvitationsQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     return proxyBetterAuth(req, res, (headers) =>
-      this.invitationService.listUserInvitations(query, headers),
+      this.invitationService.getUserInvitations(query, headers),
     );
   }
 
@@ -123,14 +123,14 @@ export class InvitationController {
   @ApiResponse({ status: 200, description: "Invitations returned" })
   @ApiResponse({ status: 400, description: "Organization ID is required" })
   @ApiResponse({ status: 403, description: "Not a member of this organization" })
-  async listInvitations(
+  async getInvitations(
     @Param("orgId") orgId: string,
     @Query() query: ListInvitationsQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     return proxyBetterAuth(req, res, (headers) =>
-      this.invitationService.listInvitations(orgId, query, headers),
+      this.invitationService.getInvitations(orgId, query, headers),
     );
   }
 }

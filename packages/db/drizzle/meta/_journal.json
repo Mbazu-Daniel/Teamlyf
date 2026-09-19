@@ -15,6 +15,13 @@
       "when": 1789689023000,
       "tag": "0001_magenta_mikhail_rasputin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789731914978,
+      "tag": "0002_tricky_william_stryker",
+      "breakpoints": true
     }
   ]
 }

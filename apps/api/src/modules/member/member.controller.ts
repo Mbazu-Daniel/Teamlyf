@@ -22,14 +22,14 @@ export class MemberController {
   @ApiResponse({ status: 200, description: "Members returned" })
   @ApiResponse({ status: 400, description: "No active organization" })
   @ApiResponse({ status: 403, description: "Not a member of this organization" })
-  async listMembers(
+  async getMembers(
     @Param("orgId") orgId: string,
     @Query() query: ListMembersQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     return proxyBetterAuth(req, res, (headers) =>
-      this.memberService.listMembers(orgId, query, headers),
+      this.memberService.getMembers(orgId, query, headers),
     );
   }
 
@@ -39,14 +39,14 @@ export class MemberController {
   @ApiResponse({ status: 200, description: "Member removed" })
   @ApiResponse({ status: 400, description: "Member not found" })
   @ApiResponse({ status: 403, description: "Not allowed to remove this member" })
-  async removeMember(
+  async deleteMember(
     @Param("orgId") orgId: string,
     @Body() body: RemoveMemberDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
     return proxyBetterAuth(req, res, (headers) =>
-      this.memberService.removeMember(orgId, body, headers),
+      this.memberService.deleteMember(orgId, body, headers),
     );
   }
 

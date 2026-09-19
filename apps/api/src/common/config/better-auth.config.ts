@@ -6,6 +6,7 @@ import * as organizationSchema from "@teamlyf/db/organization-schema";
 import { generateId } from "@teamlyf/db";
 import { hashPassword, verifyPassword } from "../helpers/hash-password";
 import type { CreateAuthOptions } from "../types/index";
+import { ac, admin, member, owner } from "../better-auth/permissions";
 
 export const API_VERSION_PATH = "/api/v1";
 
@@ -51,6 +52,9 @@ export function createAuth(options: CreateAuthOptions) {
     },
     plugins: [
       organization({
+        ac,
+        roles: { owner, admin, member },
+        dynamicAccessControl: { enabled: true },
         // ponytail: invitation IDs are uuidv7 (opaque, not guessable), so the verified-email
         // gate on by-ID invitation actions is not load-bearing yet and no email-verification
         // flow exists. Flip to `true` once email verification is wired.

@@ -51,7 +51,7 @@ export class AuthController {
   @ApiOperation({ summary: "Get current session" })
   @ApiResponse({ status: 200, description: "Session returned" })
   @ApiResponse({ status: 401, description: "Not authenticated" })
-  async session(@Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
+  async getSession(@Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
     const headers = toFetchHeaders(req);
     const response = await this.authService.getSession(headers);
 
@@ -73,9 +73,9 @@ export class AuthController {
   @Get("sessions")
   @ApiOperation({ summary: "List all sessions" })
   @ApiResponse({ status: 200, description: "Sessions returned" })
-  async sessions(@Req() req: Request) {
+  async getSessions(@Req() req: Request) {
     const headers = toFetchHeaders(req);
-    const response = await this.authService.listSessions(headers);
+    const response = await this.authService.getSessions(headers);
 
     return readResponseBody(response);
   }

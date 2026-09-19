@@ -52,7 +52,7 @@ export class InvitationService {
     });
   }
 
-  async listInvitations(orgId: string, query: ListInvitationsQueryDto, headers: Headers) {
+  async getInvitations(orgId: string, query: ListInvitationsQueryDto, headers: Headers) {
     return this.authService.auth.api.listInvitations({
       query: { ...query, organizationId: orgId },
       headers,
@@ -60,7 +60,7 @@ export class InvitationService {
     });
   }
 
-  async listUserInvitations(query: ListUserInvitationsQueryDto, headers: Headers) {
+  async getUserInvitations(query: ListUserInvitationsQueryDto, headers: Headers) {
     return this.authService.auth.api.listUserInvitations({
       query,
       headers,

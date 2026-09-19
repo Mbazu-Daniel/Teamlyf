@@ -12,7 +12,7 @@ import type {
 export class MemberService {
   constructor(private readonly authService: AuthService) {}
 
-  async listMembers(orgId: string, query: ListMembersQueryDto, headers: Headers) {
+  async getMembers(orgId: string, query: ListMembersQueryDto, headers: Headers) {
     return this.authService.auth.api.listMembers({
       query: { ...query, organizationId: orgId },
       headers,
@@ -20,7 +20,7 @@ export class MemberService {
     });
   }
 
-  async removeMember(orgId: string, body: RemoveMemberDto, headers: Headers) {
+  async deleteMember(orgId: string, body: RemoveMemberDto, headers: Headers) {
     return this.authService.auth.api.removeMember({
       body: { ...body, organizationId: orgId },
       headers,
