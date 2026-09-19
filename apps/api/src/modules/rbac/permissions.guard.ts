@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import type { MemberRequest } from "./org-member.guard";
+import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
 import {
   REQUIRE_PERMISSION_KEY,
   type RequirePermissionMeta,
@@ -47,7 +48,8 @@ export class PermissionsGuard implements CanActivate {
     const resourceId = Array.isArray(resourceIdRaw) ? resourceIdRaw[0] : resourceIdRaw;
 
     const allowed = await this.permissionService.checkUserPermission(
-      req,
+      req.user.id,
+      toFetchHeaders(req),
       orgId,
       meta.resource,
       meta.action,
