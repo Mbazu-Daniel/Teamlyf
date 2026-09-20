@@ -21,7 +21,7 @@ export const aiUsage = pgTable(
     organizationId: organizationReference(),
     memberId: uuid("member_id")
       .notNull()
-      .references(() => member.id, { onDelete: "cascade" }),
+      .references(() => member.id),
     agentId: uuid("agent_id"),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
