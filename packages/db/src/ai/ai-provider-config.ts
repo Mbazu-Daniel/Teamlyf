@@ -7,7 +7,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { generateId } from "../id";
+import { generateId } from "../id";\nimport { aiProviderSource } from "./provider-source";
 import { organizationReference } from "../organization/membership-columns";
 
 export const aiProviderConfig = pgTable(
@@ -19,7 +19,7 @@ export const aiProviderConfig = pgTable(
     organizationId: organizationReference(),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
-    source: text("source").notNull(),
+    source: aiProviderSource("source").notNull(),
     encryptedApiKey: text("encrypted_api_key"),
     keyVersion: text("key_version"),
     isActive: boolean("is_active").notNull().default(true),
