@@ -1,7 +1,7 @@
 export type AgentContext = {
   organizationId: string;
   agentId: string;
-  actorUserId?: string;
+  memberId?: string;
   module?: string;
   resourceId?: string;
 };
