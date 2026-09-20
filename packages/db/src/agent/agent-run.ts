@@ -9,6 +9,7 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  sql,
 } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { agent } from "./agent";
@@ -55,6 +56,6 @@ export const agentRun = pgTable(
     index("agent_run_member_id_idx").on(t.memberId),
     index("agent_run_status_idx").on(t.status),
     index("agent_run_created_at_idx").on(t.createdAt),
-    check("agent_run_attempt_count_non_negative_check", t.attemptCount.gte(0)),
+    check("agent_run_attempt_count_non_negative_check", sql`${t.attemptCount} >= 0`),
   ],
 );
