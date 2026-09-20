@@ -28,8 +28,9 @@ export const aiProviderConfig = pgTable(
   },
   (t) => [
     index("ai_provider_config_organization_id_idx").on(t.organizationId),
-    uniqueIndex("ai_provider_config_org_provider_model_idx").on(
+    uniqueIndex("ai_provider_config_org_source_provider_model_idx").on(
       t.organizationId,
+      t.source,
       t.provider,
       t.model,
     ),
