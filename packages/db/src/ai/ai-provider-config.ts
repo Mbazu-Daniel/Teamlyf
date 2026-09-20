@@ -42,6 +42,10 @@ export const aiProviderConfig = pgTable(
       "ai_provider_config_byok_key_check",
       sql`(${t.source} = 'byok' AND ${t.encryptedApiKey} IS NOT NULL) OR (${t.source} = 'teamlyf' AND ${t.encryptedApiKey} IS NULL)`,
     ),
+    check(
+      "ai_provider_config_key_version_check",
+      sql`(${t.encryptedApiKey} IS NULL AND ${t.keyVersion} IS NULL) OR (${t.encryptedApiKey} IS NOT NULL AND ${t.keyVersion} IS NOT NULL)`,
+    ),
     index("ai_provider_config_organization_id_idx").on(t.organizationId),
     uniqueIndex("ai_provider_config_org_source_provider_model_idx").on(
       t.organizationId,
