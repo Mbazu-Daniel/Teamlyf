@@ -11,9 +11,9 @@ export const aiProviderSchema = z.object({
 export type AiProvider = z.infer<typeof aiProviderSchema>;
 
 export const aiUsageSchema = z.object({
-  organizationId: z.string().min(1),
-  memberId: z.string().uuid().nullable(),
-  agentId: z.string().min(1).nullable(),
+  organizationId: z.string().uuid(),
+  memberId: z.string().uuid(),
+  agentId: z.string().uuid().nullable(),
   provider: z.string().min(1),
   model: z.string().min(1),
   source: aiProviderSourceSchema,
@@ -29,7 +29,7 @@ export type AiUsage = z.infer<typeof aiUsageSchema>;
 export interface AiProviderResolver {
   resolve(input: {
     organizationId: string;
-    memberId?: string;
+    memberId: string;
   }): Promise<AiProvider>;
 }
 
