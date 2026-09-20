@@ -1,10 +1,18 @@
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import * as aiSchema from "./ai";
+import * as agentSchema from "./agent";
 import * as authSchema from "./auth";
 import * as orgSchema from "./organization";
 import * as projectSchema from "./project";
 
-const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema };
+const allSchemas = {
+  ...aiSchema,
+  ...agentSchema,
+  ...authSchema,
+  ...orgSchema,
+  ...projectSchema,
+};
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;
 
@@ -18,3 +26,5 @@ export * from "./env";
 export * as schema from "./auth";
 export * as organizationSchema from "./organization";
 export * as projectSchema from "./project";
+export * as agentSchema from "./agent";
+export * as aiSchema from "./ai";
