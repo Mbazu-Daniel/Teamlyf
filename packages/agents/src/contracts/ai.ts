@@ -12,7 +12,7 @@ export type AiProvider = z.infer<typeof aiProviderSchema>;
 
 export const aiUsageSchema = z.object({
   organizationId: z.string().uuid(),
-  memberId: z.string().uuid().nullable(),
+  memberId: z.string().uuid(),
   agentId: z.string().uuid().nullable(),
   provider: z.string().min(1),
   model: z.string().min(1),
