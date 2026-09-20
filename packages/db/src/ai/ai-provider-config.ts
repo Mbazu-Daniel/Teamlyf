@@ -1,11 +1,13 @@
 import {
   boolean,
+  check,
   index,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
   uuid,
+  sql,
 } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { aiProviderSource } from "./provider-source";
@@ -28,6 +30,18 @@ export const aiProviderConfig = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
+    check(
+      "ai_provider_config_provider_non_empty_check",
+      sql`length(trim(${t.provider})) > 0`,
+    ),
+    check(
+      "ai_provider_config_model_non_empty_check",
+      sql`length(trim(${t.model})) > 0`,
+    ),
+    check(
+      "ai_provider_config_byok_key_check",
+      sql`(${t.source} = 'byok' AND ${t.encryptedApiKey} IS NOT NULL) OR (${t.source} = 'teamlyf' AND ${t.encryptedApiKey} IS NULL)`,
+    ),
     index("ai_provider_config_organization_id_idx").on(t.organizationId),
     uniqueIndex("ai_provider_config_org_source_provider_model_idx").on(
       t.organizationId,
