@@ -8,7 +8,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { member } from "../organization/member";
+import { aiProviderSource } from "./provider-source";\nimport { member } from "../organization/member";
 import { organizationReference } from "../organization/membership-columns";
 
 export const aiUsage = pgTable(
@@ -24,7 +24,7 @@ export const aiUsage = pgTable(
     agentId: uuid("agent_id"),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
-    source: text("source").notNull(),
+    source: aiProviderSource("source").notNull(),
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     totalTokens: integer("total_tokens").notNull().default(0),
