@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { organizationReference } from "../organization/membership-columns";
 
@@ -11,6 +11,7 @@ export const agent = pgTable(
     organizationId: organizationReference(),
     name: text("name").notNull(),
     description: text("description"),
+    enabled: boolean("enabled").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
