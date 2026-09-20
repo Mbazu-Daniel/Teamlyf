@@ -8,9 +8,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { user } from "../auth/user";
-import { organizationReference } from "../organization/membership-columns";
-import { agent } from "../agent/agent";
+import { memberReference, organizationReference } from "../organization/membership-columns";
 
 export const aiUsage = pgTable(
   "ai_usage",
@@ -19,8 +17,8 @@ export const aiUsage = pgTable(
       .$defaultFn(() => generateId())
       .primaryKey(),
     organizationId: organizationReference(),
-    userId: uuid("user_id").references(() => user.id, { onDelete: "set null" }),
-    agentId: uuid("agent_id").references(() => agent.id, { onDelete: "set null" }),
+    memberId: memberReference(),
+    agentId: uuid("agent_id"),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
     source: text("source").notNull(),
@@ -36,7 +34,7 @@ export const aiUsage = pgTable(
   },
   (t) => [
     index("ai_usage_organization_id_idx").on(t.organizationId),
-    index("ai_usage_user_id_idx").on(t.userId),
+    index("ai_usage_member_id_idx").on(t.memberId),
     index("ai_usage_agent_id_idx").on(t.agentId),
     index("ai_usage_created_at_idx").on(t.createdAt),
   ],
