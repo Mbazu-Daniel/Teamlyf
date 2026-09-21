@@ -9,6 +9,9 @@ allowBuilds:
   "@scarf/scarf": false
   "@prisma/client": false
   better-sqlite3: false
+  # BullMQ can use this optional native helper, but its portable JS fallback is
+  # sufficient for Teamlyf and keeps installs reproducible across environments.
+  msgpackr-extract: false
 minimumReleaseAgeExclude:
   - "@tanstack/react-router@1.170.38"
   - "@tanstack/react-start-client@1.168.36"

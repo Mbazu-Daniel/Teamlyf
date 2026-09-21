@@ -19,6 +19,21 @@ const apiEnvSchema = z.object({
     .transform((url) => url.replace(/\/+$/, "")),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  REDIS_URL: z.string().url().optional(),
+  AGENT_ENCRYPTION_KEY: z.string().min(32).optional(),
+  EMAIL_URL: z.string().optional(),
+  EMAIL_FROM: z.string().email().optional(),
+  S3_REGION: z.string().optional(),
+  S3_BUCKET: z.string().optional(),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  BACHS_API_URL: z.string().url().optional(),
+  BACHS_API_KEY: z.string().optional(),
+  BACHS_WEBHOOK_SECRET: z.string().min(16).optional(),
+  LIVEKIT_URL: z.string().url().optional(),
+  LIVEKIT_API_KEY: z.string().optional(),
+  LIVEKIT_API_SECRET: z.string().optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

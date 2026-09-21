@@ -3,8 +3,9 @@ import postgres from "postgres";
 import * as authSchema from "./auth";
 import * as orgSchema from "./organization";
 import * as projectSchema from "./project";
+import * as workspaceSchema from "./workspace";
 
-const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema };
+const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema, ...workspaceSchema };
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;
 
@@ -18,3 +19,4 @@ export * from "./env";
 export * as schema from "./auth";
 export * as organizationSchema from "./organization";
 export * as projectSchema from "./project";
+export * as workspaceSchema from "./workspace";

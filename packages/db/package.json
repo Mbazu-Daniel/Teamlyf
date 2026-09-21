@@ -24,6 +24,10 @@
     "./project-schema": {
       "types": "./dist/project/index.d.ts",
       "default": "./dist/project/index.js"
+    },
+    "./workspace-schema": {
+      "types": "./dist/workspace/index.d.ts",
+      "default": "./dist/workspace/index.js"
     }
   },
   "scripts": {

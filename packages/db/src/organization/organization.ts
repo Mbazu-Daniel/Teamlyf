@@ -11,6 +11,8 @@ export const organization = pgTable(
     slug: text("slug").notNull().unique(),
     logo: text("logo"),
     metadata: text("metadata"),
+    plan: text("plan").notNull().default("starter"),
+    bachsCustomerId: text("bachs_customer_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
