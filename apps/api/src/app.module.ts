@@ -10,6 +10,7 @@ import { NoteModule } from "./modules/notes/note.module";
 import { HrModule } from "./modules/hr/hr.module";
 import { RbacModule } from "./modules/rbac";
 import { CallModule } from "./modules/calls/call.module";
+import { BillingModule } from "./modules/billing/billing.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CallModule } from "./modules/calls/call.module";
     AuthModule,
     RbacModule,
     CallModule,
+    BillingModule,
     OrganizationModule,
     MemberModule,
     InvitationModule,
