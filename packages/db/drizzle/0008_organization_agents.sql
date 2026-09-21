@@ -74,15 +74,15 @@ CREATE UNIQUE INDEX "member_organization_id_id_idx" ON "member" USING btree ("or
 --> statement-breakpoint
 ALTER TABLE "agent" ADD CONSTRAINT "agent_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
 --> statement-breakpoint
-ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id") ON DELETE CASCADE;
+ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id");
 --> statement-breakpoint
-ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_member_fk" FOREIGN KEY ("organization_id","member_id") REFERENCES "member"("organization_id","id") ON DELETE CASCADE;
+ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_member_fk" FOREIGN KEY ("organization_id","member_id") REFERENCES "member"("organization_id","id");
 --> statement-breakpoint
 ALTER TABLE "ai_provider_config" ADD CONSTRAINT "ai_provider_config_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
 --> statement-breakpoint
 ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_member_fk" FOREIGN KEY ("organization_id","member_id") REFERENCES "member"("organization_id","id") ON DELETE CASCADE;
 --> statement-breakpoint
-ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id") ON DELETE SET NULL;
+ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id");
 --> statement-breakpoint
 CREATE UNIQUE INDEX "agent_organization_name_idx" ON "agent" USING btree ("organization_id","name");
 --> statement-breakpoint
