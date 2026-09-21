@@ -11,6 +11,7 @@ import { HrModule } from "./modules/hr/hr.module";
 import { RbacModule } from "./modules/rbac";
 import { CallModule } from "./modules/calls/call.module";
 import { BillingModule } from "./modules/billing/billing.module";
+import { AgentModule } from "./modules/agents/agent.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BillingModule } from "./modules/billing/billing.module";
     RbacModule,
     CallModule,
     BillingModule,
+    AgentModule,
     OrganizationModule,
     MemberModule,
     InvitationModule,
