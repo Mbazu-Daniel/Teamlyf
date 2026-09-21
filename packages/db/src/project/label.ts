@@ -11,7 +11,7 @@ export const label = pgTable(
     projectId: uuid("project_id")
       .notNull()
       .references(() => project.id, { onDelete: "cascade" }),
-    parentId: uuid("parent_id").references((): any => label.id, { onDelete: "cascade" }),
+    parentId: uuid("parent_id").references(() => label.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     description: text("description"),
     color: text("color").notNull().default("#60646C"),
