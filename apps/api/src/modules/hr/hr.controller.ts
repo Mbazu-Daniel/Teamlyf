@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
@@ -42,16 +42,4 @@ export class HrController {
   reviewLeave(@Param("orgId") orgId: string, @Param("requestId") requestId: string, @CurrentMember() member: SessionMember, @Body() body: ReviewLeaveDto) {
     return this.hr.reviewLeave(orgId, member.id, requestId, body);
   }
-
-  @Post("attendance/check-in")
-  @RequirePermission("hr", "create")
-  checkIn(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) { return this.hr.checkIn(orgId, member.id); }
-
-  @Post("attendance/check-out")
-  @RequirePermission("hr", "update")
-  checkOut(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) { return this.hr.checkOut(orgId, member.id); }
-
-  @Get("attendance")
-  @RequirePermission("hr", "read")
-  attendance(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) { return this.hr.attendance(orgId, member.id); }
 }
