@@ -7,11 +7,6 @@ import { DATABASE } from "../../common/db/db.provider";
 
 const REQUIRED_FEATURE = "required_feature";
 export type Feature = "agents" | "calls";
-const planFeatures: Record<string, readonly Feature[]> = {
-  starter: [],
-  growth: ["agents"],
-  scale: ["agents", "calls"],
-};
 
 export const RequireFeature = (feature: Feature) => SetMetadata(REQUIRED_FEATURE, feature);
 
@@ -37,8 +32,8 @@ export class FeatureGateGuard implements CanActivate {
         })
       : undefined;
 
-    if (!current || current.status !== "active" || !planFeatures[current.plan]?.includes(feature)) {
-      throw new ForbiddenException(`${feature} requires an active plan with this feature`);
+    if (!current || current.status !== "active") {
+      throw new ForbiddenException(`${feature} requires an active organization plan`);
     }
 
     return true;
