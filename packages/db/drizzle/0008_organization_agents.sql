@@ -70,6 +70,8 @@ CREATE TABLE "ai_usage" (
   CONSTRAINT "ai_usage_cost_non_negative_check" CHECK ("estimated_cost_usd" IS NULL OR "estimated_cost_usd" >= 0)
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX "member_organization_id_id_idx" ON "member" USING btree ("organization_id","id");
+--> statement-breakpoint
 ALTER TABLE "agent" ADD CONSTRAINT "agent_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
 --> statement-breakpoint
 ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id") ON DELETE CASCADE;
