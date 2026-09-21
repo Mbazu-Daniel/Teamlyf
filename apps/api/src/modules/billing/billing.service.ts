@@ -8,6 +8,7 @@ import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import type { BillingPlan, CheckoutDto } from "./billing.dto";
+import { planEntitlements } from "./plan-entitlements";
 
 type BillingEvent = {
   id?: string;
@@ -48,7 +49,7 @@ export class BillingService {
       plan: current?.plan ?? "starter",
       status: current?.status ?? "inactive",
       seatLimit: Number(current?.seatLimit ?? 5),
-      agentLimit: Number(current?.agentLimit ?? 0),
+      agentLimit: Number(current?.agentLimit ?? planEntitlements.starter.agentLimit),
       currentPeriodEnd: current?.currentPeriodEnd?.toISOString() ?? null,
       members: Number(members[0]?.total ?? 0),
       provider: current?.provider ?? "bachs",
