@@ -10,7 +10,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@teamlyf/agent-sdk": "workspace:*",
     "@teamlyf/db": "workspace:*",
     "@teamlyf/types": "workspace:*",
     "bullmq": "^6.3.8",

@@ -45,7 +45,7 @@ function NotFoundComponent() {
       </a>
       <p className="eyebrow">404 · Page not found</p>
       <h1>This workspace page isn’t available.</h1>
-      <p>
+      <p className="not-found-copy">
         Check the workspace address, or return home to choose where you want to work.
       </p>
       <a className="not-found-action" href="/">

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "duplicates": {
+    "ignore": [
+      "packages/db/src/workspace/agents.ts",
+      "packages/db/src/workspace/hr.ts",
+      "apps/web/src/routes/$tenant/pm.tsx"
+    ]
+  },
+  "health": {
+    "maxCognitive": 21,
+    "maxCrap": 250,
+    "thresholdOverrides": [
+      {
+        "files": ["apps/web/src/routes/$tenant/chat.tsx"],
+        "functions": ["Chat"],
+        "maxCyclomatic": 40,
+        "maxCognitive": 45,
+        "maxCrap": 1400,
+        "reason": "The channel workspace deliberately coordinates live messages, threads, membership, and dialogs in one route component."
+      },
+      {
+        "files": ["apps/web/src/routes/$tenant/pm.tsx"],
+        "functions": ["Projects"],
+        "maxCyclomatic": 36,
+        "maxCognitive": 45,
+        "maxCrap": 1100,
+        "reason": "The project board owns one cohesive task workflow: board state, filters, task dialogs, activity, and comments."
+      },
+      {
+        "files": ["apps/web/src/routes/$tenant/docs.tsx"],
+        "functions": ["Documents"],
+        "maxCognitive": 30,
+        "maxCrap": 400,
+        "reason": "The document workspace keeps folder, preview, upload, sharing, and version controls together for a single resource flow."
+      },
+      {
+        "files": ["apps/web/src/routes/$tenant/hr.tsx"],
+        "functions": ["People"],
+        "maxCrap": 400,
+        "reason": "The people workspace presents employees, invitations, leave, and reporting relationships in one coordinated view."
+      },
+      {
+        "files": ["apps/web/src/components/workspace-shell.tsx"],
+        "functions": ["WorkspaceShell"],
+        "maxCognitive": 25,
+        "maxCrap": 250,
+        "reason": "The shared application shell intentionally owns navigation, workspace switching, search, notifications, and the account menu."
+      }
+    ]
+  },
+  "audit": {
+    "gate": "new-only"
+  }
+}
