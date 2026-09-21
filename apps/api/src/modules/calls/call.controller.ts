@@ -4,11 +4,13 @@ import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
 import { CallService } from "./call.service";
+import { FeatureGateGuard, RequireFeature } from "../billing/feature-gate";
 import { CreateCallTokenDto } from "./call.dto";
 
 @ApiTags("Calls")
 @ApiBearerAuth()
-@UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
+@UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard, FeatureGateGuard)
+@RequireFeature("calls")
 @Controller("organization/:orgId/calls")
 export class CallController {
   constructor(private readonly calls: CallService) {}
