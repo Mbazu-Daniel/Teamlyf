@@ -7,6 +7,7 @@ import { MemberModule } from "./modules/member/member.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
 import { ProjectFeatureModule } from "./modules/project/project-feature.module";
 import { NoteModule } from "./modules/notes/note.module";
+import { HrModule } from "./modules/hr/hr.module";
 import { RbacModule } from "./modules/rbac";
 
 @Module({
@@ -20,6 +21,7 @@ import { RbacModule } from "./modules/rbac";
     InvitationModule,
     ProjectFeatureModule,
     NoteModule,
+    HrModule,
   ],
 })
 export class AppModule {}
