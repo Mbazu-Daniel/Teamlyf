@@ -12,6 +12,7 @@ export const Route = createRootRoute({
     links: [{ rel: "stylesheet", href: styles }],
   }),
   component: RootComponent,
+  notFoundComponent: NotFoundComponent,
 });
 
 function RootComponent() {
@@ -33,5 +34,23 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <Scripts />
       </body>
     </html>
+  );
+}
+
+function NotFoundComponent() {
+  return (
+    <main className="not-found-page">
+      <a className="not-found-brand" href="/">
+        Teamlyf
+      </a>
+      <p className="eyebrow">404 · Page not found</p>
+      <h1>This workspace page isn’t available.</h1>
+      <p>
+        Check the workspace address, or return home to choose where you want to work.
+      </p>
+      <a className="not-found-action" href="/">
+        Back to Teamlyf
+      </a>
+    </main>
   );
 }
