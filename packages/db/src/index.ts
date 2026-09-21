@@ -7,8 +7,20 @@ import * as documentsSchema from "./documents";
 import * as notesSchema from "./notes";
 import * as hrSchema from "./hr";
 import * as billingSchema from "./billing";
+import * as agentSchema from "./agent";
+import * as aiSchema from "./ai";
 
-const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema, ...documentsSchema, ...notesSchema, ...hrSchema, ...billingSchema };
+const allSchemas = {
+  ...authSchema,
+  ...orgSchema,
+  ...projectSchema,
+  ...documentsSchema,
+  ...notesSchema,
+  ...hrSchema,
+  ...billingSchema,
+  ...agentSchema,
+  ...aiSchema,
+};
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;
 
@@ -29,3 +41,5 @@ export * as hrSchema from "./hr";
 export * from "./hr";
 export * as billingSchema from "./billing";
 export * from "./billing";
+export * as agentSchema from "./agent";
+export * as aiSchema from "./ai";
