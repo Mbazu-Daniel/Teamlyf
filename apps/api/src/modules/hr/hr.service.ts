@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { hrAttendance, hrEmployeeProfile, hrLeavePolicy, hrLeaveRequest, member } from "@teamlyf/db";
+import { hrEmployeeProfile, hrLeavePolicy, hrLeaveRequest, member } from "@teamlyf/db";
 import { and, desc, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { EmployeeProfileDto, LeaveRequestDto, ReviewLeaveDto } from "./hr.dto";
@@ -73,26 +73,5 @@ export class HrService {
     if (!request) throw new NotFoundException("Leave request not found");
     const [updated] = await this.db.update(hrLeaveRequest).set({ status: dto.status, reviewedById: reviewerId, reviewedAt: new Date() }).where(and(eq(hrLeaveRequest.id, requestId), eq(hrLeaveRequest.organizationId, orgId))).returning();
     return updated;
-  }
-
-  async checkIn(orgId: string, memberId: string) {
-    await this.requireMember(orgId, memberId);
-    const existing = await this.db.query.hrAttendance.findFirst({ where: and(eq(hrAttendance.organizationId, orgId), eq(hrAttendance.memberId, memberId), eq(hrAttendance.checkOutAt, null)) });
-    if (existing) throw new BadRequestException("Already checked in");
-    const [created] = await this.db.insert(hrAttendance).values({ organizationId: orgId, memberId, checkInAt: new Date() }).returning();
-    return created;
-  }
-
-  async checkOut(orgId: string, memberId: string) {
-    await this.requireMember(orgId, memberId);
-    const existing = await this.db.query.hrAttendance.findFirst({ where: and(eq(hrAttendance.organizationId, orgId), eq(hrAttendance.memberId, memberId), eq(hrAttendance.checkOutAt, null)), orderBy: [desc(hrAttendance.checkInAt)] });
-    if (!existing) throw new BadRequestException("No open attendance session");
-    const [updated] = await this.db.update(hrAttendance).set({ checkOutAt: new Date() }).where(and(eq(hrAttendance.id, existing.id), eq(hrAttendance.organizationId, orgId))).returning();
-    return updated;
-  }
-
-  async attendance(orgId: string, memberId: string) {
-    await this.requireMember(orgId, memberId);
-    return this.db.query.hrAttendance.findMany({ where: and(eq(hrAttendance.organizationId, orgId), eq(hrAttendance.memberId, memberId)), orderBy: [desc(hrAttendance.checkInAt)] });
   }
 }
