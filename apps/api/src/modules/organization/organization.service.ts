@@ -1,10 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import { AuthService } from "../auth/auth.service";
 import type { CreateOrganizationDto, UpdateOrganizationDto } from "./dto";
+import { OrganizationAccessService } from "./organization-access.service";
 
 @Injectable()
 export class OrganizationService {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly accessService: OrganizationAccessService,
+  ) {}
+
+  async listOrganizations(userId: string) {
+    return this.accessService.listForUser(userId);
+  }
 
   async createOrganization(body: CreateOrganizationDto, headers: Headers) {
     return this.authService.auth.api.createOrganization({
@@ -18,31 +26,35 @@ export class OrganizationService {
     });
   }
 
-  async getOrganization(orgId: string, headers: Headers) {
+  async getOrganization(organizationId: string, headers: Headers) {
     return this.authService.auth.api.getOrganization({
-      query: { organizationId: orgId },
+      query: { organizationId },
       headers,
       asResponse: true,
     });
   }
 
-  async updateOrganization(orgId: string, body: UpdateOrganizationDto, headers: Headers) {
+  async updateOrganization(
+    organizationId: string,
+    body: UpdateOrganizationDto,
+    headers: Headers,
+  ) {
     return this.authService.auth.api.updateOrganization({
       body: {
         data: {
           name: body.name,
           logo: body.logo,
         },
-        organizationId: orgId,
+        organizationId,
       },
       headers,
       asResponse: true,
     });
   }
 
-  async deleteOrganization(orgId: string, headers: Headers) {
+  async deleteOrganization(organizationId: string, headers: Headers) {
     return this.authService.auth.api.deleteOrganization({
-      body: { organizationId: orgId },
+      body: { organizationId },
       headers,
       asResponse: true,
     });
