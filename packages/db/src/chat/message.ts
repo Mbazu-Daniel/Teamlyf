@@ -1,5 +1,6 @@
 import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { channel } from "./channel";
+import { generateId } from "../id";
 import { member } from "../organization/member";
 
 export const message = pgTable("message", {
