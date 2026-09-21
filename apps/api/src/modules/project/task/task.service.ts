@@ -53,6 +53,13 @@ export class TaskService {
     ]);
     if (!statusRecord) throw new BadRequestException("Invalid status for this project");
 
+    await this.validateTaskRelations(orgId, projectId, {
+      parentId: dto.parentId,
+      labelIds: dto.labelIds,
+      milestoneIds: dto.milestoneIds,
+      assignees: dto.assignees,
+    });
+
     const [created] = await this.db
       .insert(task)
       .values({
@@ -99,6 +106,12 @@ export class TaskService {
       throw new BadRequestException("Invalid status for this project");
     }
 
+    await this.validateTaskRelations(orgId, projectId, {
+      parentId: dto.parentId,
+      labelIds: dto.labelIds,
+      milestoneIds: dto.milestoneIds,
+    });
+
     const [updated] = await this.db
       .update(task)
       .set({
@@ -134,6 +147,59 @@ export class TaskService {
       where: eq(taskActivity.taskId, taskId),
       orderBy: (a, { desc: d }) => [d(a.createdAt)],
     });
+  }
+
+  private async validateTaskRelations(
+    orgId: string,
+    projectId: string,
+    input: {
+      parentId?: string;
+      labelIds?: string[];
+      milestoneIds?: string[];
+      assignees?: TaskAssigneeInputDto[];
+    },
+  ) {
+    if (input.parentId) {
+      const parent = await this.db.query.task.findFirst({
+        where: and(eq(task.id, input.parentId), eq(task.projectId, projectId)),
+      });
+      if (!parent) throw new BadRequestException("Invalid parent task for this project");
+    }
+
+    if (input.labelIds?.length) {
+      const labels = await this.db.query.label.findMany({
+        where: (labelTable, { and: a, eq: e, inArray }) =>
+          a(e(labelTable.projectId, projectId), inArray(labelTable.id, input.labelIds!)),
+      });
+      if (labels.length !== new Set(input.labelIds).size) {
+        throw new BadRequestException("One or more labels do not belong to this project");
+      }
+    }
+
+    if (input.milestoneIds?.length) {
+      const milestones = await this.db.query.milestone.findMany({
+        where: (milestoneTable, { and: a, eq: e, inArray }) =>
+          a(e(milestoneTable.projectId, projectId), inArray(milestoneTable.id, input.milestoneIds!)),
+      });
+      if (milestones.length !== new Set(input.milestoneIds).size) {
+        throw new BadRequestException("One or more milestones do not belong to this project");
+      }
+    }
+
+    const memberIds = new Set<string>();
+    for (const assignee of input.assignees ?? []) {
+      if (assignee.kind === "member") memberIds.add(assignee.id);
+    }
+
+    if (memberIds.size) {
+      const members = await this.db.query.member.findMany({
+        where: (memberTable, { and: a, eq: e, inArray }) =>
+          a(e(memberTable.organizationId, orgId), inArray(memberTable.id, [...memberIds])),
+      });
+      if (members.length !== memberIds.size) {
+        throw new BadRequestException("One or more assignees are not in this organization");
+      }
+    }
   }
 
   private async updateTaskAssignees(orgId: string, taskId: string, assignees: TaskAssigneeInputDto[]) {
