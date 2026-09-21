@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { memberReference, organizationReference } from "../organization/membership-columns";
 
@@ -6,7 +6,7 @@ export const hrLeavePolicy = pgTable("hr_leave_policy", {
   id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
   organizationId: organizationReference(),
   name: text("name").notNull(),
-  daysPerYear: text("days_per_year").notNull(),
+  daysPerYear: integer("days_per_year").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [index("hr_leave_policy_org_idx").on(t.organizationId)]);
 
@@ -19,7 +19,7 @@ export const hrLeaveRequest = pgTable("hr_leave_request", {
   endDate: timestamp("end_date").notNull(),
   reason: text("reason"),
   status: text("status").notNull().default("pending"),
-  reviewedById: uuid("reviewed_by_id").references(() => undefined),
+  reviewedById: memberReference("reviewed_by_id"),
   reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [
