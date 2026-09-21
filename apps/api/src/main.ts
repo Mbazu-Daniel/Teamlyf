@@ -38,7 +38,7 @@ async function bootstrap(): Promise<void> {
   app.use(compression());
   app.use(morgan("combined"));
 
-  app.use(json());
+  app.use(json({ verify: (req, _res, buffer) => { (req as Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer); } }));
   app.use(urlencoded({ extended: true }));
 
   app.useGlobalPipes(

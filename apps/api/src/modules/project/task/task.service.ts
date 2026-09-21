@@ -13,6 +13,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
+import { AgentService } from "../../agents/agent.service";
 import type { CreateTaskDto, TaskAssigneeInputDto, UpdateTaskDto } from "../dto";
 
 @Injectable()
@@ -20,6 +21,7 @@ export class TaskService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly access: ProjectAccessService,
+    private readonly agents: AgentService,
   ) {}
 
   async getTasks(orgId: string, projectId: string) {
@@ -71,6 +73,7 @@ export class TaskService {
       .returning();
 
     await this.updateTaskAssignees(orgId, created.id, dto.assignees ?? []);
+    await this.enqueueAgentAssignees(orgId, created.id, dto.assignees ?? []);
     await this.updateTaskLabels(created.id, dto.labelIds ?? []);
     await this.updateTaskMilestones(created.id, dto.milestoneIds ?? []);
     await this.createActivity(created.id, memberId, "created");
@@ -115,7 +118,10 @@ export class TaskService {
       .where(and(eq(task.projectId, projectId), eq(task.id, taskId)))
       .returning();
 
-    if (dto.assignees) await this.updateTaskAssignees(orgId, taskId, dto.assignees);
+    if (dto.assignees) {
+      await this.updateTaskAssignees(orgId, taskId, dto.assignees);
+      await this.enqueueAgentAssignees(orgId, taskId, dto.assignees);
+    }
     if (dto.labelIds) await this.updateTaskLabels(taskId, dto.labelIds);
     if (dto.milestoneIds) await this.updateTaskMilestones(taskId, dto.milestoneIds);
     await this.createFieldChanges(taskId, memberId, existing, dto);
@@ -157,6 +163,12 @@ export class TaskService {
         agentId: a.kind === "agent" ? a.id : null,
       })),
     );
+  }
+
+  private async enqueueAgentAssignees(orgId: string, taskId: string, assignees: TaskAssigneeInputDto[]) {
+    await Promise.all(assignees.filter((assignee) => assignee.kind === "agent").map((assignee) =>
+      this.agents.assign(orgId, { agentId: assignee.id, sourceType: "pm_task", sourceId: taskId, input: { taskId } }),
+    ));
   }
 
   private async updateTaskLabels(taskId: string, labelIds: string[]) {
