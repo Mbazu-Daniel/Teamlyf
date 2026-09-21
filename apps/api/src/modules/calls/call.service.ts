@@ -1,15 +1,21 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { createHmac } from "node:crypto";
+import type { Database } from "@teamlyf/db";
+import { subscription } from "@teamlyf/db/billing-schema";
+import { eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
-
-const TOKEN_TTL_SECONDS = 60 * 60;
+import { DATABASE } from "../../common/db/db.provider";
+import { planEntitlements } from "../billing/plan-entitlements";
 
 @Injectable()
 export class CallService {
-  constructor(@Inject(API_ENV) private readonly env: ApiEnv) {}
+  constructor(
+    @Inject(API_ENV) private readonly env: ApiEnv,
+    @Inject(DATABASE) private readonly db: Database,
+  ) {}
 
-  issueToken(
+  async issueToken(
     organizationId: string,
     memberId: string,
     roomName: string,
@@ -28,12 +34,18 @@ export class CallService {
       throw new BadRequestException("Room name is required");
     }
 
+    const current = await this.db.query.subscription.findFirst({
+      where: eq(subscription.organizationId, organizationId),
+    });
+    const plan = current?.plan === "growth" || current?.plan === "scale" ? current.plan : "starter";
+    const tokenTtlSeconds = planEntitlements[plan].callDurationMinutes * 60;
+
     const now = Math.floor(Date.now() / 1000);
     const payload = {
       iss: apiKey,
       sub: memberId,
       nbf: now,
-      exp: now + TOKEN_TTL_SECONDS,
+      exp: now + tokenTtlSeconds,
       name: participantName?.trim() || memberId,
       video: {
         roomJoin: true,
@@ -47,7 +59,8 @@ export class CallService {
       url: livekitUrl,
       room: payload.video.room,
       token: this.sign(payload, apiSecret),
-      expiresAt: new Date((now + TOKEN_TTL_SECONDS) * 1000).toISOString(),
+      expiresAt: new Date((now + tokenTtlSeconds) * 1000).toISOString(),
+      maxDurationMinutes: planEntitlements[plan].callDurationMinutes,
     };
   }
 
