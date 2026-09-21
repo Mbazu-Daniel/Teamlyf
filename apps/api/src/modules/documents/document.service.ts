@@ -14,10 +14,15 @@ export class DocumentService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   list(organizationId: string, memberId: string) {
-    return this.db.query.document.findMany({
+    const rows = await this.db.query.document.findMany({
       where: eq(document.organizationId, organizationId),
       orderBy: (table, { desc }) => [desc(table.updatedAt)],
-    }).then((rows) => rows.filter((row) => row.ownerId === memberId));
+    });
+    const permissions = await this.db.query.documentPermission.findMany({
+      where: and(eq(documentPermission.subjectKind, "member"), eq(documentPermission.subjectId, memberId)),
+    });
+    const shared = new Set(permissions.filter((item) => ["read", "write", "admin"].includes(item.access)).map((item) => item.documentId));
+    return rows.filter((row) => row.ownerId === memberId || shared.has(row.id));
   }
 
   async get(organizationId: string, documentId: string, memberId: string) {
