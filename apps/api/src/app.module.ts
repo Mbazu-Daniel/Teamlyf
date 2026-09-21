@@ -9,6 +9,7 @@ import { ProjectFeatureModule } from "./modules/project/project-feature.module";
 import { NoteModule } from "./modules/notes/note.module";
 import { HrModule } from "./modules/hr/hr.module";
 import { RbacModule } from "./modules/rbac";
+import { CallModule } from "./modules/calls/call.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { RbacModule } from "./modules/rbac";
     DbModule,
     AuthModule,
     RbacModule,
+    CallModule,
     OrganizationModule,
     MemberModule,
     InvitationModule,
