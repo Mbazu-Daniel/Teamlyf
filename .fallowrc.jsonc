@@ -44,7 +44,6 @@
         "files": ["apps/web/src/components/workspace-shell.tsx"],
         "functions": ["WorkspaceShell"],
         "maxCognitive": 25,
-        "maxCrap": 250,
         "reason": "The shared application shell intentionally owns navigation, workspace switching, search, notifications, and the account menu."
       }
     ]
