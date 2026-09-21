@@ -6,8 +6,9 @@ import * as projectSchema from "./project";
 import * as documentsSchema from "./documents";
 import * as notesSchema from "./notes";
 import * as hrSchema from "./hr";
+import * as billingSchema from "./billing";
 
-const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema, ...documentsSchema, ...notesSchema, ...hrSchema };
+const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema, ...documentsSchema, ...notesSchema, ...hrSchema, ...billingSchema };
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;
 
@@ -26,3 +27,5 @@ export * as notesSchema from "./notes";
 export * from "./notes";
 export * as hrSchema from "./hr";
 export * from "./hr";
+export * as billingSchema from "./billing";
+export * from "./billing";
