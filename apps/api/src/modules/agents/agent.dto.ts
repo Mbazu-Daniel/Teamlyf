@@ -72,6 +72,7 @@ export class RecordUsageDto {
   outputTokens!: number;
 
   @IsOptional()
+  @IsNumber()
   @Min(0)
   estimatedCostUsd?: number;
 }
