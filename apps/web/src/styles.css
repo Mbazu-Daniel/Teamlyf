@@ -26,6 +26,14 @@
   --border: #e8edf5;
   --input: #dbe3ef;
   --ring: #b5e6ff;
+  --leading-heading-1: 1.14;
+  --leading-heading-2: 1.25;
+  --leading-heading-3: 1.35;
+  --radius-control: 0.5rem;
+  --font-size-body: 0.875rem;
+  --font-size-not-found-copy: 1rem;
+  --font-size-not-found-brand: 1.2rem;
+  --font-size-not-found-title: clamp(2.25rem, 6vw, 4.5rem);
 }
 
 .dark {
@@ -81,11 +89,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
-    font-size: 0.875rem;
+    font-size: var(--font-size-body);
     font-weight: 400;
     line-height: 1.6;
     font-synthesis: none;
-    background: #f7f9fc;
+    background: var(--background);
     min-width: 320px;
   }
 
@@ -98,17 +106,17 @@
 
   h1 {
     font-weight: 600;
-    line-height: 1.14;
+    line-height: var(--leading-heading-1);
   }
 
   h2 {
     font-weight: 600;
-    line-height: 1.25;
+    line-height: var(--leading-heading-2);
   }
 
   h3 {
     font-weight: 600;
-    line-height: 1.35;
+    line-height: var(--leading-heading-3);
   }
 
   button,
@@ -121,7 +129,7 @@
   input,
   textarea,
   select {
-    border-radius: 0.5rem;
+    border-radius: var(--radius-control);
   }
 }
 
@@ -139,20 +147,20 @@
   .not-found-page h1 {
     max-width: 32rem;
     margin: 0;
-    font-size: clamp(2.25rem, 6vw, 4.5rem);
+    font-size: var(--font-size-not-found-title);
   }
 
   .not-found-page > p:not(.eyebrow) {
     max-width: 34rem;
     margin: -0.4rem 0 0;
     color: var(--muted-foreground);
-    font-size: 1rem;
+    font-size: var(--font-size-not-found-copy);
   }
 
   .not-found-brand {
     color: var(--foreground);
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: var(--font-size-not-found-brand);
     font-weight: 700;
     letter-spacing: -0.04em;
     text-decoration: none;
@@ -160,21 +168,17 @@
 
   .not-found-action {
     margin-top: 0.5rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-control);
     background: var(--primary);
     padding: 0.7rem 1rem;
     color: var(--primary-foreground);
-    font-size: 0.875rem;
+    font-size: var(--font-size-body);
     font-weight: 700;
     text-decoration: none;
   }
 
   .surface {
     @apply border border-border bg-card shadow-[0_8px_24px_rgb(18_38_63/0.04)];
-  }
-
-  .surface-muted {
-    @apply border border-border bg-muted/70;
   }
 
   .eyebrow {
