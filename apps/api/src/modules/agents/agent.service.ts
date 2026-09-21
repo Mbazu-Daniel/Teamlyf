@@ -1,8 +1,8 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { createCipheriv, createHash, randomBytes } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { agent, agentRun, aiProviderConfig, aiUsage } from "@teamlyf/db";
-import { and, count, desc, eq } from "drizzle-orm";
+import { agent, agentRun, aiProviderConfig, aiUsage, subscription } from "@teamlyf/db";
+import { and, count, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
@@ -172,7 +172,7 @@ export class AgentService {
   private async assertAgentCapacity(organizationId: string) {
     const [subscription, result] = await Promise.all([
       this.db.query.subscription.findFirst({
-        where: eq(this.db.schema.subscription.organizationId, organizationId),
+        where: eq(subscription.organizationId, organizationId),
       }),
       this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
