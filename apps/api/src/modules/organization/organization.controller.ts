@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, Req, Res } from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { Request, Response as ExpressResponse } from "express";
 import { proxyBetterAuth } from "../../common/better-auth/better-auth-proxy";
-import { OrganizationService } from "./organization.service";
+import { SessionGuard, type AuthedRequest } from "../../common/better-auth/session.guard";
 import { CreateOrganizationDto, UpdateOrganizationDto } from "./dto";
+import { OrganizationService } from "./organization.service";
 
 @ApiTags("Organization")
+@ApiBearerAuth()
+@UseGuards(SessionGuard)
 @Controller("organization")
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
@@ -16,6 +19,16 @@ export class OrganizationController {
     respond: (headers: Headers) => Promise<globalThis.Response>,
   ) {
     return proxyBetterAuth(req, res, respond);
+  }
+
+  @Get()
+  @ApiOperation({ summary: "List organizations available to the current user" })
+  @ApiResponse({
+    status: 200,
+    description: "Organizations returned with the current member role and member ID",
+  })
+  async listOrganizations(@Req() req: Request) {
+    return this.organizationService.listOrganizations((req as AuthedRequest).user.id);
   }
 
   @Post()
@@ -30,45 +43,50 @@ export class OrganizationController {
     return this.proxy(req, res, (h) => this.organizationService.createOrganization(body, h));
   }
 
-  @Get(":orgId")
+  @Get(":organizationId")
   @ApiOperation({ summary: "Get an organization by ID" })
-  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "organizationId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Organization returned" })
   @ApiResponse({ status: 404, description: "Organization not found" })
-  // fallow-ignore-next-line code-duplication
   async getOrganization(
-    @Param("orgId") orgId: string,
+    @Param("organizationId") organizationId: string,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return this.proxy(req, res, (h) => this.organizationService.getOrganization(orgId, h));
+    return this.proxy(req, res, (h) =>
+      this.organizationService.getOrganization(organizationId, h),
+    );
   }
 
-  @Patch(":orgId")
+  @Patch(":organizationId")
   @ApiOperation({ summary: "Update an organization" })
-  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "organizationId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Organization updated" })
   @ApiResponse({ status: 400, description: "Validation error" })
   @ApiResponse({ status: 404, description: "Organization not found" })
   async updateOrganization(
-    @Param("orgId") orgId: string,
+    @Param("organizationId") organizationId: string,
     @Body() body: UpdateOrganizationDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return this.proxy(req, res, (h) => this.organizationService.updateOrganization(orgId, body, h));
+    return this.proxy(req, res, (h) =>
+      this.organizationService.updateOrganization(organizationId, body, h),
+    );
   }
 
-  @Delete(":orgId")
+  @Delete(":organizationId")
   @ApiOperation({ summary: "Delete an organization" })
-  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "organizationId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Organization deleted" })
   @ApiResponse({ status: 404, description: "Organization not found" })
   async deleteOrganization(
-    @Param("orgId") orgId: string,
+    @Param("organizationId") organizationId: string,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return this.proxy(req, res, (h) => this.organizationService.deleteOrganization(orgId, h));
+    return this.proxy(req, res, (h) =>
+      this.organizationService.deleteOrganization(organizationId, h),
+    );
   }
 }
