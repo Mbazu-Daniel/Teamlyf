@@ -16,7 +16,7 @@ export const task = pgTable(
     statusId: uuid("status_id")
       .notNull()
       .references(() => status.id, { onDelete: "cascade" }),
-    parentId: uuid("parent_id").references((): any => task.id, { onDelete: "cascade" }),
+    parentId: uuid("parent_id").references(() => task.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     description: text("description"),
     priority: text("priority").notNull().default("none"),
