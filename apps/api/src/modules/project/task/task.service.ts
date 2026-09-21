@@ -110,6 +110,7 @@ export class TaskService {
       parentId: dto.parentId,
       labelIds: dto.labelIds,
       milestoneIds: dto.milestoneIds,
+      assignees: dto.assignees,
     });
 
     const [updated] = await this.db
