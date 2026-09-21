@@ -5,19 +5,15 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common";
-import { Inject } from "@nestjs/common";
-import type { Database } from "@teamlyf/db";
-import { member } from "@teamlyf/db/organization-schema";
-import { and, eq } from "drizzle-orm";
 import type { AuthedRequest } from "../../common/better-auth/session.guard";
-import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
+import { OrganizationAccessService } from "../organization/organization-access.service";
 
 export type MemberRequest = AuthedRequest & { member: SessionMember };
 
 @Injectable()
 export class OrgMemberGuard implements CanActivate {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(private readonly organizationAccess: OrganizationAccessService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<MemberRequest>();
@@ -25,26 +21,20 @@ export class OrgMemberGuard implements CanActivate {
       throw new UnauthorizedException("Authentication required");
     }
 
-    const orgIdParam = req.params.orgId;
-    const orgId = Array.isArray(orgIdParam) ? orgIdParam[0] : orgIdParam;
-    if (!orgId) {
+    const organizationIdParam = req.params.organizationId ?? req.params.orgId;
+    const organizationId = Array.isArray(organizationIdParam)
+      ? organizationIdParam[0]
+      : organizationIdParam;
+
+    if (!organizationId) {
       throw new ForbiddenException("Organization id required");
     }
 
-    const found = await this.db.query.member.findFirst({
-      where: and(eq(member.organizationId, orgId), eq(member.userId, req.user.id)),
-    });
-    if (!found) {
-      throw new ForbiddenException("Not a member of this organization");
-    }
+    req.member = await this.organizationAccess.requireMember(
+      req.user.id,
+      organizationId,
+    );
 
-    req.member = {
-      id: found.id,
-      organizationId: found.organizationId,
-      userId: found.userId,
-      role: found.role,
-      createdAt: found.createdAt,
-    };
     return true;
   }
 }
