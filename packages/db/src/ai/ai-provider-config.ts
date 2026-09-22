@@ -3,7 +3,6 @@ import {
   check,
   index,
   pgTable,
-  sql,
   text,
   timestamp,
   uniqueIndex,
