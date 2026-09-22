@@ -1,5 +1,6 @@
 import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { document } from "./document";
+import { generateId } from "../id";
 import { member } from "../organization/member";
 
 export const documentVersion = pgTable("document_version", {
