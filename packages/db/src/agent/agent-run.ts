@@ -11,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { generateId } from "../id";
 import { member } from "../organization/member";
 import { organizationReference } from "../organization/membership-columns";

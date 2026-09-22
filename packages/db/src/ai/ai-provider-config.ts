@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { generateId } from "../id";
 import { aiProviderSource } from "./provider-source";
 import { organizationReference } from "../organization/membership-columns";
