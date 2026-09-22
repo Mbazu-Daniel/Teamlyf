@@ -9,6 +9,7 @@ import * as hrSchema from "./hr";
 import * as billingSchema from "./billing";
 import * as agentSchema from "./agent";
 import * as aiSchema from "./ai";
+import * as chatSchema from "./chat";
 
 const allSchemas = {
   ...authSchema,
@@ -20,6 +21,7 @@ const allSchemas = {
   ...billingSchema,
   ...agentSchema,
   ...aiSchema,
+  ...chatSchema,
 };
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;
@@ -43,3 +45,4 @@ export * as billingSchema from "./billing";
 export * from "./billing";
 export * as agentSchema from "./agent";
 export * as aiSchema from "./ai";
+export * as chatSchema from "./chat";
