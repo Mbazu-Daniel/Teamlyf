@@ -64,21 +64,43 @@ export class ChatService {
 
   async thread(organizationId: string, channelId: string, messageId: string, memberId: string, cursor?: string) {
     await this.requireAccess(organizationId, channelId, memberId);
+    const root = await this.findThreadRoot(channelId, messageId);
+    const cursorDate = this.parseThreadCursor(cursor);
+    const rows = await this.findThreadMessages(channelId, messageId, cursorDate);
+    return this.withReactions(rows.reverse());
+  }
+
+  private async findThreadRoot(channelId: string, messageId: string) {
     const root = await this.db.query.message.findFirst({
       where: and(eq(message.id, messageId), eq(message.channelId, channelId)),
     });
-    if (!root) throw new NotFoundException("Message not found");
-    if (root.threadRootId !== null) throw new NotFoundException("Thread root not found");
-    const cursorDate = cursor ? new Date(cursor) : null;
-    if (cursorDate && Number.isNaN(cursorDate.getTime())) throw new ForbiddenException("Invalid thread cursor");
-    const rows = await this.db.query.message.findMany({
-      where: cursorDate
-        ? and(eq(message.channelId, channelId), or(eq(message.id, messageId), and(eq(message.threadRootId, messageId), lt(message.createdAt, cursorDate))))
-        : and(eq(message.channelId, channelId), or(eq(message.id, messageId), eq(message.threadRootId, messageId))),
+    if (!root || root.threadRootId !== null) throw new NotFoundException("Thread root not found");
+    return root;
+  }
+
+  private parseThreadCursor(cursor?: string) {
+    if (!cursor) return null;
+    const date = new Date(cursor);
+    if (Number.isNaN(date.getTime())) throw new ForbiddenException("Invalid thread cursor");
+    return date;
+  }
+
+  private async findThreadMessages(channelId: string, messageId: string, cursor: Date | null) {
+    const where = cursor
+      ? and(
+          eq(message.channelId, channelId),
+          or(
+            eq(message.id, messageId),
+            and(eq(message.threadRootId, messageId), lt(message.createdAt, cursor)),
+          ),
+        )
+      : and(eq(message.channelId, channelId), or(eq(message.id, messageId), eq(message.threadRootId, messageId)));
+
+    return this.db.query.message.findMany({
+      where,
       orderBy: (table, { desc }) => [desc(table.createdAt)],
       limit: THREAD_PAGE_SIZE,
     });
-    return this.withReactions(rows);
   }
 
   async post(organizationId: string, channelId: string, memberId: string, dto: CreateMessageDto) {
