@@ -5,7 +5,6 @@ import {
   integer,
   numeric,
   pgTable,
-  sql,
   text,
   timestamp,
   uuid,
