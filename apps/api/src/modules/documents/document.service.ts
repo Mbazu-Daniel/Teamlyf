@@ -13,7 +13,7 @@ const { member } = organizationSchema;
 export class DocumentService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  list(organizationId: string, memberId: string) {
+  async list(organizationId: string, memberId: string) {
     const rows = await this.db.query.document.findMany({
       where: eq(document.organizationId, organizationId),
       orderBy: (table, { desc }) => [desc(table.updatedAt)],
