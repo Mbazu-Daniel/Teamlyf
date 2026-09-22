@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Document = {
@@ -45,8 +45,8 @@ function DocumentPage() {
     setError(null);
     try {
       const [current, history] = await Promise.all([
-        api<Document>(`/organization/${organization.id}/documents/${documentId}`),
-        api<DocumentVersion[]>(`/organization/${organization.id}/documents/${documentId}/versions`),
+        client.request<Document>(`/organization/${organization.id}/documents/${documentId}`),
+        client.request<DocumentVersion[]>(`/organization/${organization.id}/documents/${documentId}/versions`),
       ]);
       setDocument(current);
       setTitle(current.title);
@@ -65,12 +65,12 @@ function DocumentPage() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await api<Document>(`/organization/${organization.id}/documents/${document.id}`, {
+      const updated = await client.request<Document>(`/organization/${organization.id}/documents/${document.id}`, {
         method: "PATCH",
         body: JSON.stringify({ title: title.trim(), content }),
       });
       setDocument(updated);
-      const history = await api<DocumentVersion[]>(`/organization/${organization.id}/documents/${document.id}/versions`);
+      const history = await client.request<DocumentVersion[]>(`/organization/${organization.id}/documents/${document.id}/versions`);
       setVersions(history);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save document");

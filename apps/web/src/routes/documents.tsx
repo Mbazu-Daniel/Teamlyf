@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Document = {
@@ -31,7 +31,7 @@ function DocumentsPage() {
     if (!organization) return;
     try {
       setError(null);
-      setDocuments(await api<Document[]>(`/organization/${organization.id}/documents`));
+      setDocuments(await client.request<Document[]>(`/organization/${organization.id}/documents`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load documents");
     }
@@ -43,7 +43,7 @@ function DocumentsPage() {
     setLoading(true);
     setError(null);
     try {
-      const created = await api<Document>(`/organization/${organization.id}/documents`, {
+      const created = await client.request<Document>(`/organization/${organization.id}/documents`, {
         method: "POST",
         body: JSON.stringify({ title: title.trim(), content }),
       });

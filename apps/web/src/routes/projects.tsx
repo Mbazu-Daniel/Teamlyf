@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Project = {
@@ -31,7 +31,7 @@ function ProjectsPage() {
     if (!organization) return;
     setError(null);
     try {
-      setProjects(await api<Project[]>(`/organization/${organization.id}/projects`));
+      setProjects(await client.request<Project[]>(`/organization/${organization.id}/projects`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load projects");
     }
@@ -43,7 +43,7 @@ function ProjectsPage() {
     setLoading(true);
     setError(null);
     try {
-      const project = await api<Project>(`/organization/${organization.id}/projects`, {
+      const project = await client.request<Project>(`/organization/${organization.id}/projects`, {
         method: "POST",
         body: JSON.stringify({
           name: name.trim(),

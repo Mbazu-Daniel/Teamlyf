@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Note = { id: string; title: string; content: string; parentId: string | null; ownerId: string; updatedAt: string };
@@ -21,7 +21,7 @@ function NotesPage() {
     if (!organization) return;
     try {
       setError(null);
-      setNotes(await api<Note[]>(`/organization/${organization.id}/notes`));
+      setNotes(await client.request<Note[]>(`/organization/${organization.id}/notes`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load notes");
     }
@@ -33,7 +33,7 @@ function NotesPage() {
     setLoading(true);
     setError(null);
     try {
-      const created = await api<Note>(`/organization/${organization.id}/notes`, {
+      const created = await client.request<Note>(`/organization/${organization.id}/notes`, {
         method: "POST",
         body: JSON.stringify({ title: title.trim(), content }),
       });

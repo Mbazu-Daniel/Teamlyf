@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Project = { id: string; name: string; identifier: string; description: string | null; emoji: string | null };
@@ -31,9 +31,9 @@ function ProjectPage() {
     try {
       const prefix = `/organization/${organization.id}/projects/${projectId}`;
       const [projectData, statusData, taskData] = await Promise.all([
-        api<Project>(prefix),
-        api<Status[]>(`${prefix}/statuses`),
-        api<Task[]>(`${prefix}/tasks`),
+        client.request<Project>(prefix),
+        client.request<Status[]>(`${prefix}/statuses`),
+        client.request<Task[]>(`${prefix}/tasks`),
       ]);
       setProject(projectData);
       setStatuses(statusData);
@@ -50,7 +50,7 @@ function ProjectPage() {
     setLoading(true);
     setError(null);
     try {
-      const task = await api<Task>(`/organization/${organization.id}/projects/${projectId}/tasks`, {
+      const task = await client.request<Task>(`/organization/${organization.id}/projects/${projectId}/tasks`, {
         method: "POST",
         body: JSON.stringify({ name: name.trim(), statusId }),
       });
@@ -67,7 +67,7 @@ function ProjectPage() {
     if (!organization || task.statusId === nextStatusId) return;
     setError(null);
     try {
-      const updated = await api<Task>(`/organization/${organization.id}/projects/${projectId}/tasks/${task.id}`, {
+      const updated = await client.request<Task>(`/organization/${organization.id}/projects/${projectId}/tasks/${task.id}`, {
         method: "PATCH",
         body: JSON.stringify({ statusId: nextStatusId }),
       });

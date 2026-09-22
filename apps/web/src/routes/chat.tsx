@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Channel = { id: string; name: string; kind: "channel" | "direct"; isPrivate: boolean };
@@ -39,7 +39,7 @@ function ChatPage() {
   async function loadChannels() {
     if (!organization) return;
     try {
-      const data = await api<Channel[]>(`/organization/${organization.id}/channels`);
+      const data = await client.request<Channel[]>(`/organization/${organization.id}/channels`);
       setChannels(data);
       setChannelId((current) => current || data[0]?.id || "");
     } catch (err) {
@@ -51,7 +51,7 @@ function ChatPage() {
     if (!organization) return;
     setError(null);
     try {
-      setMessages(await api<Message[]>(`/organization/${organization.id}/channels/${id}/messages`));
+      setMessages(await client.request<Message[]>(`/organization/${organization.id}/channels/${id}/messages`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load messages");
     }
@@ -63,7 +63,7 @@ function ChatPage() {
     setLoading(true);
     setError(null);
     try {
-      const channel = await api<Channel>(`/organization/${organization.id}/channels`, {
+      const channel = await client.request<Channel>(`/organization/${organization.id}/channels`, {
         method: "POST",
         body: JSON.stringify({ name: channelName.trim() }),
       });
@@ -83,7 +83,7 @@ function ChatPage() {
     setLoading(true);
     setError(null);
     try {
-      const created = await api<Message>(`/organization/${organization.id}/channels/${channelId}/messages`, {
+      const created = await client.request<Message>(`/organization/${organization.id}/channels/${channelId}/messages`, {
         method: "POST",
         body: JSON.stringify({ content: message.trim() }),
       });
@@ -99,7 +99,7 @@ function ChatPage() {
   async function reactToMessage(messageId: string, emoji: string) {
     if (!organization || !channelId) return;
     try {
-      const reaction = await api<Reaction>(`/organization/${organization.id}/channels/${channelId}/messages/${messageId}/reactions`, {
+      const reaction = await client.request<Reaction>(`/organization/${organization.id}/channels/${channelId}/messages/${messageId}/reactions`, {
         method: "POST",
         body: JSON.stringify({ emoji }),
       });

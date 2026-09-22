@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type BillingSummary = {
@@ -30,7 +30,7 @@ function BillingSettings() {
   async function load(orgId: string) {
     setError(null);
     try {
-      setSummary(await api<BillingSummary>(`/organization/${orgId}/billing`));
+      setSummary(await client.request<BillingSummary>(`/organization/${orgId}/billing`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load billing");
     }
@@ -41,7 +41,7 @@ function BillingSettings() {
     setLoading(true);
     setError(null);
     try {
-      const result = await api<{ url?: string; checkoutUrl?: string }>(`/organization/${organization.id}/billing/checkout`, {
+      const result = await client.request<{ url?: string; checkoutUrl?: string }>(`/organization/${organization.id}/billing/checkout`, {
         method: "POST",
         body: JSON.stringify({
           plan,

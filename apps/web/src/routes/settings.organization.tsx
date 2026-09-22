@@ -31,7 +31,7 @@ function OrganizationSettings() {
 
   async function loadMembers(orgId: string) {
     try {
-      const response = await api<MemberResponse>(`/organization/${orgId}/members?limit=100`);
+      const response = await client.request<MemberResponse>(`/organization/${orgId}/members?limit=100`);
       setMembers(response.members ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load members");
@@ -44,7 +44,7 @@ function OrganizationSettings() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await api<Organization>(`/organization/${organization.id}`, {
+      const updated = await client.request<Organization>(`/organization/${organization.id}`, {
         method: "PATCH",
         body: JSON.stringify({ name: form.name.trim(), logo: form.logo.trim() || undefined }),
       });
@@ -62,7 +62,7 @@ function OrganizationSettings() {
     setBusyMember("invite");
     setError(null);
     try {
-      await api(`/organization/${organization.id}/invitations`, {
+      await client.request(`/organization/${organization.id}/invitations`, {
         method: "POST",
         body: JSON.stringify({ email: inviteEmail.trim(), role: [inviteRole] }),
       });
@@ -79,7 +79,7 @@ function OrganizationSettings() {
     setBusyMember(memberId);
     setError(null);
     try {
-      await api(`/organization/${organization.id}/members/update-role`, {
+      await client.request(`/organization/${organization.id}/members/update-role`, {
         method: "POST",
         body: JSON.stringify({ memberId, role: [role] }),
       });
@@ -96,7 +96,7 @@ function OrganizationSettings() {
     setBusyMember(memberId);
     setError(null);
     try {
-      await api(`/organization/${organization.id}/members/remove`, {
+      await client.request(`/organization/${organization.id}/members/remove`, {
         method: "POST",
         body: JSON.stringify({ memberIdOrEmail: memberId }),
       });

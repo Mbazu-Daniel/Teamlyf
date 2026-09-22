@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Note = { id: string; title: string; content: string; parentId: string | null; ownerId: string; updatedAt: string };
@@ -25,11 +25,11 @@ function NotePage() {
     setLoading(true);
     setError(null);
     try {
-      const current = await api<Note>(`/organization/${organization.id}/notes/${noteId}`);
+      const current = await client.request<Note>(`/organization/${organization.id}/notes/${noteId}`);
       setNote(current);
       setTitle(current.title);
       setContent(current.content);
-      setChildren(await api<Note[]>(`/organization/${organization.id}/notes?parentId=${current.id}`));
+      setChildren(await client.request<Note[]>(`/organization/${organization.id}/notes?parentId=${current.id}`));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load note");
     } finally { setLoading(false); }
@@ -41,7 +41,7 @@ function NotePage() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await api<Note>(`/organization/${organization.id}/notes/${note.id}`, { method: "PATCH", body: JSON.stringify({ title: title.trim(), content }) });
+      const updated = await client.request<Note>(`/organization/${organization.id}/notes/${note.id}`, { method: "PATCH", body: JSON.stringify({ title: title.trim(), content }) });
       setNote(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to save note");

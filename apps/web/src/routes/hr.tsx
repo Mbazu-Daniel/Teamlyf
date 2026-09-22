@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Profile = {
@@ -52,8 +52,8 @@ function HrPage() {
     setError(null);
     try {
       const [profileData, leaveData] = await Promise.all([
-        api<Profile | null>(`/organization/${organization.id}/hr/profile`),
-        api<LeaveRequest[]>(`/organization/${organization.id}/hr/leave`),
+        client.request<Profile | null>(`/organization/${organization.id}/hr/profile`),
+        client.request<LeaveRequest[]>(`/organization/${organization.id}/hr/leave`),
       ]);
       setProfile(profileData);
       setLeave(leaveData);
@@ -79,7 +79,7 @@ function HrPage() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await api<Profile>(`/organization/${organization.id}/hr/profile`, {
+      const updated = await client.request<Profile>(`/organization/${organization.id}/hr/profile`, {
         method: "PATCH",
         body: JSON.stringify({
           ...form,
@@ -100,7 +100,7 @@ function HrPage() {
     setRequesting(true);
     setError(null);
     try {
-      const created = await api<LeaveRequest>(`/organization/${organization.id}/hr/leave`, {
+      const created = await client.request<LeaveRequest>(`/organization/${organization.id}/hr/leave`, {
         method: "POST",
         body: JSON.stringify(leaveForm),
       });
