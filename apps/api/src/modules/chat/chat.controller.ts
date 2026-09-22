@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
@@ -45,8 +45,8 @@ export class ChatController {
 
   @Get(":channelId/messages/:messageId/thread")
   @RequirePermission("chat", "read")
-  thread(@Param("orgId") orgId: string, @Param("channelId") channelId: string, @Param("messageId") messageId: string, @CurrentMember() member: SessionMember) {
-    return this.chat.thread(orgId, channelId, messageId, member.id);
+  thread(@Param("orgId") orgId: string, @Param("channelId") channelId: string, @Param("messageId") messageId: string, @CurrentMember() member: SessionMember, @Query("cursor") cursor?: string) {
+    return this.chat.thread(orgId, channelId, messageId, member.id, cursor);
   }
 
   @Post(":channelId/messages")

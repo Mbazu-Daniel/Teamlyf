@@ -1,43 +1,14 @@
-CREATE TABLE "channel" (
-  "id" text PRIMARY KEY NOT NULL,
-  "organization_id" text NOT NULL,
-  "name" text NOT NULL,
-  "kind" text DEFAULT 'channel' NOT NULL,
-  "is_private" boolean DEFAULT false NOT NULL,
-  "created_by_id" text NOT NULL,
-  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
-);
+CREATE TABLE "channel" ("id" uuid PRIMARY KEY NOT NULL, "organization_id" uuid NOT NULL, "name" text NOT NULL, "kind" text DEFAULT 'channel' NOT NULL, "is_private" boolean DEFAULT false NOT NULL, "created_by_id" uuid, "created_at" timestamp with time zone DEFAULT now() NOT NULL, "updated_at" timestamp with time zone DEFAULT now() NOT NULL);
 --> statement-breakpoint
-CREATE TABLE "channel_member" (
-  "channel_id" text NOT NULL,
-  "member_id" text NOT NULL,
-  "joined_at" timestamp with time zone DEFAULT now() NOT NULL,
-  CONSTRAINT "channel_member_channel_id_member_id_pk" PRIMARY KEY("channel_id","member_id")
-);
+CREATE TABLE "channel_member" ("channel_id" uuid NOT NULL, "member_id" uuid NOT NULL, "joined_at" timestamp with time zone DEFAULT now() NOT NULL, CONSTRAINT "channel_member_channel_id_member_id_pk" PRIMARY KEY("channel_id","member_id"));
 --> statement-breakpoint
-CREATE TABLE "message" (
-  "id" text PRIMARY KEY NOT NULL,
-  "channel_id" text NOT NULL,
-  "sender_kind" text DEFAULT 'member' NOT NULL,
-  "sender_id" text NOT NULL,
-  "content" text NOT NULL,
-  "thread_root_id" text,
-  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
-);
+CREATE TABLE "message" ("id" uuid PRIMARY KEY NOT NULL, "channel_id" uuid NOT NULL, "sender_kind" text DEFAULT 'member' NOT NULL, "sender_id" uuid NOT NULL, "content" text NOT NULL, "thread_root_id" uuid, "created_at" timestamp with time zone DEFAULT now() NOT NULL, "updated_at" timestamp with time zone DEFAULT now() NOT NULL);
 --> statement-breakpoint
-CREATE TABLE "message_reaction" (
-  "message_id" text NOT NULL,
-  "member_id" text NOT NULL,
-  "emoji" text NOT NULL,
-  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
-  CONSTRAINT "message_reaction_message_id_member_id_emoji_pk" PRIMARY KEY("message_id","member_id","emoji")
-);
+CREATE TABLE "message_reaction" ("message_id" uuid NOT NULL, "member_id" uuid NOT NULL, "emoji" text NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL, CONSTRAINT "message_reaction_message_id_member_id_emoji_pk" PRIMARY KEY("message_id","member_id","emoji"));
 --> statement-breakpoint
 ALTER TABLE "channel" ADD CONSTRAINT "channel_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;
 --> statement-breakpoint
-ALTER TABLE "channel" ADD CONSTRAINT "channel_created_by_id_member_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."member"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "channel" ADD CONSTRAINT "channel_created_by_id_member_id_fk" FOREIGN KEY ("created_by_id") REFERENCES "public"."member"("id") ON DELETE set null ON UPDATE no action;
 --> statement-breakpoint
 ALTER TABLE "channel_member" ADD CONSTRAINT "channel_member_channel_id_channel_id_fk" FOREIGN KEY ("channel_id") REFERENCES "public"."channel"("id") ON DELETE cascade ON UPDATE no action;
 --> statement-breakpoint
