@@ -2,12 +2,13 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { chatSchema, organizationSchema } from "@teamlyf/db";
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, lt, or } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateChannelDto, CreateMessageDto } from "./chat.dto";
 
 const { channel, channelMember, message, messageReaction } = chatSchema;
 const { member } = organizationSchema;
+const THREAD_PAGE_SIZE = 100;
 
 @Injectable()
 export class ChatService {
@@ -61,15 +62,21 @@ export class ChatService {
     return this.withReactions(rows.reverse());
   }
 
-  async thread(organizationId: string, channelId: string, messageId: string, memberId: string) {
+  async thread(organizationId: string, channelId: string, messageId: string, memberId: string, cursor?: string) {
     await this.requireAccess(organizationId, channelId, memberId);
     const root = await this.db.query.message.findFirst({
       where: and(eq(message.id, messageId), eq(message.channelId, channelId)),
     });
     if (!root) throw new NotFoundException("Message not found");
+    if (root.threadRootId !== null) throw new NotFoundException("Thread root not found");
+    const cursorDate = cursor ? new Date(cursor) : null;
+    if (cursorDate && Number.isNaN(cursorDate.getTime())) throw new ForbiddenException("Invalid thread cursor");
     const rows = await this.db.query.message.findMany({
-      where: and(eq(message.channelId, channelId), or(eq(message.id, messageId), eq(message.threadRootId, messageId))),
-      orderBy: (table, { asc }) => [asc(table.createdAt)],
+      where: cursorDate
+        ? and(eq(message.channelId, channelId), or(eq(message.id, messageId), and(eq(message.threadRootId, messageId), lt(message.createdAt, cursorDate))))
+        : and(eq(message.channelId, channelId), or(eq(message.id, messageId), eq(message.threadRootId, messageId))),
+      orderBy: (table, { desc }) => [desc(table.createdAt)],
+      limit: THREAD_PAGE_SIZE,
     });
     return this.withReactions(rows);
   }
@@ -81,6 +88,7 @@ export class ChatService {
         where: and(eq(message.id, dto.threadRootId), eq(message.channelId, channelId)),
       });
       if (!root) throw new NotFoundException("Thread root not found");
+      if (root.threadRootId !== null) throw new ForbiddenException("Thread replies must target a root message");
     }
     const [created] = await this.db.insert(message).values({
       channelId,
@@ -140,9 +148,8 @@ export class ChatService {
     const reactions = rows.length
       ? await this.db.query.messageReaction.findMany({ where: inArray(messageReaction.messageId, rows.map((row) => row.id)) })
       : [];
-    return rows.map((row) => ({
-      ...row,
-      reactions: reactions.filter((reaction) => reaction.messageId === row.id),
-    }));
+    const reactionsByMessage = new Map(reactions.map((reaction) => [reaction.messageId, [] as typeof reactions]));
+    for (const reaction of reactions) reactionsByMessage.get(reaction.messageId)?.push(reaction);
+    return rows.map((row) => ({ ...row, reactions: reactionsByMessage.get(row.id) ?? [] }));
   }
 }
