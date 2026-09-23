@@ -5,6 +5,7 @@ import { chatSchema, organizationSchema } from "@teamlyf/db";
 import { and, eq, inArray, isNull, lt } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateChannelDto, CreateMessageDto } from "./chat.dto";
+import { requireOrganizationMember } from "../../common/organization-member";
 
 const { channel, channelMember, message, messageReaction } = chatSchema;
 const { member } = organizationSchema;
@@ -176,12 +177,12 @@ export class ChatService {
     return found;
   }
 
-  private async requireMember(organizationId: string, memberId: string) {
-    const found = await this.db.query.member.findFirst({
-      where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
-    });
-    if (!found) throw new ForbiddenException("Member is not in this organization");
-    return found;
+  private requireMember(organizationId: string, memberId: string) {
+    return requireOrganizationMember(() =>
+      this.db.query.member.findFirst({
+        where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
+      }),
+    );
   }
 
   private async requireMembers(organizationId: string, memberIds: string[]) {
