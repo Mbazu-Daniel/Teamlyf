@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
+import type { BillingPlan } from "../billing/billing.dto";
 import { planEntitlements } from "../billing/plan-entitlements";
 
 @Injectable()
@@ -21,46 +22,69 @@ export class CallService {
     roomName: string,
     participantName?: string,
   ) {
-    const apiKey = this.env.LIVEKIT_API_KEY;
-    const apiSecret = this.env.LIVEKIT_API_SECRET;
-    const livekitUrl = this.env.LIVEKIT_URL;
-
-    if (!apiKey || !apiSecret || !livekitUrl) {
-      throw new BadRequestException("LiveKit is not configured");
-    }
-
-    const normalizedRoom = roomName.trim();
-    if (!normalizedRoom) {
-      throw new BadRequestException("Room name is required");
-    }
-
-    const current = await this.db.query.subscription.findFirst({
-      where: eq(subscription.organizationId, organizationId),
-    });
-    const plan = current?.plan === "growth" || current?.plan === "scale" ? current.plan : "starter";
-    const tokenTtlSeconds = planEntitlements[plan].callDurationMinutes * 60;
-
+    const { apiKey, apiSecret, livekitUrl } = this.requireLiveKitConfig();
+    const normalizedRoom = this.normalizeRoom(roomName);
+    const plan = await this.getPlan(organizationId);
+    const durationMinutes = planEntitlements[plan].callDurationMinutes;
     const now = Math.floor(Date.now() / 1000);
-    const payload = {
-      iss: apiKey,
-      sub: memberId,
-      nbf: now,
-      exp: now + tokenTtlSeconds,
-      name: participantName?.trim() || memberId,
-      video: {
-        roomJoin: true,
-        room: this.roomName(organizationId, normalizedRoom),
-        canPublish: true,
-        canSubscribe: true,
-      },
-    };
+    const room = this.roomName(organizationId, normalizedRoom);
+    const payload = this.createTokenPayload(apiKey, memberId, participantName, room, now, durationMinutes);
 
     return {
       url: livekitUrl,
-      room: payload.video.room,
+      room,
       token: this.sign(payload, apiSecret),
-      expiresAt: new Date((now + tokenTtlSeconds) * 1000).toISOString(),
-      maxDurationMinutes: planEntitlements[plan].callDurationMinutes,
+      expiresAt: new Date((now + durationMinutes * 60) * 1000).toISOString(),
+      maxDurationMinutes: durationMinutes,
+    };
+  }
+
+  private requireLiveKitConfig() {
+    const { LIVEKIT_API_KEY: apiKey, LIVEKIT_API_SECRET: apiSecret, LIVEKIT_URL: livekitUrl } = this.env;
+    if (!apiKey || !apiSecret || !livekitUrl) {
+      throw new BadRequestException("LiveKit is not configured");
+    }
+    return { apiKey, apiSecret, livekitUrl };
+  }
+
+  private normalizeRoom(roomName: string) {
+    const normalized = roomName.trim();
+    if (!normalized) throw new BadRequestException("Room name is required");
+    return normalized;
+  }
+
+  private async getPlan(organizationId: string): Promise<BillingPlan> {
+    const current = await this.db.query.subscription.findFirst({
+      where: eq(subscription.organizationId, organizationId),
+    });
+    return this.normalizePlan(current?.plan);
+  }
+
+  private normalizePlan(value?: string | null): BillingPlan {
+    if (value === "growth" || value === "scale") return value;
+    return "starter";
+  }
+
+  private createTokenPayload(
+    apiKey: string,
+    memberId: string,
+    participantName: string | undefined,
+    room: string,
+    now: number,
+    durationMinutes: number,
+  ) {
+    return {
+      iss: apiKey,
+      sub: memberId,
+      nbf: now,
+      exp: now + durationMinutes * 60,
+      name: participantName?.trim() || memberId,
+      video: {
+        roomJoin: true,
+        room,
+        canPublish: true,
+        canSubscribe: true,
+      },
     };
   }
 
