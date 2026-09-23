@@ -76,14 +76,11 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
     setLoading(true);
     setError(null);
     try {
-      const task = await api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks`, {
-        method: "POST",
-        body: JSON.stringify({ name: name.trim(), statusId }),
-      });
+      const task = await createProjectTask(organizationId, projectId, name, statusId);
       setTasks((current) => [...current, task]);
       setName("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create task");
+      setError(getErrorMessage(err, "Unable to create task"));
     } finally {
       setLoading(false);
     }
@@ -93,17 +90,33 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
     if (!organizationId || task.statusId === nextStatusId) return;
     setError(null);
     try {
-      const updated = await api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks/${task.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ statusId: nextStatusId }),
-      });
+      const updated = await moveProjectTask(organizationId, projectId, task.id, nextStatusId);
       setTasks((current) => current.map((item) => item.id === task.id ? updated : item));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update task");
+      setError(getErrorMessage(err, "Unable to update task"));
     }
   }
 
   return { project, statuses, tasks, name, statusId, loading, error, setName, setStatusId, createTask, moveTask };
+}
+
+async function createProjectTask(organizationId: string, projectId: string, name: string, statusId: string) {
+  return api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks`, {
+    method: "POST",
+    body: JSON.stringify({ name: name.trim(), statusId }),
+  });
+}
+
+async function moveProjectTask(organizationId: string, projectId: string, taskId: string, statusId: string) {
+  return api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks/${taskId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ statusId }),
+  });
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message;
+  return fallback;
 }
 
 function EmptyProjectState() {
