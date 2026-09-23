@@ -14,6 +14,8 @@ type BillingSummary = {
   hasSubscription: boolean;
 };
 
+type CheckoutResponse = { url?: string; checkoutUrl?: string };
+
 export const Route = createFileRoute("/settings/billing")({ component: BillingSettings });
 
 function BillingSettings() {
@@ -24,43 +26,42 @@ function BillingSettings() {
 
   useEffect(() => {
     if (!organization) return;
-    void load(organization.id);
-  }, [organization?.id]);
-
-  async function load(orgId: string) {
+    let active = true;
+    setSummary(null);
     setError(null);
-    try {
-      setSummary(await client.request<BillingSummary>(`/organization/${orgId}/billing`));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load billing");
-    }
-  }
+    void loadBilling(organization.id)
+      .then((data) => {
+        if (active) setSummary(data);
+      })
+      .catch((err: unknown) => {
+        if (active) setError(getErrorMessage(err, "Unable to load billing"));
+      });
+    return () => {
+      active = false;
+    };
+  }, [organization?.id]);
 
   async function checkout(plan: BillingSummary["plan"]) {
     if (!organization) return;
     setLoading(true);
     setError(null);
     try {
-      const result = await client.request<{ url?: string; checkoutUrl?: string }>(`/organization/${organization.id}/billing/checkout`, {
-        method: "POST",
-        body: JSON.stringify({
-          plan,
-          successUrl: `${window.location.origin}/settings/billing`,
-          cancelUrl: `${window.location.origin}/settings/billing`,
-        }),
-      });
+      const result = await startCheckout(organization.id, plan);
       const url = result.url ?? result.checkoutUrl;
       if (!url) throw new Error("Billing provider did not return a checkout URL");
       window.location.assign(url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start checkout");
+      setError(getErrorMessage(err, "Unable to start checkout"));
     } finally {
       setLoading(false);
     }
   }
 
   if (!organization) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Select an organization before opening settings.</div>;
+  if (error && !summary) return <BillingError message={error} onRetry={() => window.location.reload()} />;
   if (!summary) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Loading billing...</div>;
+
+  const hasActiveSubscription = summary.status.toLowerCase() === "active";
 
   return (
     <div className="space-y-6">
@@ -69,24 +70,73 @@ function BillingSettings() {
         <h2 className="mt-1 text-2xl font-semibold capitalize">{summary.plan}</h2>
         <p className="mt-2 text-sm text-muted-foreground">Status: {summary.status}</p>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <Stat label="Members" value={`${summary.members} / ${summary.seatLimit}`} />
-          <Stat label="Agents" value={`${summary.agentLimit}`} />
-          <Stat label="Subscription" value={summary.hasSubscription ? "Active" : "Not connected"} />
+          <Stat label="Members" value={summary.members + " / " + summary.seatLimit} />
+          <Stat label="Agents" value={String(summary.agentLimit)} />
+          <Stat label="Subscription" value={hasActiveSubscription ? "Active" : "Not active"} />
         </div>
       </section>
       <section className="rounded-xl border bg-card p-5">
         <h2 className="font-medium">Plans</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {(["starter", "growth", "scale"] as const).map((plan) => (
-            <div key={plan} className="rounded-lg border p-4">
-              <h3 className="font-medium capitalize">{plan}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Organization plan with its configured agent and seat limits.</p>
-              <button disabled={loading || summary.plan === plan} onClick={() => void checkout(plan)} className="mt-4 w-full rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50">{summary.plan === plan ? "Current plan" : "Choose plan"}</button>
-            </div>
+            <PlanCard key={plan} plan={plan} currentPlan={summary.plan} hasActiveSubscription={hasActiveSubscription} loading={loading} onCheckout={checkout} />
           ))}
         </div>
       </section>
       {error && <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+async function loadBilling(orgId: string) {
+  return client.request<BillingSummary>("/organization/" + orgId + "/billing");
+}
+
+async function startCheckout(orgId: string, plan: BillingSummary["plan"]) {
+  return client.request<CheckoutResponse>("/organization/" + orgId + "/billing/checkout", {
+    method: "POST",
+    body: JSON.stringify({
+      plan,
+      successUrl: window.location.origin + "/settings/billing",
+      cancelUrl: window.location.origin + "/settings/billing",
+    }),
+  });
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+function BillingError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="rounded-xl border bg-card p-6">
+      <p className="text-sm text-destructive">{message}</p>
+      <button onClick={onRetry} className="mt-4 rounded-md border px-3 py-2 text-sm">Retry</button>
+    </div>
+  );
+}
+
+function PlanCard({
+  plan,
+  currentPlan,
+  hasActiveSubscription,
+  loading,
+  onCheckout,
+}: {
+  plan: BillingSummary["plan"];
+  currentPlan: BillingSummary["plan"];
+  hasActiveSubscription: boolean;
+  loading: boolean;
+  onCheckout: (plan: BillingSummary["plan"]) => void;
+}) {
+  const isCurrentActivePlan = currentPlan === plan && hasActiveSubscription;
+  return (
+    <div className="rounded-lg border p-4">
+      <h3 className="font-medium capitalize">{plan}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">Organization plan with its configured agent and seat limits.</p>
+      <button disabled={loading || isCurrentActivePlan} onClick={() => void onCheckout(plan)} className="mt-4 w-full rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground disabled:opacity-50">
+        {isCurrentActivePlan ? "Current plan" : "Choose plan"}
+      </button>
     </div>
   );
 }
