@@ -5,6 +5,7 @@ import { documentsSchema, organizationSchema } from "@teamlyf/db";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateDocumentDto, SetDocumentPermissionDto, UpdateDocumentDto } from "./document.dto";
+import { requireOrganizationMember } from "../../common/organization-member";
 
 const { document, documentPermission, documentVersion } = documentsSchema;
 const { member } = organizationSchema;
@@ -122,11 +123,11 @@ export class DocumentService {
     return found;
   }
 
-  private async requireMember(organizationId: string, memberId: string) {
-    const found = await this.db.query.member.findFirst({
-      where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
-    });
-    if (!found) throw new ForbiddenException("Member is not in this organization");
-    return found;
+  private requireMember(organizationId: string, memberId: string) {
+    return requireOrganizationMember(() =>
+      this.db.query.member.findFirst({
+        where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
+      }),
+    );
   }
 }
