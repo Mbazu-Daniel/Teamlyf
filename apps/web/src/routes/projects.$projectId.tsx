@@ -29,13 +29,13 @@ function ProjectPageState({
   if (!organizationId) return <EmptyProjectState />;
   if (!project) return <LoadingProjectState error={state.error} />;
 
-  return <ProjectWorkspace state={{ ...state, project }} />;
+  return <ProjectWorkspace state={state} project={project} />;
 }
 
-function ProjectWorkspace({ state }: { state: ProjectPageStateValue }) {
+function ProjectWorkspace({ state, project }: { state: ProjectPageStateValue; project: Project }) {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <ProjectHeader project={state.project} />
+      <ProjectHeader project={project} />
       <TaskForm
         name={state.name}
         statusId={state.statusId}
