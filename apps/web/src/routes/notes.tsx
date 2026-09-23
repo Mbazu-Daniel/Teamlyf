@@ -6,8 +6,6 @@ import { useOrganization } from "@/lib/organization";
 type Note = { id: string; title: string; content: string; parentId: string | null; ownerId: string; updatedAt: string };
 
 export const Route = createFileRoute("/notes")({ component: NotesPage });
-
-// fallow-ignore-next-line high-crap-score
 function NotesPage() {
   const { organization } = useOrganization();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -29,7 +27,6 @@ function NotesPage() {
   }
 
   async function createNote(event: FormEvent) {
-    // fallow-ignore-next-line code-duplication
     event.preventDefault();
     if (!organization || !title.trim()) return;
     setLoading(true);
