@@ -1,5 +1,7 @@
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import * as aiSchema from "./ai";
+import * as agentSchema from "./agent";
 import * as authSchema from "./auth";
 import * as orgSchema from "./organization";
 import * as projectSchema from "./project";
@@ -7,10 +9,10 @@ import * as documentsSchema from "./documents";
 import * as notesSchema from "./notes";
 import * as hrSchema from "./hr";
 import * as billingSchema from "./billing";
-import * as agentSchema from "./agent";
-import * as aiSchema from "./ai";
 
 const allSchemas = {
+  ...aiSchema,
+  ...agentSchema,
   ...authSchema,
   ...orgSchema,
   ...projectSchema,
@@ -18,8 +20,6 @@ const allSchemas = {
   ...notesSchema,
   ...hrSchema,
   ...billingSchema,
-  ...agentSchema,
-  ...aiSchema,
 };
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;

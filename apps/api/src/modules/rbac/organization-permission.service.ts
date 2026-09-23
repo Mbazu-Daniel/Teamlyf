@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, eq, isNull, or } from "drizzle-orm";
 import type { Database } from "@teamlyf/db";
 import { member, permissionGrant } from "@teamlyf/db/organization-schema";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { AuthService } from "../auth/auth.service";
 
@@ -15,29 +15,28 @@ export class OrganizationPermissionService {
   async checkUserPermission(
     userId: string,
     headers: Headers,
-    organizationId: string,
+    orgId: string,
     resource: string,
     action: string,
     resourceId?: string,
   ): Promise<boolean> {
-    const membership = await this.db.query.member.findFirst({
-      where: and(eq(member.organizationId, organizationId), eq(member.userId, userId)),
-      columns: { id: true },
-    });
-    if (!membership) return false;
+    const isMember = await this.isOrganizationMember(orgId, userId);
+    if (!isMember) return false;
 
-    const result = await this.authService.auth.api.hasPermission({
-      headers,
-      body: {
-        organizationId,
-        permissions: { [resource]: [action] },
-      },
-    }).catch(() => null);
+    const result = await this.authService.auth.api
+      .hasPermission({
+        headers,
+        body: {
+          organizationId: orgId,
+          permissions: { [resource]: [action] },
+        },
+      })
+      .catch(() => null);
 
     if (result?.success) return true;
 
     return this.hasGrant({
-      organizationId,
+      orgId,
       subjectKind: "user",
       subjectId: userId,
       resource,
@@ -47,14 +46,14 @@ export class OrganizationPermissionService {
   }
 
   async checkAgentPermission(
-    organizationId: string,
+    orgId: string,
     agentId: string,
     resource: string,
     action: string,
     resourceId?: string,
   ): Promise<boolean> {
     return this.hasGrant({
-      organizationId,
+      orgId,
       subjectKind: "agent",
       subjectId: agentId,
       resource,
@@ -63,8 +62,17 @@ export class OrganizationPermissionService {
     });
   }
 
+  private async isOrganizationMember(orgId: string, userId: string): Promise<boolean> {
+    const found = await this.db.query.member.findFirst({
+      where: and(eq(member.organizationId, orgId), eq(member.userId, userId)),
+      columns: { id: true },
+    });
+
+    return Boolean(found);
+  }
+
   private async hasGrant(input: {
-    organizationId: string;
+    orgId: string;
     subjectKind: "user" | "agent";
     subjectId: string;
     resource: string;
@@ -73,7 +81,7 @@ export class OrganizationPermissionService {
   }): Promise<boolean> {
     const rows = await this.db.query.permissionGrant.findMany({
       where: and(
-        eq(permissionGrant.organizationId, input.organizationId),
+        eq(permissionGrant.organizationId, input.orgId),
         eq(permissionGrant.subjectKind, input.subjectKind),
         eq(permissionGrant.subjectId, input.subjectId),
         eq(permissionGrant.module, input.resource),

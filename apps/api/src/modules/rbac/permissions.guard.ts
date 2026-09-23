@@ -6,14 +6,21 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
 import type { MemberRequest } from "./org-member.guard";
+import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
 import {
   REQUIRE_PERMISSION_KEY,
   type RequirePermissionMeta,
 } from "./require-permission.decorator";
 import { OrganizationPermissionService } from "./organization-permission.service";
 
+/**
+ * Organization-scoped permission enforcement for authenticated HTTP requests.
+ *
+ * User permissions are resolved from Better Auth role permissions with
+ * organization-scoped grant fallback. Agent permissions are resolved by the
+ * shared permission service and do not use Better Auth roles.
+ */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(
@@ -22,24 +29,16 @@ export class PermissionsGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const meta = this.reflector.getAllAndOverride<RequirePermissionMeta | undefined>(
-      REQUIRE_PERMISSION_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const meta = this.getMetadata(context);
     if (!meta) return true;
 
     const req = context.switchToHttp().getRequest<MemberRequest>();
-    if (!req.user?.id) throw new UnauthorizedException("Authentication required");
-
-    const orgIdParam = req.params.orgId;
-    const orgId = Array.isArray(orgIdParam) ? orgIdParam[0] : orgIdParam;
-    if (!orgId) throw new ForbiddenException("Organization id required");
-
-    const resourceIdRaw = meta.resourceIdParam ? req.params[meta.resourceIdParam] : undefined;
-    const resourceId = Array.isArray(resourceIdRaw) ? resourceIdRaw[0] : resourceIdRaw;
+    const userId = this.requireUserId(req);
+    const orgId = this.requireOrganizationId(req);
+    const resourceId = this.getResourceId(req.params, meta.resourceIdParam);
 
     const allowed = await this.permissionService.checkUserPermission(
-      req.user.id,
+      userId,
       toFetchHeaders(req),
       orgId,
       meta.resource,
@@ -49,5 +48,35 @@ export class PermissionsGuard implements CanActivate {
 
     if (!allowed) throw new ForbiddenException("Missing permission");
     return true;
+  }
+
+  private getMetadata(context: ExecutionContext): RequirePermissionMeta | undefined {
+    return this.reflector.getAllAndOverride<RequirePermissionMeta | undefined>(
+      REQUIRE_PERMISSION_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+  }
+
+  private requireUserId(req: MemberRequest): string {
+    if (!req.user?.id) throw new UnauthorizedException("Authentication required");
+    return req.user.id;
+  }
+
+  private requireOrganizationId(req: MemberRequest): string {
+    const orgId = this.getParamValue(req.params.orgId);
+    if (!orgId) throw new ForbiddenException("Organization id required");
+    return orgId;
+  }
+
+  private getResourceId(
+    params: MemberRequest["params"],
+    paramName?: string,
+  ): string | undefined {
+    if (!paramName) return undefined;
+    return this.getParamValue(params[paramName]);
+  }
+
+  private getParamValue(value: string | string[] | undefined): string | undefined {
+    return Array.isArray(value) ? value[0] : value;
   }
 }
