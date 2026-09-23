@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { IconUsers } from "@tabler/icons-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { client, type Organization } from "@/lib/api";
+import { api, type Organization } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Member = {
