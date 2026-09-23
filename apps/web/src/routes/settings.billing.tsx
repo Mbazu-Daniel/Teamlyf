@@ -52,17 +52,15 @@ function BillingSettings() {
   }
 
   if (!organization) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Select an organization before opening settings.</div>;
-  return <BillingContent organization={organization} summary={summary} loading={loading} error={error} checkout={checkout} />;
+  return <BillingContent summary={summary} loading={loading} error={error} checkout={checkout} />;
 }
 
 function BillingContent({
-  organization,
   summary,
   loading,
   error,
   checkout,
 }: {
-  organization: NonNullable<ReturnType<typeof useOrganization>["organization"]>;
   summary: BillingSummary | null;
   loading: boolean;
   error: string | null;
@@ -70,30 +68,50 @@ function BillingContent({
 }) {
   if (error && !summary) return <BillingError message={error} onRetry={() => window.location.reload()} />;
   if (!summary) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Loading billing...</div>;
-
-  const hasActiveSubscription = summary.status.toLowerCase() === "active";
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border bg-card p-5">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">Current plan</p>
-        <h2 className="mt-1 text-2xl font-semibold capitalize">{summary.plan}</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Status: {summary.status}</p>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <Stat label="Members" value={summary.members + " / " + summary.seatLimit} />
-          <Stat label="Agents" value={String(summary.agentLimit)} />
-          <Stat label="Subscription" value={hasActiveSubscription ? "Active" : "Not active"} />
-        </div>
-      </section>
-      <section className="rounded-xl border bg-card p-5">
-        <h2 className="font-medium">Plans</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {(["starter", "growth", "scale"] as const).map((plan) => (
-            <PlanCard key={plan} plan={plan} currentPlan={summary.plan} hasActiveSubscription={hasActiveSubscription} loading={loading} onCheckout={checkout} />
-          ))}
-        </div>
-      </section>
+      <BillingOverview summary={summary} />
+      <BillingPlans summary={summary} loading={loading} onCheckout={checkout} />
       {error && <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
     </div>
+  );
+}
+
+function BillingOverview({ summary }: { summary: BillingSummary }) {
+  const active = summary.status.toLowerCase() === "active";
+  return (
+    <section className="rounded-xl border bg-card p-5">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">Current plan</p>
+      <h2 className="mt-1 text-2xl font-semibold capitalize">{summary.plan}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Status: {summary.status}</p>
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <Stat label="Members" value={summary.members + " / " + summary.seatLimit} />
+        <Stat label="Agents" value={String(summary.agentLimit)} />
+        <Stat label="Subscription" value={active ? "Active" : "Not active"} />
+      </div>
+    </section>
+  );
+}
+
+function BillingPlans({
+  summary,
+  loading,
+  onCheckout,
+}: {
+  summary: BillingSummary;
+  loading: boolean;
+  onCheckout: (plan: BillingSummary["plan"]) => void;
+}) {
+  const active = summary.status.toLowerCase() === "active";
+  return (
+    <section className="rounded-xl border bg-card p-5">
+      <h2 className="font-medium">Plans</h2>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {(["starter", "growth", "scale"] as const).map((plan) => (
+          <PlanCard key={plan} plan={plan} currentPlan={summary.plan} hasActiveSubscription={active} loading={loading} onCheckout={onCheckout} />
+        ))}
+      </div>
+    </section>
   );
 }
 
