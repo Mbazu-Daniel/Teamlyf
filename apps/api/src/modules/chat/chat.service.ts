@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { chatSchema, organizationSchema } from "@teamlyf/db";
-import { and, eq, inArray, lt, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt, or } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateChannelDto, CreateMessageDto } from "./chat.dto";
 
@@ -27,15 +27,21 @@ export class ChatService {
     await this.requireMember(organizationId, memberId);
     const memberIds = [...new Set([memberId, ...(dto.memberIds ?? [])])];
     await this.requireMembers(organizationId, memberIds);
-    const [created] = await this.db.insert(channel).values({
-      organizationId,
-      name: dto.name,
-      kind: dto.kind ?? "channel",
-      isPrivate: dto.kind === "direct" || dto.isPrivate === true,
-      createdById: memberId,
-    }).returning();
-    await this.db.insert(channelMember).values(memberIds.map((id) => ({ channelId: created.id, memberId: id })));
-    return created;
+    return this.db.transaction(async (tx) => {
+      const [created] = await tx.insert(channel).values({
+        organizationId,
+        name: dto.name,
+        kind: dto.kind ?? "channel",
+        isPrivate: dto.kind === "direct" || dto.isPrivate === true,
+        createdById: memberId,
+      }).returning();
+
+      await tx.insert(channelMember).values(
+        memberIds.map((id) => ({ channelId: created.id, memberId: id })),
+      );
+
+      return created;
+    });
   }
 
   async join(organizationId: string, channelId: string, memberId: string) {
@@ -55,7 +61,7 @@ export class ChatService {
   async history(organizationId: string, channelId: string, memberId: string) {
     await this.requireAccess(organizationId, channelId, memberId);
     const rows = await this.db.query.message.findMany({
-      where: eq(message.channelId, channelId),
+      where: and(eq(message.channelId, channelId), isNull(message.threadRootId)),
       orderBy: (table, { desc }) => [desc(table.createdAt)],
       limit: 100,
     });
@@ -67,7 +73,7 @@ export class ChatService {
     const root = await this.findThreadRoot(channelId, messageId);
     const cursorDate = this.parseThreadCursor(cursor);
     const rows = await this.findThreadMessages(channelId, messageId, cursorDate);
-    return this.withReactions(rows.reverse());
+    return this.withReactions([root, ...rows.reverse()]);
   }
 
   private async findThreadRoot(channelId: string, messageId: string) {
@@ -89,12 +95,10 @@ export class ChatService {
     const where = cursor
       ? and(
           eq(message.channelId, channelId),
-          or(
-            eq(message.id, messageId),
-            and(eq(message.threadRootId, messageId), lt(message.createdAt, cursor)),
-          ),
+          eq(message.threadRootId, messageId),
+          lt(message.createdAt, cursor),
         )
-      : and(eq(message.channelId, channelId), or(eq(message.id, messageId), eq(message.threadRootId, messageId)));
+      : and(eq(message.channelId, channelId), eq(message.threadRootId, messageId));
 
     return this.db.query.message.findMany({
       where,
@@ -128,8 +132,23 @@ export class ChatService {
       where: and(eq(message.id, messageId), eq(message.channelId, channelId)),
     });
     if (!target) throw new NotFoundException("Message not found");
-    const [created] = await this.db.insert(messageReaction).values({ messageId, memberId, emoji }).onConflictDoNothing().returning();
-    return created ?? { messageId, memberId, emoji };
+    const [created] = await this.db
+      .insert(messageReaction)
+      .values({ messageId, memberId, emoji })
+      .onConflictDoNothing()
+      .returning();
+
+    if (created) return created;
+
+    const existing = await this.db.query.messageReaction.findFirst({
+      where: and(
+        eq(messageReaction.messageId, messageId),
+        eq(messageReaction.memberId, memberId),
+        eq(messageReaction.emoji, emoji),
+      ),
+    });
+
+    return existing ?? { messageId, memberId, emoji };
   }
 
   private async requireAccess(organizationId: string, channelId: string, memberId: string) {
