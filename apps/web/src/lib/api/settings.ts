@@ -50,14 +50,14 @@ export const settingsApi = {
   },
   updateMemberRole(organizationId: string, memberId: string, role: string) {
     return client.request(organizationPath(organizationId, "/members/update-role"), {
-      method: "PATCH",
-      body: JSON.stringify({ memberId, role }),
+      method: "POST",
+      body: JSON.stringify({ memberId, role: [role] }),
     });
   },
   removeMember(organizationId: string, memberId: string) {
     return client.request(organizationPath(organizationId, "/members/remove"), {
       method: "POST",
-      body: JSON.stringify({ memberId }),
+      body: JSON.stringify({ memberIdOrEmail: memberId }),
     });
   },
   activeMemberRole(organizationId: string) {
