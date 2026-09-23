@@ -31,7 +31,7 @@ export class DocumentService {
 
   async create(organizationId: string, memberId: string, dto: CreateDocumentDto) {
     await this.requireMember(organizationId, memberId);
-    if (dto.parentId) await this.requireReadable(organizationId, dto.parentId, memberId);
+    await this.validateParent(organizationId, dto.parentId, memberId);
     const [created] = await this.db.insert(document).values({
       organizationId,
       ownerId: memberId,
@@ -98,6 +98,28 @@ export class DocumentService {
     });
   }
 
+  private async validateParent(organizationId: string, parentId: string | undefined, memberId: string) {
+    if (parentId) await this.requireReadable(organizationId, parentId, memberId);
+  }
+
+  private async requireAccess(
+    documentId: string,
+    memberId: string,
+    access: string[],
+    message: string,
+  ) {
+    const permission = await this.db.query.documentPermission.findFirst({
+      where: and(
+        eq(documentPermission.documentId, documentId),
+        eq(documentPermission.subjectKind, "member"),
+        eq(documentPermission.subjectId, memberId),
+      ),
+    });
+    if (!permission || !access.includes(permission.access)) {
+      throw new ForbiddenException(message);
+    }
+  }
+
   private async requireReadable(organizationId: string, documentId: string, memberId: string) {
     const found = await this.db.query.document.findFirst({
       where: and(eq(document.id, documentId), eq(document.organizationId, organizationId)),
@@ -105,20 +127,14 @@ export class DocumentService {
     if (!found) throw new NotFoundException("Document not found");
     await this.requireMember(organizationId, memberId);
     if (found.ownerId === memberId) return found;
-    const permission = await this.db.query.documentPermission.findFirst({
-      where: and(eq(documentPermission.documentId, documentId), eq(documentPermission.subjectKind, "member"), eq(documentPermission.subjectId, memberId)),
-    });
-    if (!permission || !["read", "write", "admin"].includes(permission.access)) throw new ForbiddenException("Document access denied");
+    await this.requireAccess(documentId, memberId, ["read", "write", "admin"], "Document access denied");
     return found;
   }
 
   private async requireWritable(organizationId: string, documentId: string, memberId: string) {
     const found = await this.requireReadable(organizationId, documentId, memberId);
     if (found.ownerId === memberId) return found;
-    const permission = await this.db.query.documentPermission.findFirst({
-      where: and(eq(documentPermission.documentId, documentId), eq(documentPermission.subjectKind, "member"), eq(documentPermission.subjectId, memberId)),
-    });
-    if (!permission || !["write", "admin"].includes(permission.access)) throw new ForbiddenException("Document write access denied");
+    await this.requireAccess(documentId, memberId, ["write", "admin"], "Document write access denied");
     return found;
   }
 
