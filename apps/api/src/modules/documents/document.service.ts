@@ -1,28 +1,50 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { documentsSchema, organizationSchema } from "@teamlyf/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { documentsSchema } from "@teamlyf/db";
+import { and, eq, inArray, isNull, or } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateDocumentDto, SetDocumentPermissionDto, UpdateDocumentDto } from "./document.dto";
+import { requireOrganizationMember } from "../../common/organization-member";
 
 const { document, documentPermission, documentVersion } = documentsSchema;
-const { member } = organizationSchema;
 
 @Injectable()
 export class DocumentService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  async list(organizationId: string, memberId: string) {
-    const rows = await this.db.query.document.findMany({
-      where: eq(document.organizationId, organizationId),
-      orderBy: (table, { desc }) => [desc(table.updatedAt)],
-    });
+  async list(organizationId: string, memberId: string, page = 1, limit = 50) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(100, Math.max(1, limit));
     const permissions = await this.db.query.documentPermission.findMany({
-      where: and(eq(documentPermission.subjectKind, "member"), eq(documentPermission.subjectId, memberId)),
+      where: and(
+        eq(documentPermission.subjectKind, "member"),
+        eq(documentPermission.subjectId, memberId),
+      ),
+      columns: { documentId: true },
     });
-    const shared = new Set(permissions.filter((item) => ["read", "write", "admin"].includes(item.access)).map((item) => item.documentId));
-    return rows.filter((row) => row.ownerId === memberId || shared.has(row.id));
+    const sharedIds = permissions.map((item) => item.documentId);
+    const accessCondition = sharedIds.length
+      ? or(isNull(document.ownerId), eq(document.ownerId, memberId), inArray(document.id, sharedIds))
+      : or(isNull(document.ownerId), eq(document.ownerId, memberId));
+
+    return this.db.query.document.findMany({
+      where: and(eq(document.organizationId, organizationId), accessCondition),
+      columns: {
+        id: true,
+        organizationId: true,
+        ownerId: true,
+        parentId: true,
+        title: true,
+        mimeType: true,
+        objectKey: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: (table, { desc }) => [desc(table.updatedAt)],
+      limit: safeLimit,
+      offset: (safePage - 1) * safeLimit,
+    });
   }
 
   async get(organizationId: string, documentId: string, memberId: string) {
@@ -31,7 +53,7 @@ export class DocumentService {
 
   async create(organizationId: string, memberId: string, dto: CreateDocumentDto) {
     await this.requireMember(organizationId, memberId);
-    await this.validateParent(organizationId, dto.parentId, memberId);
+    await this.requireParentIfPresent(organizationId, memberId, dto.parentId);
     const [created] = await this.db.insert(document).values({
       organizationId,
       ownerId: memberId,
@@ -43,14 +65,39 @@ export class DocumentService {
     return created;
   }
 
+  private async requireParentIfPresent(organizationId: string, memberId: string, parentId?: string | null) {
+    if (parentId) await this.requireReadable(organizationId, parentId, memberId);
+  }
+
   async update(organizationId: string, documentId: string, memberId: string, dto: UpdateDocumentDto) {
-    const current = await this.requireWritable(organizationId, documentId, memberId);
-    await this.createVersion(current.id, memberId, current.title, current.content);
-    const [updated] = await this.db.update(document)
-      .set({ ...dto, updatedAt: new Date() })
-      .where(and(eq(document.id, documentId), eq(document.organizationId, organizationId)))
-      .returning();
-    return updated;
+    await this.requireWritable(organizationId, documentId, memberId);
+
+    return this.db.transaction(async (tx) => {
+      const [current] = await tx.select().from(document).where(
+        and(eq(document.id, documentId), eq(document.organizationId, organizationId)),
+      ).for("update");
+
+      if (!current) throw new NotFoundException("Document not found");
+
+      const versions = await tx.select({ id: documentVersion.id })
+        .from(documentVersion)
+        .where(eq(documentVersion.documentId, documentId));
+
+      await tx.insert(documentVersion).values({
+        documentId,
+        version: String(versions.length + 1),
+        title: current.title,
+        content: current.content,
+        createdById: memberId,
+      });
+
+      const [updated] = await tx.update(document)
+        .set({ ...dto, updatedAt: new Date() })
+        .where(and(eq(document.id, documentId), eq(document.organizationId, organizationId)))
+        .returning();
+
+      return updated;
+    });
   }
 
   async versions(organizationId: string, documentId: string, memberId: string) {
@@ -86,9 +133,7 @@ export class DocumentService {
   }
 
   private async createVersion(documentId: string, memberId: string, title: string, content: string | null) {
-    const versions = await this.db.query.documentVersion.findMany({
-      where: eq(documentVersion.documentId, documentId),
-    });
+    const versions = await this.db.query.documentVersion.findMany({ where: eq(documentVersion.documentId, documentId) });
     await this.db.insert(documentVersion).values({
       documentId,
       version: String(versions.length + 1),
@@ -98,51 +143,44 @@ export class DocumentService {
     });
   }
 
-  private async validateParent(organizationId: string, parentId: string | undefined, memberId: string) {
-    if (parentId) await this.requireReadable(organizationId, parentId, memberId);
+  private async requireReadable(organizationId: string, documentId: string, memberId: string) {
+    const found = await this.findDocument(organizationId, documentId);
+    await this.requireMember(organizationId, memberId);
+    if (found.ownerId === null || found.ownerId === memberId) return found;
+    if (!await this.hasPermission(documentId, memberId, ["read", "write", "admin"])) {
+      throw new ForbiddenException("Document access denied");
+    }
+    return found;
   }
 
-  private async requireAccess(
-    documentId: string,
-    memberId: string,
-    access: string[],
-    message: string,
-  ) {
-    const permission = await this.db.query.documentPermission.findFirst({
+  private async findDocument(organizationId: string, documentId: string) {
+    const found = await this.db.query.document.findFirst({
+      where: and(eq(document.id, documentId), eq(document.organizationId, organizationId)),
+    });
+    if (!found) throw new NotFoundException("Document not found");
+    return found;
+  }
+
+  private hasPermission(documentId: string, memberId: string, access: string[]) {
+    return this.db.query.documentPermission.findFirst({
       where: and(
         eq(documentPermission.documentId, documentId),
         eq(documentPermission.subjectKind, "member"),
         eq(documentPermission.subjectId, memberId),
       ),
-    });
-    if (!permission || !access.includes(permission.access)) {
-      throw new ForbiddenException(message);
-    }
-  }
-
-  private async requireReadable(organizationId: string, documentId: string, memberId: string) {
-    const found = await this.db.query.document.findFirst({
-      where: and(eq(document.id, documentId), eq(document.organizationId, organizationId)),
-    });
-    if (!found) throw new NotFoundException("Document not found");
-    await this.requireMember(organizationId, memberId);
-    if (found.ownerId === memberId) return found;
-    await this.requireAccess(documentId, memberId, ["read", "write", "admin"], "Document access denied");
-    return found;
+    }).then((permission) => Boolean(permission && access.includes(permission.access)));
   }
 
   private async requireWritable(organizationId: string, documentId: string, memberId: string) {
     const found = await this.requireReadable(organizationId, documentId, memberId);
-    if (found.ownerId === memberId) return found;
-    await this.requireAccess(documentId, memberId, ["write", "admin"], "Document write access denied");
+    if (found.ownerId === null || found.ownerId === memberId) return found;
+    if (!await this.hasPermission(documentId, memberId, ["write", "admin"])) {
+      throw new ForbiddenException("Document write access denied");
+    }
     return found;
   }
 
-  private async requireMember(organizationId: string, memberId: string) {
-    const found = await this.db.query.member.findFirst({
-      where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
-    });
-    if (!found) throw new ForbiddenException("Member is not in this organization");
-    return found;
+  private requireMember(organizationId: string, memberId: string) {
+    return requireOrganizationMember(this.db, organizationId, memberId);
   }
 }

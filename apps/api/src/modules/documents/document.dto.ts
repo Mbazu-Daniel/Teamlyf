@@ -13,7 +13,7 @@ export class UpdateDocumentDto {
 }
 
 export class SetDocumentPermissionDto {
-  @IsString() @IsNotEmpty() subjectKind!: "member";
+  @IsString() @IsNotEmpty() @IsIn(["member"]) subjectKind!: "member";
   @IsString() @IsNotEmpty() subjectId!: string;
   @IsIn(["read", "write", "admin"]) access!: "read" | "write" | "admin";
 }
