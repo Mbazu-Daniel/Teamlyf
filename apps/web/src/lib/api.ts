@@ -49,6 +49,4 @@ export type Member = { id: string; organizationId: string; role: string };
 export const client = {
   request,
   organization: organizationClient,
-  getOrganization: (organizationId: string) =>
-    request<Organization>(`/organization/${organizationId}`),
 };
