@@ -8,6 +8,9 @@ export class ChatUuidMiddleware implements NestMiddleware {
   use(req: Request, _res: Response, next: NextFunction): void {
     for (const name of ["orgId", "channelId", "messageId"]) {
       const value = req.params[name];
+      if (Array.isArray(value)) {
+        throw new BadRequestException(`Invalid ${name}`);
+      }
       if (value !== undefined && !UUID_V7_PATTERN.test(value)) {
         throw new BadRequestException(`Invalid ${name}`);
       }
