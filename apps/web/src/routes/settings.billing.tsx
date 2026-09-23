@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { client } from "@/lib/api";
+import { settingsApi, type BillingSummary, type CheckoutResponse } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type BillingSummary = {
@@ -142,7 +142,7 @@ function redirectToCheckout(result: CheckoutResponse) {
 }
 
 async function loadBilling(orgId: string) {
-  return client.request<BillingSummary>("/organization/" + orgId + "/billing");
+  return settingsApi.billing(orgId);
 }
 
 async function startCheckout(orgId: string, plan: BillingSummary["plan"]) {
