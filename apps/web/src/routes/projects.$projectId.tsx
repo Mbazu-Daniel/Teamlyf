@@ -12,11 +12,26 @@ export const Route = createFileRoute("/projects/$projectId")({ component: Projec
 function ProjectPage() {
   const { projectId } = Route.useParams();
   const { organization } = useOrganization();
-  const state = useProjectPage(organization?.id, projectId);
 
-  if (!organization) return <EmptyProjectState />;
+  return <ProjectPageState organizationId={organization?.id} projectId={projectId} />;
+}
+
+function ProjectPageState({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string | undefined;
+  projectId: string;
+}) {
+  const state = useProjectPage(organizationId, projectId);
+
+  if (!organizationId) return <EmptyProjectState />;
   if (!state.project) return <LoadingProjectState error={state.error} />;
 
+  return <ProjectWorkspace state={state} />;
+}
+
+function ProjectWorkspace({ state }: { state: ProjectPageStateValue }) {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
       <ProjectHeader project={state.project} />
@@ -29,15 +44,27 @@ function ProjectPage() {
         onStatusChange={state.setStatusId}
         onSubmit={state.createTask}
       />
-      {state.error && <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{state.error}</p>}
+      {state.error && (
+        <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {state.error}
+        </p>
+      )}
       <section className="mt-8 space-y-6">
         {state.statuses.map((status) => (
-          <StatusColumn key={status.id} status={status} tasks={state.tasks} statuses={state.statuses} onMove={state.moveTask} />
+          <StatusColumn
+            key={status.id}
+            status={status}
+            tasks={state.tasks}
+            statuses={state.statuses}
+            onMove={state.moveTask}
+          />
         ))}
       </section>
     </main>
   );
 }
+
+type ProjectPageStateValue = ReturnType<typeof useProjectPage>;
 
 function useProjectPage(organizationId: string | undefined, projectId: string) {
   const [project, setProject] = useState<Project | null>(null);
@@ -73,17 +100,18 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
   async function createTask(event: React.FormEvent) {
     event.preventDefault();
     if (!organizationId || !name.trim() || !statusId) return;
+
     setLoading(true);
     setError(null);
-    try {
-      const task = await createProjectTask(organizationId, projectId, name, statusId);
-      setTasks((current) => [...current, task]);
-      setName("");
-    } catch (err) {
-      setError(getErrorMessage(err, "Unable to create task"));
-    } finally {
-      setLoading(false);
-    }
+    void createProjectTask(organizationId, projectId, name, statusId)
+      .then((task) => {
+        setTasks((current) => [...current, task]);
+        setName("");
+      })
+      .catch((err: unknown) => {
+        setError(getErrorMessage(err, "Unable to create task"));
+      })
+      .finally(() => setLoading(false));
   }
 
   async function moveTask(task: Task, nextStatusId: string) {
