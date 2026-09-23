@@ -19,6 +19,16 @@ const apiEnvSchema = z.object({
     .transform((url) => url.replace(/\/+$/, "")),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  REDIS_URL: z.string().url().default("redis://localhost:6379"),
+  EMAIL_URL: z.string().url().optional(),
+  EMAIL_FROM: z.string().email().optional(),
+  STORAGE_ENDPOINT: z.string().url().optional(),
+  STORAGE_BUCKET: z.string().optional(),
+  STORAGE_ACCESS_KEY_ID: z.string().optional(),
+  STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
+  LIVEKIT_URL: z.string().url().optional(),
+  LIVEKIT_API_KEY: z.string().optional(),
+  LIVEKIT_API_SECRET: z.string().optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
