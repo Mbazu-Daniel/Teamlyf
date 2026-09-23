@@ -23,19 +23,26 @@ export class FeatureGateGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
     if (!feature) return true;
+    const orgId = this.getOrganizationId(context);
+    const current = await this.findSubscription(orgId);
+    this.assertActive(feature, current);
+    return true;
+  }
 
-    const request = context.switchToHttp().getRequest<{ params: { orgId?: string } }>();
-    const orgId = request.params.orgId;
-    const current = orgId
-      ? await this.db.query.subscription.findFirst({
-          where: eq(subscription.organizationId, orgId),
-        })
-      : undefined;
+  private getOrganizationId(context: ExecutionContext) {
+    return context.switchToHttp().getRequest<{ params: { orgId?: string } }>().params.orgId;
+  }
 
+  private async findSubscription(orgId?: string) {
+    if (!orgId) return undefined;
+    return this.db.query.subscription.findFirst({
+      where: eq(subscription.organizationId, orgId),
+    });
+  }
+
+  private assertActive(feature: Feature, current: { status: string } | undefined) {
     if (!current || current.status !== "active") {
       throw new ForbiddenException(`${feature} requires an active organization plan`);
     }
-
-    return true;
   }
 }
