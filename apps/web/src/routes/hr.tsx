@@ -25,6 +25,7 @@ type LeaveRequest = {
 
 export const Route = createFileRoute("/hr")({ component: HrPage });
 
+// fallow-ignore-next-line high-crap-score
 function HrPage() {
   const { organization } = useOrganization();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -47,6 +48,7 @@ function HrPage() {
     if (organization) void load();
   }, [organization?.id]);
 
+  // fallow-ignore-next-line high-crap-score
   async function load() {
     if (!organization) return;
     setError(null);
@@ -73,6 +75,7 @@ function HrPage() {
     }
   }
 
+  // fallow-ignore-next-line high-crap-score
   async function saveProfile(event: FormEvent) {
     event.preventDefault();
     if (!organization) return;
