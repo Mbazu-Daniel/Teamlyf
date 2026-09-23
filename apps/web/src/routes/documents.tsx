@@ -14,8 +14,6 @@ type Document = {
 };
 
 export const Route = createFileRoute("/documents")({ component: DocumentsPage });
-
-// fallow-ignore-next-line high-crap-score
 function DocumentsPage() {
   const { organization } = useOrganization();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -37,10 +35,7 @@ function DocumentsPage() {
       setError(err instanceof Error ? err.message : "Unable to load documents");
     }
   }
-
-  // fallow-ignore-next-line high-crap-score
   async function createDocument(event: FormEvent) {
-    // fallow-ignore-next-line code-duplication
     event.preventDefault();
     if (!organization || !title.trim()) return;
     setLoading(true);
