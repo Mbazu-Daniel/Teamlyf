@@ -139,22 +139,32 @@ export class AgentService {
   }
 
   private buildUpdateValues(dto: UpdateAgentDto) {
-    return {
-      ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
-      ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
-      ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
-      updatedAt: new Date(),
-    };
+    const values: Record<string, unknown> = { updatedAt: new Date() };
+    const fields = [
+      ["name", dto.name?.trim()],
+      ["description", dto.description?.trim() || null],
+      ["enabled", dto.enabled],
+    ] as const;
+
+    for (const [key, value] of fields) {
+      if (value !== undefined) values[key] = value;
+    }
+    return values;
   }
 
   private validateProviderConfig(dto: UpsertProviderConfigDto) {
-    const invalidByok = dto.source === "byok" && !dto.apiKey;
-    const invalidTeamlyf = dto.source === "teamlyf" && Boolean(dto.apiKey);
-    if (invalidByok) {
-      throw new BadRequestException("BYOK provider configuration requires an API key");
+    if (dto.source === "byok") {
+      this.requireApiKey(dto.apiKey);
+      return;
     }
-    if (invalidTeamlyf) {
+    if (dto.source === "teamlyf" && dto.apiKey) {
       throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    }
+  }
+
+  private requireApiKey(apiKey?: string) {
+    if (!apiKey) {
+      throw new BadRequestException("BYOK provider configuration requires an API key");
     }
   }
 
