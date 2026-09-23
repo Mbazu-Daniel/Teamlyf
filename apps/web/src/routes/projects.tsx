@@ -104,21 +104,6 @@ function useProjects(organizationId: string | undefined) {
   };
 }
 
-async function createProjectRequest(
-  organizationId: string,
-  name: string,
-  identifier: string,
-  description: string,
-) {
-  return client.request<Project>(`/organization/${organizationId}/projects`, {
-    method: "POST",
-    body: JSON.stringify({
-      name: name.trim(),
-      identifier: identifier.trim(),
-      description: description.trim() || undefined,
-    }),
-  });
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
