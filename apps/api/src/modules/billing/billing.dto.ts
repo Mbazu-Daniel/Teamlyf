@@ -1,4 +1,4 @@
-import { IsIn, IsString, IsUrl } from "class-validator";
+import { IsIn, IsUrl } from "class-validator";
 
 export type BillingPlan = "starter" | "growth" | "scale";
 
