@@ -1,6 +1,5 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { organization } from "../organization/organization";
 import { member } from "../organization/member";
 import { organizationReference } from "../organization/membership-columns";
 
