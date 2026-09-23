@@ -1,8 +1,9 @@
-import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { memberReference, organizationReference } from "../organization/membership-columns";
+import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { member } from "../organization/member";
+import { organizationReference } from "../organization/membership-columns";
 
 export const hrEmployeeProfile = pgTable("hr_employee_profile", {
-  memberId: memberReference().primaryKey(),
+  memberId: uuid("member_id").notNull().references(() => member.id, { onDelete: "cascade" }).primaryKey(),
   organizationId: organizationReference(),
   employeeNumber: text("employee_number"),
   jobTitle: text("job_title"),
