@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { chatSchema, organizationSchema } from "@teamlyf/db";
-import { and, eq, inArray, isNull, lt, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, lt } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateChannelDto, CreateMessageDto } from "./chat.dto";
 
