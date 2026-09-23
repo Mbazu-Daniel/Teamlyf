@@ -1,14 +1,13 @@
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { documentsSchema, organizationSchema } from "@teamlyf/db";
+import { documentsSchema } from "@teamlyf/db";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateDocumentDto, SetDocumentPermissionDto, UpdateDocumentDto } from "./document.dto";
 import { requireOrganizationMember } from "../../common/organization-member";
 
 const { document, documentPermission, documentVersion } = documentsSchema;
-const { member } = organizationSchema;
 
 @Injectable()
 export class DocumentService {
@@ -124,10 +123,6 @@ export class DocumentService {
   }
 
   private requireMember(organizationId: string, memberId: string) {
-    return requireOrganizationMember(() =>
-      this.db.query.member.findFirst({
-        where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
-      }),
-    );
+    return requireOrganizationMember(this.db, organizationId, memberId);
   }
 }
