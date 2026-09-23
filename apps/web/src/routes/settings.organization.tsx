@@ -270,10 +270,18 @@ function MemberRow({ member, busy, onRoleChange, onRemove }: { member: Member; b
 function MemberIdentity({ member }: { member: Member }) {
   return (
     <div>
-      <p className="text-sm font-medium">{member.user?.name || member.user?.email || member.id}</p>
-      <p className="text-xs text-muted-foreground">{member.user?.email ?? "Organization member"}</p>
+      <p className="text-sm font-medium">{memberDisplayName(member)}</p>
+      <p className="text-xs text-muted-foreground">{memberEmail(member)}</p>
     </div>
   );
+}
+
+function memberDisplayName(member: Member) {
+  return member.user?.name || member.user?.email || member.id;
+}
+
+function memberEmail(member: Member) {
+  return member.user?.email ?? "Organization member";
 }
 
 function MemberActions({ member, busy, onRoleChange, onRemove }: { member: Member; busy: boolean; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
