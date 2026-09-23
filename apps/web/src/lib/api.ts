@@ -50,3 +50,5 @@ export const client = {
   request,
   organization: organizationClient,
 };
+
+export const api = request;
