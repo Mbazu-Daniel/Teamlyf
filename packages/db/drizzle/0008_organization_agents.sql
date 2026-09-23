@@ -84,6 +84,8 @@ ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_member_fk" FOREIGN 
 --> statement-breakpoint
 ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id");
 --> statement-breakpoint
+CREATE UNIQUE INDEX "agent_organization_id_id_idx" ON "agent" USING btree ("organization_id","id");
+--> statement-breakpoint
 CREATE UNIQUE INDEX "agent_organization_name_idx" ON "agent" USING btree ("organization_id","name");
 --> statement-breakpoint
 CREATE INDEX "agent_organization_id_idx" ON "agent" USING btree ("organization_id");
