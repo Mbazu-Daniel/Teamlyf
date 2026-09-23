@@ -21,15 +21,13 @@ export class OrgMemberGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<MemberRequest>();
-    this.assertAuthenticated(req);
+    const userId = req.user?.id;
+    if (!userId) throw new UnauthorizedException("Authentication required");
+
     const orgId = this.getOrganizationId(req);
-    const found = await this.findMember(orgId, req.user.id);
+    const found = await this.findMember(orgId, userId);
     req.member = this.toSessionMember(found);
     return true;
-  }
-
-  private assertAuthenticated(req: MemberRequest) {
-    if (!req.user?.id) throw new UnauthorizedException("Authentication required");
   }
 
   private getOrganizationId(req: MemberRequest) {
