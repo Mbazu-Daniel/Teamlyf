@@ -104,7 +104,7 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
 
     setLoading(true);
     setError(null);
-    void createProjectTask(organizationId, projectId, name, statusId)
+    projectsApi.createTask(organizationId, projectId, { name: name.trim(), statusId })
       .then((task) => {
         setTasks((current) => [...current, task]);
         setName("");
