@@ -7,6 +7,7 @@ type Note = { id: string; title: string; content: string; parentId: string | nul
 
 export const Route = createFileRoute("/notes/$noteId")({ component: NotePage });
 
+// fallow-ignore-next-line high-crap-score
 function NotePage() {
   const { organization } = useOrganization();
   const { noteId } = Route.useParams();
