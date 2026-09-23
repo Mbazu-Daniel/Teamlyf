@@ -186,13 +186,17 @@ export class AgentService {
     }
   }
 
-  private resolveAgentLimit(subscription?: { plan: BillingPlan; agentLimit: string | null }): number {
+  private resolveAgentLimit(subscription?: { plan: string; agentLimit: string }): number {
     if (!subscription) return planEntitlements.starter.agentLimit;
 
     const configuredLimit = Number(subscription.agentLimit);
     if (configuredLimit > 0) return configuredLimit;
 
-    return planEntitlements[subscription.plan].agentLimit;
+    const plan: BillingPlan =
+      subscription.plan === "growth" || subscription.plan === "scale"
+        ? subscription.plan
+        : "starter";
+    return planEntitlements[plan].agentLimit;
   }
 
   private encrypt(value: string): string {
