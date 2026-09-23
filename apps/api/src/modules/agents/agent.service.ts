@@ -187,11 +187,8 @@ export class AgentService {
   }
 
   private resolveAgentLimit(subscription?: { plan: string; agentLimit: string }): number {
-    const configuredLimit = Number(subscription?.agentLimit);
-    const plan = subscription?.plan as BillingPlan | undefined;
-    return configuredLimit > 0
-      ? configuredLimit
-      : (planEntitlements[plan ?? "starter"] ?? planEntitlements.starter).agentLimit;
+    const configuredLimit = Math.max(Number(subscription?.agentLimit), 0);
+    return configuredLimit || planEntitlements[subscription?.plan as BillingPlan]?.agentLimit || planEntitlements.starter.agentLimit;
   }
 
   private encrypt(value: string): string {
