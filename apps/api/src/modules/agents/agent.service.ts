@@ -37,13 +37,19 @@ export class AgentService {
 
   async update(organizationId: string, agentId: string, dto: UpdateAgentDto) {
     await this.requireAgent(organizationId, agentId);
-    const [updated] = await this.db.update(agent).set({
+    const [updated] = await this.db.update(agent).set(this.updateValues(dto)).where(
+      and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)),
+    ).returning();
+    return updated;
+  }
+
+  private updateValues(dto: UpdateAgentDto) {
+    return {
       ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
       ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
       ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
       updatedAt: new Date(),
-    }).where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId))).returning();
-    return updated;
+    };
   }
 
   async createRun(
