@@ -19,6 +19,10 @@ const apiEnvSchema = z.object({
     .transform((url) => url.replace(/\/+$/, "")),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+  LIVEKIT_URL: z.string().url().optional(),
+  LIVEKIT_API_KEY: z.string().optional(),
+  LIVEKIT_API_SECRET: z.string().optional(),
+  AGENT_ENCRYPTION_SECRET: z.string().min(16).optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

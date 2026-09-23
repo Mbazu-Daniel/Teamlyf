@@ -3,9 +3,24 @@ import postgres from "postgres";
 import * as authSchema from "./auth";
 import * as orgSchema from "./organization";
 import * as projectSchema from "./project";
-import * as chatSchema from "./chat";
+import * as documentsSchema from "./documents";
+import * as notesSchema from "./notes";
+import * as hrSchema from "./hr";
+import * as billingSchema from "./billing";
+import * as agentSchema from "./agent";
+import * as aiSchema from "./ai";
 
-const allSchemas = { ...authSchema, ...orgSchema, ...projectSchema, ...chatSchema };
+const allSchemas = {
+  ...authSchema,
+  ...orgSchema,
+  ...projectSchema,
+  ...documentsSchema,
+  ...notesSchema,
+  ...hrSchema,
+  ...billingSchema,
+  ...agentSchema,
+  ...aiSchema,
+};
 
 export type Database = PostgresJsDatabase<typeof allSchemas>;
 
@@ -19,4 +34,12 @@ export * from "./env";
 export * as schema from "./auth";
 export * as organizationSchema from "./organization";
 export * as projectSchema from "./project";
-export * as chatSchema from "./chat";
+export * as documentsSchema from "./documents";
+export * as notesSchema from "./notes";
+export * from "./notes";
+export * as hrSchema from "./hr";
+export * from "./hr";
+export * as billingSchema from "./billing";
+export * from "./billing";
+export * as agentSchema from "./agent";
+export * as aiSchema from "./ai";

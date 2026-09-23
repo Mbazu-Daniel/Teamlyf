@@ -7,7 +7,12 @@ import { InvitationModule } from "./modules/invitation/invitation.module";
 import { MemberModule } from "./modules/member/member.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
 import { ProjectFeatureModule } from "./modules/project/project-feature.module";
+import { NoteModule } from "./modules/notes/note.module";
+import { HrModule } from "./modules/hr/hr.module";
 import { RbacModule } from "./modules/rbac";
+import { CallModule } from "./modules/calls/call.module";
+import { BillingModule } from "./modules/billing/billing.module";
+import { AgentModule } from "./modules/agents/agent.module";
 
 @Module({
   imports: [
@@ -16,10 +21,15 @@ import { RbacModule } from "./modules/rbac";
     AuthModule,
     ChatModule,
     RbacModule,
+    CallModule,
+    BillingModule,
+    AgentModule,
     OrganizationModule,
     MemberModule,
     InvitationModule,
     ProjectFeatureModule,
+    NoteModule,
+    HrModule,
   ],
 })
 export class AppModule {}
