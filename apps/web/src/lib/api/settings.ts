@@ -1,4 +1,4 @@
-import { client, type Organization } from "../api";
+import { client, type Organization } from "./client";
 
 export type OrganizationMember = {
   id: string;
