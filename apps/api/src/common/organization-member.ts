@@ -1,4 +1,4 @@
-import { ForbiddenException } from "@nestjs/common";
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import { and, eq } from "drizzle-orm";
@@ -20,5 +20,15 @@ export async function requireOrganizationMember(
 ) {
   const found = await findOrganizationMember(db, organizationId, memberId);
   if (!found) throw new ForbiddenException("Member is not in this organization");
+  return found;
+}
+
+export async function requireOrganizationMemberOrNotFound(
+  db: Database,
+  organizationId: string,
+  memberId: string,
+) {
+  const found = await findOrganizationMember(db, organizationId, memberId);
+  if (!found) throw new NotFoundException("Member not found in organization");
   return found;
 }
