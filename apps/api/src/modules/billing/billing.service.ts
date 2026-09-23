@@ -63,7 +63,7 @@ export class BillingService {
       status: this.subscriptionStatus(current),
       seatLimit: this.seatLimit(current),
       agentLimit: this.agentLimit(current),
-      currentPeriodEnd: this.periodEnd(current),
+      currentPeriodEnd: this.periodEnd(current?.currentPeriodEnd),
       members: this.memberCount(members),
       provider: this.provider(current),
       hasSubscription: this.hasSubscription(current),
