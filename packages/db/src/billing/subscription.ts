@@ -13,7 +13,6 @@ export const subscription = pgTable(
     plan: text("plan").notNull().default("starter"),
     status: text("status").notNull().default("inactive"),
     seatLimit: text("seat_limit").notNull().default("5"),
-    agentLimit: text("agent_limit").notNull().default("0"),
     currentPeriodEnd: timestamp("current_period_end"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

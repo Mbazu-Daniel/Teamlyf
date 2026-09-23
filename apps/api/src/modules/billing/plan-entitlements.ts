@@ -1,14 +1,13 @@
-import type { BillingPlan } from "./billing.dto";
+export type BillingPlan = "starter" | "growth" | "scale";
 
-export const planEntitlements: Record<
-  BillingPlan,
-  {
-    agentLimit: number;
-    callDurationMinutes: number;
-    seatLimit: number;
-  }
-> = {
-  starter: { agentLimit: 1, callDurationMinutes: 30, seatLimit: 5 },
-  growth: { agentLimit: 5, callDurationMinutes: 60, seatLimit: 50 },
-  scale: { agentLimit: 20, callDurationMinutes: 180, seatLimit: 250 },
+export type PlanEntitlements = {
+  seatLimit: number;
+  agentLimit: number;
+  callDurationMinutes: number;
+};
+
+export const planEntitlements: Record<BillingPlan, PlanEntitlements> = {
+  starter: { seatLimit: 5, agentLimit: 1, callDurationMinutes: 30 },
+  growth: { seatLimit: 50, agentLimit: 5, callDurationMinutes: 60 },
+  scale: { seatLimit: 250, agentLimit: 20, callDurationMinutes: 180 },
 };

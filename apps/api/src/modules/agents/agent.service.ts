@@ -1,15 +1,16 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { createCipheriv, createHash, randomBytes } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { agent, agentRun, aiProviderConfig, aiUsage, subscription } from "@teamlyf/db";
+import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema } from "@teamlyf/db";
+
+const { subscription } = billingSchema;
 import { and, count, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
 import type { CreateAgentDto, CreateAgentRunDto, RecordUsageDto, UpdateAgentDto, UpsertProviderConfigDto } from "./agent.dto";
-import type { BillingPlan } from "../billing/billing.dto";
-import { planEntitlements } from "../billing/plan-entitlements";
+import { planEntitlements, type BillingPlan } from "../billing/plan-entitlements";
 
 @Injectable()
 export class AgentService {
@@ -37,19 +38,13 @@ export class AgentService {
 
   async update(organizationId: string, agentId: string, dto: UpdateAgentDto) {
     await this.requireAgent(organizationId, agentId);
-    const [updated] = await this.db.update(agent).set(this.updateValues(dto)).where(
-      and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)),
-    ).returning();
+    const [updated] = await this.db.update(agent).set({
+      ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
+      ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
+      ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
+      updatedAt: new Date(),
+    }).where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId))).returning();
     return updated;
-  }
-
-  private updateValues(dto: UpdateAgentDto) {
-    return Object.fromEntries([
-      ["name", dto.name?.trim()],
-      ["description", dto.description === undefined ? undefined : dto.description.trim() || null],
-      ["enabled", dto.enabled],
-      ["updatedAt", new Date()],
-    ].filter(([, value]) => value !== undefined));
   }
 
   async createRun(
@@ -60,12 +55,14 @@ export class AgentService {
   ) {
     const target = await this.requireAgent(organizationId, agentId);
     if (!target.enabled) throw new ForbiddenException("Agent is disabled");
+
     const [run] = await this.db.insert(agentRun).values({
       organizationId,
       agentId,
       memberId: member.id,
       input: dto.input === undefined ? null : dto.input,
     }).returning();
+
     return run;
   }
 
@@ -87,15 +84,23 @@ export class AgentService {
   }
 
   async upsertProviderConfig(organizationId: string, dto: UpsertProviderConfigDto) {
-    this.validateProviderConfig(dto);
-    const encryptedApiKey = this.encryptOptional(dto.apiKey);
+    if (dto.source === "byok" && !dto.apiKey) {
+      throw new BadRequestException("BYOK provider configuration requires an API key");
+    }
+    if (dto.source === "teamlyf" && dto.apiKey) {
+      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    }
+
+    const encryptedApiKey = dto.apiKey ? this.encrypt(dto.apiKey) : null;
+    const keyVersion = encryptedApiKey ? "v1" : null;
+
     const [config] = await this.db.insert(aiProviderConfig).values({
       organizationId,
       provider: dto.provider.trim(),
       model: dto.model.trim(),
       source: dto.source,
       encryptedApiKey,
-      keyVersion: encryptedApiKey ? "v1" : null,
+      keyVersion,
     }).onConflictDoUpdate({
       target: [
         aiProviderConfig.organizationId,
@@ -103,7 +108,7 @@ export class AgentService {
         aiProviderConfig.provider,
         aiProviderConfig.model,
       ],
-      set: { encryptedApiKey, keyVersion: encryptedApiKey ? "v1" : null, isActive: true, updatedAt: new Date() },
+      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
     }).returning();
 
     return {
@@ -133,10 +138,15 @@ export class AgentService {
     });
   }
 
-  async recordUsage(organizationId: string, memberId: string, dto: RecordUsageDto) {
+  async recordUsage(
+    organizationId: string,
+    memberId: string,
+    dto: RecordUsageDto,
+  ) {
     await this.requireAgent(organizationId, dto.agentId);
     const totalTokens = dto.inputTokens + dto.outputTokens;
     const allowanceConsumed = dto.source === "teamlyf" ? totalTokens : 0;
+
     const [usage] = await this.db.insert(aiUsage).values({
       organizationId,
       memberId,
@@ -150,25 +160,8 @@ export class AgentService {
       estimatedCostUsd: dto.estimatedCostUsd ?? null,
       allowanceConsumed,
     }).returning();
+
     return usage;
-  }
-
-  private validateProviderConfig(dto: UpsertProviderConfigDto) {
-    if (dto.source === "byok") this.validateByokConfig(dto);
-    if (dto.source === "teamlyf") this.validateTeamlyfConfig(dto);
-  }
-
-  private validateByokConfig(dto: UpsertProviderConfigDto) {
-    if (!dto.apiKey) throw new BadRequestException("BYOK provider configuration requires an API key");
-  }
-
-  private validateTeamlyfConfig(dto: UpsertProviderConfigDto) {
-    if (dto.apiKey) throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
-  }
-
-  private encryptOptional(value?: string): string | null {
-    if (!value) return null;
-    return this.encrypt(value);
   }
 
   private async requireAgent(organizationId: string, agentId: string) {
@@ -180,33 +173,22 @@ export class AgentService {
   }
 
   private async assertAgentCapacity(organizationId: string) {
-    const [currentSubscription, total] = await Promise.all([
-      this.db.query.subscription.findFirst({ where: eq(subscription.organizationId, organizationId) }),
-      this.countAgents(organizationId),
+    const [currentSubscription, result] = await Promise.all([
+      this.db.query.subscription.findFirst({
+        where: eq(subscription.organizationId, organizationId),
+      }),
+      this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
-    const limit = this.getAgentLimit(currentSubscription?.plan, currentSubscription?.agentLimit);
-    this.enforceAgentLimit(total, limit);
-  }
 
-  private countAgents(organizationId: string) {
-    return this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId));
-  }
-
-  private enforceAgentLimit(result: Array<{ total: number }>, limit: number) {
+    const limit = this.resolveAgentLimit(currentSubscription);
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
     }
   }
 
-  private getAgentLimit(planValue: string | null | undefined, configuredLimit: string | null | undefined): number {
-    const plan = this.normalizePlan(planValue);
-    const configured = Number(configuredLimit);
-    return configured > 0 ? configured : planEntitlements[plan].agentLimit;
-  }
-
-  private normalizePlan(value?: string | null): BillingPlan {
-    if (value === "growth" || value === "scale") return value;
-    return "starter";
+  private resolveAgentLimit(subscription?: { plan: string }): number {
+    const plan = subscription?.plan as BillingPlan | undefined;
+    return planEntitlements[plan ?? "starter"].agentLimit;
   }
 
   private encrypt(value: string): string {
