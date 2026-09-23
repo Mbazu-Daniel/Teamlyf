@@ -3,7 +3,7 @@ import { client, type Organization } from "../api";
 export type OrganizationMember = {
   id: string;
   userId: string;
-  role: string | string[];
+  role: string;
   user?: { name?: string | null; email?: string | null } | null;
 };
 
