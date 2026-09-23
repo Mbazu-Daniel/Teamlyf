@@ -5,7 +5,7 @@ import { member, organization } from "@teamlyf/db/organization-schema";
 import { billingSchema } from "@teamlyf/db";
 
 const { subscription } = billingSchema;
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";

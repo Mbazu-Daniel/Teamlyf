@@ -1,5 +1,4 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { generateId } from "../id";
 import { member } from "../organization/member";
 import { organizationReference } from "../organization/membership";
 

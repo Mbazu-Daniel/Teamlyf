@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { documentsSchema, organizationSchema } from "@teamlyf/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateDocumentDto, SetDocumentPermissionDto, UpdateDocumentDto } from "./document.dto";
 

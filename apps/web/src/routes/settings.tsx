@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { IconBuilding, IconCreditCard, IconLock, IconUsers } from "@tabler/icons-react";
+import { IconBuilding, IconCreditCard, IconLock } from "@tabler/icons-react";
 
 export const Route = createFileRoute("/settings")({ component: SettingsLayout });
 

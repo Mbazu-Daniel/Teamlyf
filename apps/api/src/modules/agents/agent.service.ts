@@ -180,15 +180,19 @@ export class AgentService {
       this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
 
-    const plan: BillingPlan =
-      currentSubscription?.plan === "growth" || currentSubscription?.plan === "scale"
-        ? currentSubscription.plan
-        : "starter";
-    const limit = Number(currentSubscription?.agentLimit ?? planEntitlements[plan].agentLimit) || planEntitlements[plan].agentLimit;
-
+    const limit = this.resolveAgentLimit(currentSubscription);
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
     }
+  }
+
+  private resolveAgentLimit(subscription?: { plan: BillingPlan; agentLimit: string | null }): number {
+    if (!subscription) return planEntitlements.starter.agentLimit;
+
+    const configuredLimit = Number(subscription.agentLimit);
+    if (configuredLimit > 0) return configuredLimit;
+
+    return planEntitlements[subscription.plan].agentLimit;
   }
 
   private encrypt(value: string): string {
