@@ -174,13 +174,19 @@ export class AgentService {
   }
 
   private async assertAgentCapacity(organizationId: string) {
-    const [currentSubscription, result] = await Promise.all([
-      this.db.query.subscription.findFirst({
-        where: eq(subscription.organizationId, organizationId),
-      }),
-      this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
+    const [currentSubscription, total] = await Promise.all([
+      this.db.query.subscription.findFirst({ where: eq(subscription.organizationId, organizationId) }),
+      this.countAgents(organizationId),
     ]);
     const limit = this.getAgentLimit(currentSubscription?.plan, currentSubscription?.agentLimit);
+    this.enforceAgentLimit(total, limit);
+  }
+
+  private countAgents(organizationId: string) {
+    return this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId));
+  }
+
+  private enforceAgentLimit(result: Array<{ total: number }>, limit: number) {
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
     }
