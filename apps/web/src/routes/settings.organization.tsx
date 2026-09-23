@@ -90,7 +90,6 @@ function useOrganizationSettings(
       "Unable to invite member",
       (value) => setBusyMember(value ? "invite" : null),
       setError,
-      "invite",
     );
   }
 
@@ -105,7 +104,6 @@ function useOrganizationSettings(
       "Unable to update member role",
       (value) => setBusyMember(value ? memberId : null),
       setError,
-      memberId,
     );
   }
 
