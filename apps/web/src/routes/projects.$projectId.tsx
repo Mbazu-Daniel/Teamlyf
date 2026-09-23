@@ -24,11 +24,12 @@ function ProjectPageState({
   projectId: string;
 }) {
   const state = useProjectPage(organizationId, projectId);
+  const project = state.project;
 
   if (!organizationId) return <EmptyProjectState />;
-  if (!state.project) return <LoadingProjectState error={state.error} />;
+  if (!project) return <LoadingProjectState error={state.error} />;
 
-  return <ProjectWorkspace state={state} />;
+  return <ProjectWorkspace state={{ ...state, project }} />;
 }
 
 function ProjectWorkspace({ state }: { state: ProjectPageStateValue }) {
