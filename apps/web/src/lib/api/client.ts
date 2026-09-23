@@ -1,3 +1,5 @@
+import { toApiError, type ApiErrorPayload } from "./errors";
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3101";
 
 export type RequestOptions = RequestInit & {
@@ -21,11 +23,20 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Request failed with " + response.status);
+    throw await parseApiError(response);
   }
 
   return parseResponseBody<T>(response);
+}
+
+async function parseApiError(response: Response) {
+  const body = await response.text();
+  if (!body) return toApiError(response.status, "");
+  try {
+    return toApiError(response.status, JSON.parse(body) as ApiErrorPayload);
+  } catch {
+    return toApiError(response.status, body);
+  }
 }
 
 async function parseResponseBody<T>(response: Response): Promise<T> {
