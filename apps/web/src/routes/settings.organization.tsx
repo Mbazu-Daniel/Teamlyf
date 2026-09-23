@@ -115,7 +115,6 @@ function useOrganizationSettings(
       "Unable to remove member",
       (value) => setBusyMember(value ? memberId : null),
       setError,
-      memberId,
     );
   }
 
