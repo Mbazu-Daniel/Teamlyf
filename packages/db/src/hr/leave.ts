@@ -1,6 +1,7 @@
 import { index, integer, pgTable, text, timestamp, uuid} from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { memberReference, organizationReference } from "../organization/membership-columns";
+import { member } from "../organization/member";
 
 export const hrLeavePolicy = pgTable("hr_leave_policy", {
   id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
@@ -19,7 +20,7 @@ export const hrLeaveRequest = pgTable("hr_leave_request", {
   endDate: timestamp("end_date").notNull(),
   reason: text("reason"),
   status: text("status").notNull().default("pending"),
-  reviewedById: memberReference("reviewed_by_id"),
+  reviewedById: uuid("reviewed_by_id").references(() => member.id, { onDelete: "set null" }),
   reviewedAt: timestamp("reviewed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [
