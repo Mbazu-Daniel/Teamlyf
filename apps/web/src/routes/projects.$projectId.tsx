@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { client } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Project = { id: string; name: string; identifier: string; description: string | null; emoji: string | null };
@@ -86,9 +86,9 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
     try {
       const prefix = `/organization/${orgId}/projects/${id}`;
       const [projectData, statusData, taskData] = await Promise.all([
-        api<Project>(prefix),
-        api<Status[]>(`${prefix}/statuses`),
-        api<Task[]>(`${prefix}/tasks`),
+        client.request<Project>(prefix),
+        client.request<Status[]>(`${prefix}/statuses`),
+        client.request<Task[]>(`${prefix}/tasks`),
       ]);
       setProject(projectData);
       setStatuses(statusData);
@@ -131,14 +131,14 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
 }
 
 async function createProjectTask(organizationId: string, projectId: string, name: string, statusId: string) {
-  return api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks`, {
+  return client.request<Task>(`/organization/${organizationId}/projects/${projectId}/tasks`, {
     method: "POST",
     body: JSON.stringify({ name: name.trim(), statusId }),
   });
 }
 
 async function moveProjectTask(organizationId: string, projectId: string, taskId: string, statusId: string) {
-  return api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks/${taskId}`, {
+  return client.request<Task>(`/organization/${organizationId}/projects/${projectId}/tasks/${taskId}`, {
     method: "PATCH",
     body: JSON.stringify({ statusId }),
   });
