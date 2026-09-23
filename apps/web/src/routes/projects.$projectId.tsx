@@ -29,7 +29,8 @@ function ProjectPageState({
   if (!organizationId) return <EmptyProjectState />;
   if (!project) return <LoadingProjectState error={state.error} />;
 
-  return <ProjectWorkspace state={state} project={project} />;
+  const { project: _project, ...workspaceState } = state;
+  return <ProjectWorkspace state={workspaceState} project={project} />;
 }
 
 function ProjectWorkspace({ state, project }: { state: ProjectPageStateValue; project: Project }) {
@@ -65,7 +66,7 @@ function ProjectWorkspace({ state, project }: { state: ProjectPageStateValue; pr
   );
 }
 
-type ProjectPageStateValue = ReturnType<typeof useProjectPage>;
+type ProjectPageStateValue = Omit<ReturnType<typeof useProjectPage>, "project">;
 
 function useProjectPage(organizationId: string | undefined, projectId: string) {
   const [project, setProject] = useState<Project | null>(null);
