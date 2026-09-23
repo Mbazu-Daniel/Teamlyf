@@ -102,7 +102,7 @@ export class BillingService {
     this.verifySignature(rawBody, signature);
     const data = this.requireEventData(this.parseEvent(rawBody));
     const plan = this.normalizePlan(data.plan);
-    const status = this.resolveStatusFromData(data);
+    const status = this.resolveStatus(event, data);
 
     await this.upsertSubscription(data, plan, status);
     return { received: true };
@@ -175,9 +175,16 @@ export class BillingService {
     return data as NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string };
   }
 
-  private resolveStatusFromData(data: NonNullable<BillingEvent["data"]>): string {
+  private resolveStatus(event: BillingEvent, data: NonNullable<BillingEvent["data"]>): string {
     if (data.status) return data.status;
-    throw new BadRequestException("Billing event status is required");
+    const type = event.type ?? "";
+    const match = [
+      ["cancel", "cancelled"],
+      ["expire", "expired"],
+      ["activate", "active"],
+    ].find(([key]) => type.includes(key));
+    if (!match) throw new BadRequestException("Billing event status is required");
+    return match[1];
   }
 
   private parsePeriodEnd(value?: string): Date | null {
