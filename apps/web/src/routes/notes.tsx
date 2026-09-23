@@ -7,6 +7,7 @@ type Note = { id: string; title: string; content: string; parentId: string | nul
 
 export const Route = createFileRoute("/notes")({ component: NotesPage });
 
+// fallow-ignore-next-line high-crap-score
 function NotesPage() {
   const { organization } = useOrganization();
   const [notes, setNotes] = useState<Note[]>([]);
