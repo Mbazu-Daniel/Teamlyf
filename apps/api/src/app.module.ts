@@ -10,6 +10,7 @@ import { NoteModule } from "./modules/notes/note.module";
 import { HrModule } from "./modules/hr/hr.module";
 import { RbacModule } from "./modules/rbac";
 import { CallModule } from "./modules/calls/call.module";
+import { ChatModule } from "./modules/chat/chat.module";
 import { BillingModule } from "./modules/billing/billing.module";
 import { AgentModule } from "./modules/agents/agent.module";
 
@@ -20,6 +21,7 @@ import { AgentModule } from "./modules/agents/agent.module";
     AuthModule,
     RbacModule,
     CallModule,
+    ChatModule,
     BillingModule,
     AgentModule,
     OrganizationModule,
