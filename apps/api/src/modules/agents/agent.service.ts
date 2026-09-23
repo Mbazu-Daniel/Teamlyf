@@ -44,12 +44,12 @@ export class AgentService {
   }
 
   private updateValues(dto: UpdateAgentDto) {
-    return {
-      ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
-      ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
-      ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
-      updatedAt: new Date(),
-    };
+    return Object.fromEntries([
+      ["name", dto.name?.trim()],
+      ["description", dto.description === undefined ? undefined : dto.description.trim() || null],
+      ["enabled", dto.enabled],
+      ["updatedAt", new Date()],
+    ].filter(([, value]) => value !== undefined));
   }
 
   async createRun(
@@ -60,7 +60,6 @@ export class AgentService {
   ) {
     const target = await this.requireAgent(organizationId, agentId);
     if (!target.enabled) throw new ForbiddenException("Agent is disabled");
-
     const [run] = await this.db.insert(agentRun).values({
       organizationId,
       agentId,
