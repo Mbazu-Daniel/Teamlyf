@@ -9,6 +9,7 @@ import { ChatUuidMiddleware } from "./chat-uuid.middleware";
   controllers: [ChatController],
   providers: [ChatService],
 })
+export class ChatModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(ChatUuidMiddleware)
