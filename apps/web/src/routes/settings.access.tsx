@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { client } from "@/lib/api";
+import { settingsApi } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type ActiveMemberRole = { role?: string | string[] };
@@ -24,7 +24,7 @@ function AccessSettings() {
 
   useEffect(() => {
     if (!organization) return;
-    void client.request<ActiveMemberRole>(`/organization/${organization.id}/members/active-role?organizationId=${organization.id}`)
+    void settingsApi.activeMemberRole(organization.id)
       .then((result) => setMemberRole(Array.isArray(result.role) ? result.role[0] ?? "member" : result.role ?? "member"))
       .catch((err) => setError(err instanceof Error ? err.message : "Unable to load access settings"));
   }, [organization?.id]);
