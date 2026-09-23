@@ -109,21 +109,27 @@ export class ChatService {
 
   async post(organizationId: string, channelId: string, memberId: string, dto: CreateMessageDto) {
     await this.requireAccess(organizationId, channelId, memberId);
-    if (dto.threadRootId) {
-      const root = await this.db.query.message.findFirst({
-        where: and(eq(message.id, dto.threadRootId), eq(message.channelId, channelId)),
-      });
-      if (!root) throw new NotFoundException("Thread root not found");
-      if (root.threadRootId !== null) throw new ForbiddenException("Thread replies must target a root message");
-    }
-    const [created] = await this.db.insert(message).values({
+    await this.validateThreadRoot(channelId, dto.threadRootId);
+    return this.insertMessage(channelId, memberId, dto);
+  }
+
+  private async validateThreadRoot(channelId: string, threadRootId?: string) {
+    if (!threadRootId) return;
+    const root = await this.db.query.message.findFirst({
+      where: and(eq(message.id, threadRootId), eq(message.channelId, channelId)),
+    });
+    if (!root) throw new NotFoundException("Thread root not found");
+    if (root.threadRootId !== null) throw new ForbiddenException("Thread replies must target a root message");
+  }
+
+  private insertMessage(channelId: string, memberId: string, dto: CreateMessageDto) {
+    return this.db.insert(message).values({
       channelId,
       senderKind: "member",
       senderId: memberId,
       content: dto.content,
       threadRootId: dto.threadRootId ?? null,
-    }).returning();
-    return created;
+    }).returning().then(([created]) => created);
   }
 
   async addReaction(organizationId: string, channelId: string, messageId: string, memberId: string, emoji: string) {
