@@ -35,6 +35,7 @@ export { generateId } from "./id";
 export * from "./env";
 export * as schema from "./auth";
 export * as organizationSchema from "./organization";
+export { member } from "./organization";
 export * as projectSchema from "./project";
 export * from "./project";
 export * as documentsSchema from "./documents";
