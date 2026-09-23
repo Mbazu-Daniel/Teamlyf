@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { client } from "@/lib/api";
+import { projectsApi, type Project, type ProjectStatus, type ProjectTask } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Project = { id: string; name: string; identifier: string; description: string | null; emoji: string | null };
@@ -120,7 +120,7 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
     if (!organizationId || task.statusId === nextStatusId) return;
     setError(null);
     try {
-      const updated = await moveProjectTask(organizationId, projectId, task.id, nextStatusId);
+      const updated = await projectsApi.moveTask(organizationId, projectId, task.id, nextStatusId);
       setTasks((current) => current.map((item) => item.id === task.id ? updated : item));
     } catch (err) {
       setError(getErrorMessage(err, "Unable to update task"));
