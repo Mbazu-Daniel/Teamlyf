@@ -178,11 +178,7 @@ export class ChatService {
   }
 
   private requireMember(organizationId: string, memberId: string) {
-    return requireOrganizationMember(() =>
-      this.db.query.member.findFirst({
-        where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
-      }),
-    );
+    return requireOrganizationMember(this.db, organizationId, memberId);
   }
 
   private async requireMembers(organizationId: string, memberIds: string[]) {
