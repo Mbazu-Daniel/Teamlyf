@@ -60,14 +60,36 @@ export class BillingService {
   ) {
     return {
       plan: this.subscriptionPlan(current),
-      status: current?.status ?? "inactive",
-      seatLimit: this.subscriptionLimit(current?.seatLimit, current?.plan, "seatLimit"),
-      agentLimit: this.subscriptionLimit(current?.agentLimit, current?.plan, "agentLimit"),
-      currentPeriodEnd: this.periodEnd(current?.currentPeriodEnd),
+      status: this.subscriptionStatus(current),
+      seatLimit: this.seatLimit(current),
+      agentLimit: this.agentLimit(current),
+      currentPeriodEnd: this.periodEnd(current),
       members: this.memberCount(members),
-      provider: current?.provider ?? "bachs",
-      hasSubscription: Boolean(current?.providerSubscriptionId),
+      provider: this.provider(current),
+      hasSubscription: this.hasSubscription(current),
     };
+  }
+
+  private subscriptionStatus(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
+    if (current?.status) return current.status;
+    return "inactive";
+  }
+
+  private seatLimit(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
+    return this.subscriptionLimit(current?.seatLimit, current?.plan, "seatLimit");
+  }
+
+  private agentLimit(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
+    return this.subscriptionLimit(current?.agentLimit, current?.plan, "agentLimit");
+  }
+
+  private provider(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
+    if (current?.provider) return current.provider;
+    return "bachs";
+  }
+
+  private hasSubscription(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
+    return Boolean(current?.providerSubscriptionId);
   }
 
   private subscriptionPlan(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
