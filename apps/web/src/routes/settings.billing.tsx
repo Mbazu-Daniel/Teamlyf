@@ -51,6 +51,7 @@ function BillingSettings() {
       .finally(() => setLoading(false));
   }
 
+  if (!organization) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Select an organization before opening settings.</div>;
   return <BillingContent organization={organization} summary={summary} loading={loading} error={error} checkout={checkout} />;
 }
 
