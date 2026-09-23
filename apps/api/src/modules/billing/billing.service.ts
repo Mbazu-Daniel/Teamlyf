@@ -35,16 +35,35 @@ export class BillingService {
   async summary(organizationId: string) {
     await this.requireOrganization(organizationId);
     const [current, members] = await Promise.all([
-      this.db.query.subscription.findFirst({
-        where: eq(subscription.organizationId, organizationId),
-      }),
-      this.db.select({ total: count() }).from(member).where(eq(member.organizationId, organizationId)),
+      this.findSubscription(organizationId),
+      this.countMembers(organizationId),
     ]);
+    return this.buildSummary(current, members);
+  }
+
+  private findSubscription(organizationId: string) {
+    return this.db.query.subscription.findFirst({
+      where: eq(subscription.organizationId, organizationId),
+    });
+  }
+
+  private countMembers(organizationId: string) {
+    return this.db
+      .select({ total: count() })
+      .from(member)
+      .where(eq(member.organizationId, organizationId));
+  }
+
+  private buildSummary(
+    current: Awaited<ReturnType<BillingService["findSubscription"]>>,
+    members: Array<{ total: number }>,
+  ) {
+    const plan = current?.plan ?? "starter";
     return {
-      plan: current?.plan ?? "starter",
+      plan,
       status: current?.status ?? "inactive",
-      seatLimit: Number(current?.seatLimit ?? this.defaultSeatLimit("starter")),
-      agentLimit: Number(current?.agentLimit ?? this.defaultAgentLimit("starter")),
+      seatLimit: Number(current?.seatLimit ?? this.defaultSeatLimit(this.normalizePlan(plan))),
+      agentLimit: Number(current?.agentLimit ?? this.defaultAgentLimit(this.normalizePlan(plan))),
       currentPeriodEnd: current?.currentPeriodEnd?.toISOString() ?? null,
       members: Number(members[0]?.total ?? 0),
       provider: current?.provider ?? "bachs",
@@ -81,39 +100,55 @@ export class BillingService {
 
   async handleWebhook(rawBody: Buffer, signature?: string) {
     this.verifySignature(rawBody, signature);
-    const event = this.parseEvent(rawBody);
-    const data = this.requireEventData(event);
+    const data = this.requireEventData(this.parseEvent(rawBody));
     const plan = this.normalizePlan(data.plan);
-    const status = this.resolveStatus(event, data);
+    const status = this.resolveStatusFromData(data);
 
-    await this.db
-      .insert(subscription)
-      .values({
-        organizationId: data.organizationId,
-        provider: "bachs",
-        providerCustomerId: data.customerId,
-        providerSubscriptionId: data.subscriptionId ?? null,
-        plan,
-        status,
-        seatLimit: String(data.seatLimit ?? this.defaultSeatLimit(plan)),
-        agentLimit: String(data.agentLimit ?? this.defaultAgentLimit(plan)),
-        currentPeriodEnd: this.parsePeriodEnd(data.currentPeriodEnd),
-      })
-      .onConflictDoUpdate({
-        target: subscription.organizationId,
-        set: {
-          providerCustomerId: data.customerId,
-          providerSubscriptionId: data.subscriptionId ?? null,
-          plan,
-          status,
-          seatLimit: String(data.seatLimit ?? this.defaultSeatLimit(plan)),
-          agentLimit: String(data.agentLimit ?? this.defaultAgentLimit(plan)),
-          currentPeriodEnd: this.parsePeriodEnd(data.currentPeriodEnd),
-          updatedAt: new Date(),
-        },
-      });
-
+    await this.upsertSubscription(data, plan, status);
     return { received: true };
+  }
+
+  private async upsertSubscription(
+    data: NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string },
+    plan: BillingPlan,
+    status: string,
+  ) {
+    const values = this.subscriptionValues(data, plan, status);
+    await this.db.insert(subscription).values(values).onConflictDoUpdate({
+      target: subscription.organizationId,
+      set: this.subscriptionUpdate(values),
+    });
+  }
+
+  private subscriptionValues(
+    data: NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string },
+    plan: BillingPlan,
+    status: string,
+  ) {
+    return {
+      organizationId: data.organizationId,
+      provider: "bachs" as const,
+      providerCustomerId: data.customerId,
+      providerSubscriptionId: data.subscriptionId ?? null,
+      plan,
+      status,
+      seatLimit: String(data.seatLimit ?? this.defaultSeatLimit(plan)),
+      agentLimit: String(data.agentLimit ?? this.defaultAgentLimit(plan)),
+      currentPeriodEnd: this.parsePeriodEnd(data.currentPeriodEnd),
+    };
+  }
+
+  private subscriptionUpdate(values: ReturnType<BillingService["subscriptionValues"]>) {
+    return {
+      providerCustomerId: values.providerCustomerId,
+      providerSubscriptionId: values.providerSubscriptionId,
+      plan: values.plan,
+      status: values.status,
+      seatLimit: values.seatLimit,
+      agentLimit: values.agentLimit,
+      currentPeriodEnd: values.currentPeriodEnd,
+      updatedAt: new Date(),
+    };
   }
 
   private async requireOrganization(organizationId: string) {
@@ -140,11 +175,8 @@ export class BillingService {
     return data as NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string };
   }
 
-  private resolveStatus(event: BillingEvent, data: NonNullable<BillingEvent["data"]>): string {
+  private resolveStatusFromData(data: NonNullable<BillingEvent["data"]>): string {
     if (data.status) return data.status;
-    if (event.type?.includes("cancel")) return "cancelled";
-    if (event.type?.includes("expire")) return "expired";
-    if (event.type?.includes("activate")) return "active";
     throw new BadRequestException("Billing event status is required");
   }
 
