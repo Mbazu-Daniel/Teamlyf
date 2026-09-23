@@ -3,7 +3,7 @@ import type { Database } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import { and, eq } from "drizzle-orm";
 
-export function findOrganizationMember(db: Database, organizationId: string, memberId: string) {
+async function findOrganizationMember(db: Database, organizationId: string, memberId: string) {
   return db.query.member.findFirst({
     where: and(eq(member.id, memberId), eq(member.organizationId, organizationId)),
   });
