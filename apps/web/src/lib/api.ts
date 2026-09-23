@@ -8,25 +8,28 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   const entries = Object.entries(query ?? {}).filter(([, value]) => value !== undefined);
   const params = new URLSearchParams(entries.map(([key, value]) => [key, String(value)]));
   const suffix = params.toString();
-  return suffix ? `${path}${path.includes("?") ? "&" : "?"}${suffix}` : path;
+  if (!suffix) return path;
+  return path + (path.includes("?") ? "&" : "?") + suffix;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, ...init } = options;
-  const response = await fetch(`${API_URL}${buildUrl(path, query)}`, {
+  const response = await fetch(API_URL + buildUrl(path, query), {
     ...init,
     credentials: "include",
     headers: { "Content-Type": "application/json", ...init.headers },
   });
   if (!response.ok) {
     const message = await response.text();
-    throw new Error(message || `Request failed with ${response.status}`);
+    throw new Error(message || "Request failed with " + response.status);
   }
-  return response.json() as Promise<T>;
+  if (response.status === 204) return null as T;
+  const body = await response.text();
+  return (body ? JSON.parse(body) : null) as T;
 }
 
 function resourcePath(organizationId: string, resource: string, suffix = "") {
-  return `/organization/${organizationId}/${resource}${suffix}`;
+  return "/organization/" + organizationId + "/" + resource + suffix;
 }
 
 function organizationClient(organizationId: string) {
@@ -41,7 +44,6 @@ function organizationClient(organizationId: string) {
 }
 
 export type Organization = { id: string; name: string; slug?: string };
-export type Member = { id: string; organizationId: string; role: string };
 
 export const client = {
   request,
