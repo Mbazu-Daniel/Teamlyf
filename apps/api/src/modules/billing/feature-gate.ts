@@ -1,7 +1,9 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, SetMetadata } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import type { Database } from "@teamlyf/db";
-import { subscription } from "@teamlyf/db/billing-schema";
+import { billingSchema } from "@teamlyf/db";
+
+const { subscription } = billingSchema;
 import { eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 

@@ -17,7 +17,7 @@ export const session = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     // ponytail: Better Auth (organization plugin) owns this value; no FK so the auth
     // domain does not import the organization domain. Add a reference if referential
-    // integrity for the active workspace is ever needed.
+    // integrity for the active organization is ever needed.
     activeOrganizationId: uuid("active_organization_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

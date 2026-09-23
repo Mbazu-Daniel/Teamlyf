@@ -1,6 +1,6 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { organizationReference } from "./membership-columns";
+import { organizationReference } from "./membership";
 
 /**
  * Narrow grants better-auth cannot express:

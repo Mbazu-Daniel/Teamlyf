@@ -1,7 +1,9 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { createHmac } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { subscription } from "@teamlyf/db/billing-schema";
+import { billingSchema } from "@teamlyf/db";
+
+const { subscription } = billingSchema;
 import { eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";

@@ -1,6 +1,6 @@
 import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { organizationReference, userReference } from "./membership-columns";
+import { organizationReference, userReference } from "./membership";
 
 export const member = pgTable(
   "member",

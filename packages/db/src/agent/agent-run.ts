@@ -13,7 +13,7 @@ import {
 import { sql } from "drizzle-orm";
 import { generateId } from "../id";
 import { member } from "../organization/member";
-import { organizationReference } from "../organization/membership-columns";
+import { organizationReference } from "../organization/membership";
 import { agent } from "./agent";
 import { agentRunStatus } from "./run-status";
 

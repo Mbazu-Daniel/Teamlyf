@@ -23,6 +23,9 @@ const apiEnvSchema = z.object({
   LIVEKIT_API_KEY: z.string().optional(),
   LIVEKIT_API_SECRET: z.string().optional(),
   AGENT_ENCRYPTION_SECRET: z.string().min(16).optional(),
+  BACHS_API_URL: z.string().url().optional(),
+  BACHS_API_KEY: z.string().optional(),
+  BACHS_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
