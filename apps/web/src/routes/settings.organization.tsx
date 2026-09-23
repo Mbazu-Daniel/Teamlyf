@@ -261,15 +261,35 @@ function MemberManagement({
 function MemberRow({ member, busy, onRoleChange, onRemove }: { member: Member; busy: boolean; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 py-3">
-      <div><p className="text-sm font-medium">{member.user?.name || member.user?.email || member.id}</p><p className="text-xs text-muted-foreground">{member.user?.email ?? "Organization member"}</p></div>
-      <div className="flex items-center gap-2">
-        <select value={member.role} disabled={busy} onChange={(event) => void onRoleChange(member.id, event.target.value)} className="rounded-md border bg-background px-2 py-1.5 text-sm">
-          <option value="member">Member</option><option value="admin">Admin</option><option value="owner">Owner</option>
-        </select>
-        {member.role !== "owner" && <button disabled={busy} onClick={() => void onRemove(member.id)} className="rounded-md border px-3 py-1.5 text-sm text-destructive hover:bg-muted disabled:opacity-50">Remove</button>}
-      </div>
+      <MemberIdentity member={member} />
+      <MemberActions member={member} busy={busy} onRoleChange={onRoleChange} onRemove={onRemove} />
     </div>
   );
+}
+
+function MemberIdentity({ member }: { member: Member }) {
+  return (
+    <div>
+      <p className="text-sm font-medium">{member.user?.name || member.user?.email || member.id}</p>
+      <p className="text-xs text-muted-foreground">{member.user?.email ?? "Organization member"}</p>
+    </div>
+  );
+}
+
+function MemberActions({ member, busy, onRoleChange, onRemove }: { member: Member; busy: boolean; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <select value={member.role} disabled={busy} onChange={(event) => void onRoleChange(member.id, event.target.value)} className="rounded-md border bg-background px-2 py-1.5 text-sm">
+        <option value="member">Member</option><option value="admin">Admin</option><option value="owner">Owner</option>
+      </select>
+      <RemoveMemberButton member={member} busy={busy} onRemove={onRemove} />
+    </div>
+  );
+}
+
+function RemoveMemberButton({ member, busy, onRemove }: { member: Member; busy: boolean; onRemove: (memberId: string) => void }) {
+  if (member.role === "owner") return null;
+  return <button disabled={busy} onClick={() => void onRemove(member.id)} className="rounded-md border px-3 py-1.5 text-sm text-destructive hover:bg-muted disabled:opacity-50">Remove</button>;
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
