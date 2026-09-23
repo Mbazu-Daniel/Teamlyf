@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { IconUsers } from "@tabler/icons-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { client, type Organization } from "@/lib/api";
+import { settingsApi, type Organization } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 
 type Member = {
@@ -57,7 +57,7 @@ function useOrganizationSettings(
     setForm({ name: organization.name, logo: "" });
     setError(null);
     let active = true;
-    void loadMembers(organization.id)
+    void settingsApi.members(organization.id)
       .then((data) => {
         if (active) setMembers(data.members ?? []);
       })
@@ -73,7 +73,7 @@ function useOrganizationSettings(
     event.preventDefault();
     if (!organization || !form.name.trim()) return;
     await runAction(
-      () => updateOrganization(organization.id, form.name, form.logo),
+      () => settingsApi.updateOrganization(organization.id, { name: form.name.trim(), logo: form.logo.trim() || undefined }),
       (updated) => selectOrganization(updated),
       "Unable to update organization",
       setSaving,
@@ -85,7 +85,7 @@ function useOrganizationSettings(
     event.preventDefault();
     if (!organization || !inviteEmail.trim()) return;
     await runAction(
-      () => sendInvitation(organization.id, inviteEmail, inviteRole),
+      () => settingsApi.inviteMember(organization.id, { email: inviteEmail.trim(), role: inviteRole }),
       () => setInviteEmail(""),
       "Unable to invite member",
       (value) => setBusyMember(value ? "invite" : null),
@@ -96,9 +96,9 @@ function useOrganizationSettings(
   async function updateRole(memberId: string, role: string) {
     if (!organization) return;
     await runAction(
-      () => changeMemberRole(organization.id, memberId, role),
+      () => settingsApi.updateMemberRole(organization.id, memberId, role),
       async () => {
-        const data = await loadMembers(organization.id);
+        const data = await settingsApi.members(organization.id);
         setMembers(data.members ?? []);
       },
       "Unable to update member role",
@@ -110,7 +110,7 @@ function useOrganizationSettings(
   async function removeMember(memberId: string) {
     if (!organization || !window.confirm("Remove this member from the organization?")) return;
     await runAction(
-      () => removeOrganizationMember(organization.id, memberId),
+      () => settingsApi.removeMember(organization.id, memberId),
       () => setMembers((current) => current.filter((member) => member.id !== memberId)),
       "Unable to remove member",
       (value) => setBusyMember(value ? memberId : null),
