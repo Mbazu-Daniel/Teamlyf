@@ -1,14 +1,16 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { createCipheriv, createHash, randomBytes } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { agent, agentRun, aiProviderConfig, aiUsage, subscription } from "@teamlyf/db";
+import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema } from "@teamlyf/db";
+
+const { subscription } = billingSchema;
 import { and, count, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
 import type { CreateAgentDto, CreateAgentRunDto, RecordUsageDto, UpdateAgentDto, UpsertProviderConfigDto } from "./agent.dto";
-import { planEntitlements } from "../billing/plan-entitlements";
+import { planEntitlements, type BillingPlan } from "../billing/plan-entitlements";
 
 @Injectable()
 export class AgentService {
@@ -36,12 +38,9 @@ export class AgentService {
 
   async update(organizationId: string, agentId: string, dto: UpdateAgentDto) {
     await this.requireAgent(organizationId, agentId);
-    const [updated] = await this.db.update(agent).set({
-      ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
-      ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
-      ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
-      updatedAt: new Date(),
-    }).where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId))).returning();
+    const [updated] = await this.db.update(agent).set(this.buildUpdateValues(dto)).where(
+      and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)),
+    ).returning();
     return updated;
   }
 
@@ -82,32 +81,9 @@ export class AgentService {
   }
 
   async upsertProviderConfig(organizationId: string, dto: UpsertProviderConfigDto) {
-    if (dto.source === "byok" && !dto.apiKey) {
-      throw new BadRequestException("BYOK provider configuration requires an API key");
-    }
-    if (dto.source === "teamlyf" && dto.apiKey) {
-      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
-    }
-
-    const encryptedApiKey = dto.apiKey ? this.encrypt(dto.apiKey) : null;
-    const keyVersion = encryptedApiKey ? "v1" : null;
-
-    const [config] = await this.db.insert(aiProviderConfig).values({
-      organizationId,
-      provider: dto.provider.trim(),
-      model: dto.model.trim(),
-      source: dto.source,
-      encryptedApiKey,
-      keyVersion,
-    }).onConflictDoUpdate({
-      target: [
-        aiProviderConfig.organizationId,
-        aiProviderConfig.source,
-        aiProviderConfig.provider,
-        aiProviderConfig.model,
-      ],
-      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
-    }).returning();
+    this.validateProviderConfig(dto);
+    const encryptedApiKey = this.encryptOptionalApiKey(dto.apiKey);
+    const [config] = await this.saveProviderConfig(organizationId, dto, encryptedApiKey);
 
     return {
       id: config.id,
@@ -162,6 +138,64 @@ export class AgentService {
     return usage;
   }
 
+  private buildUpdateValues(dto: UpdateAgentDto) {
+    const values: Record<string, unknown> = { updatedAt: new Date() };
+    const fields = [
+      ["name", dto.name?.trim()],
+      ["description", dto.description?.trim() || null],
+      ["enabled", dto.enabled],
+    ] as const;
+
+    for (const [key, value] of fields) {
+      if (value !== undefined) values[key] = value;
+    }
+    return values;
+  }
+
+  private validateProviderConfig(dto: UpsertProviderConfigDto) {
+    if (dto.source === "byok") {
+      this.requireApiKey(dto.apiKey);
+      return;
+    }
+    if (dto.source === "teamlyf" && dto.apiKey) {
+      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    }
+  }
+
+  private requireApiKey(apiKey?: string) {
+    if (!apiKey) {
+      throw new BadRequestException("BYOK provider configuration requires an API key");
+    }
+  }
+
+  private encryptOptionalApiKey(apiKey?: string): string | null {
+    return apiKey ? this.encrypt(apiKey) : null;
+  }
+
+  private async saveProviderConfig(
+    organizationId: string,
+    dto: UpsertProviderConfigDto,
+    encryptedApiKey: string | null,
+  ) {
+    const keyVersion = encryptedApiKey ? "v1" : null;
+    return this.db.insert(aiProviderConfig).values({
+      organizationId,
+      provider: dto.provider.trim(),
+      model: dto.model.trim(),
+      source: dto.source,
+      encryptedApiKey,
+      keyVersion,
+    }).onConflictDoUpdate({
+      target: [
+        aiProviderConfig.organizationId,
+        aiProviderConfig.source,
+        aiProviderConfig.provider,
+        aiProviderConfig.model,
+      ],
+      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
+    }).returning();
+  }
+
   private async requireAgent(organizationId: string, agentId: string) {
     const found = await this.db.query.agent.findFirst({
       where: and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)),
@@ -171,17 +205,22 @@ export class AgentService {
   }
 
   private async assertAgentCapacity(organizationId: string) {
-    const [subscription, result] = await Promise.all([
+    const [currentSubscription, result] = await Promise.all([
       this.db.query.subscription.findFirst({
         where: eq(subscription.organizationId, organizationId),
       }),
       this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
-    const plan = subscription?.plan === "growth" || subscription?.plan === "scale" ? subscription.plan : "starter";
-    const limit = Number(subscription?.agentLimit ?? planEntitlements[plan].agentLimit) || planEntitlements[plan].agentLimit;
+
+    const limit = this.resolveAgentLimit(currentSubscription);
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
     }
+  }
+
+  private resolveAgentLimit(subscription?: { plan: string }): number {
+    const plan = subscription?.plan as BillingPlan | undefined;
+    return planEntitlements[plan ?? "starter"].agentLimit;
   }
 
   private encrypt(value: string): string {
