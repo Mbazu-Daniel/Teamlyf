@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { hrEmployeeProfile, hrLeavePolicy, hrLeaveRequest, member } from "@teamlyf/db";
+import { hrEmployeeProfile, hrLeavePolicy, hrLeaveRequest } from "@teamlyf/db";
 import { and, desc, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
+import { findOrganizationMember } from "../../common/organization-member";
 import type { EmployeeProfileDto, LeaveRequestDto, ReviewLeaveDto } from "./hr.dto";
 
 @Injectable()
@@ -11,7 +12,7 @@ export class HrService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   private async requireMember(orgId: string, memberId: string) {
-    const found = await this.db.query.member.findFirst({ where: and(eq(member.id, memberId), eq(member.organizationId, orgId)) });
+    const found = await findOrganizationMember(this.db, orgId, memberId);
     if (!found) throw new NotFoundException("Member not found in organization");
     return found;
   }
