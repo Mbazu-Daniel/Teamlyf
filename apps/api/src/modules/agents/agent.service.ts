@@ -8,6 +8,7 @@ import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
 import type { CreateAgentDto, CreateAgentRunDto, RecordUsageDto, UpdateAgentDto, UpsertProviderConfigDto } from "./agent.dto";
+import type { BillingPlan } from "../billing/billing.dto";
 import { planEntitlements } from "../billing/plan-entitlements";
 
 @Injectable()
@@ -60,7 +61,6 @@ export class AgentService {
       memberId: member.id,
       input: dto.input === undefined ? null : dto.input,
     }).returning();
-
     return run;
   }
 
@@ -82,23 +82,15 @@ export class AgentService {
   }
 
   async upsertProviderConfig(organizationId: string, dto: UpsertProviderConfigDto) {
-    if (dto.source === "byok" && !dto.apiKey) {
-      throw new BadRequestException("BYOK provider configuration requires an API key");
-    }
-    if (dto.source === "teamlyf" && dto.apiKey) {
-      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
-    }
-
-    const encryptedApiKey = dto.apiKey ? this.encrypt(dto.apiKey) : null;
-    const keyVersion = encryptedApiKey ? "v1" : null;
-
+    this.validateProviderConfig(dto);
+    const encryptedApiKey = this.encryptOptional(dto.apiKey);
     const [config] = await this.db.insert(aiProviderConfig).values({
       organizationId,
       provider: dto.provider.trim(),
       model: dto.model.trim(),
       source: dto.source,
       encryptedApiKey,
-      keyVersion,
+      keyVersion: encryptedApiKey ? "v1" : null,
     }).onConflictDoUpdate({
       target: [
         aiProviderConfig.organizationId,
@@ -106,7 +98,7 @@ export class AgentService {
         aiProviderConfig.provider,
         aiProviderConfig.model,
       ],
-      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
+      set: { encryptedApiKey, keyVersion: encryptedApiKey ? "v1" : null, isActive: true, updatedAt: new Date() },
     }).returning();
 
     return {
@@ -136,15 +128,10 @@ export class AgentService {
     });
   }
 
-  async recordUsage(
-    organizationId: string,
-    memberId: string,
-    dto: RecordUsageDto,
-  ) {
+  async recordUsage(organizationId: string, memberId: string, dto: RecordUsageDto) {
     await this.requireAgent(organizationId, dto.agentId);
     const totalTokens = dto.inputTokens + dto.outputTokens;
     const allowanceConsumed = dto.source === "teamlyf" ? totalTokens : 0;
-
     const [usage] = await this.db.insert(aiUsage).values({
       organizationId,
       memberId,
@@ -158,8 +145,21 @@ export class AgentService {
       estimatedCostUsd: dto.estimatedCostUsd ?? null,
       allowanceConsumed,
     }).returning();
-
     return usage;
+  }
+
+  private validateProviderConfig(dto: UpsertProviderConfigDto) {
+    if (dto.source === "byok" && !dto.apiKey) {
+      throw new BadRequestException("BYOK provider configuration requires an API key");
+    }
+    if (dto.source === "teamlyf" && dto.apiKey) {
+      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    }
+  }
+
+  private encryptOptional(value?: string): string | null {
+    if (!value) return null;
+    return this.encrypt(value);
   }
 
   private async requireAgent(organizationId: string, agentId: string) {
@@ -177,11 +177,21 @@ export class AgentService {
       }),
       this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
-    const plan = currentSubscription?.plan === "growth" || currentSubscription?.plan === "scale" ? currentSubscription.plan : "starter";
-    const limit = Number(currentSubscription?.agentLimit ?? planEntitlements[plan].agentLimit) || planEntitlements[plan].agentLimit;
+    const limit = this.getAgentLimit(currentSubscription?.plan, currentSubscription?.agentLimit);
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
     }
+  }
+
+  private getAgentLimit(planValue: string | null | undefined, configuredLimit: string | null | undefined): number {
+    const plan = this.normalizePlan(planValue);
+    const configured = Number(configuredLimit);
+    return configured > 0 ? configured : planEntitlements[plan].agentLimit;
+  }
+
+  private normalizePlan(value?: string | null): BillingPlan {
+    if (value === "growth" || value === "scale") return value;
+    return "starter";
   }
 
   private encrypt(value: string): string {
