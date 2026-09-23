@@ -38,12 +38,9 @@ export class AgentService {
 
   async update(organizationId: string, agentId: string, dto: UpdateAgentDto) {
     await this.requireAgent(organizationId, agentId);
-    const [updated] = await this.db.update(agent).set({
-      ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
-      ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
-      ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
-      updatedAt: new Date(),
-    }).where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId))).returning();
+    const [updated] = await this.db.update(agent).set(this.buildUpdateValues(dto)).where(
+      and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)),
+    ).returning();
     return updated;
   }
 
@@ -84,32 +81,9 @@ export class AgentService {
   }
 
   async upsertProviderConfig(organizationId: string, dto: UpsertProviderConfigDto) {
-    if (dto.source === "byok" && !dto.apiKey) {
-      throw new BadRequestException("BYOK provider configuration requires an API key");
-    }
-    if (dto.source === "teamlyf" && dto.apiKey) {
-      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
-    }
-
-    const encryptedApiKey = dto.apiKey ? this.encrypt(dto.apiKey) : null;
-    const keyVersion = encryptedApiKey ? "v1" : null;
-
-    const [config] = await this.db.insert(aiProviderConfig).values({
-      organizationId,
-      provider: dto.provider.trim(),
-      model: dto.model.trim(),
-      source: dto.source,
-      encryptedApiKey,
-      keyVersion,
-    }).onConflictDoUpdate({
-      target: [
-        aiProviderConfig.organizationId,
-        aiProviderConfig.source,
-        aiProviderConfig.provider,
-        aiProviderConfig.model,
-      ],
-      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
-    }).returning();
+    this.validateProviderConfig(dto);
+    const encryptedApiKey = this.encryptOptionalApiKey(dto.apiKey);
+    const [config] = await this.saveProviderConfig(organizationId, dto, encryptedApiKey);
 
     return {
       id: config.id,
@@ -162,6 +136,54 @@ export class AgentService {
     }).returning();
 
     return usage;
+  }
+
+  private buildUpdateValues(dto: UpdateAgentDto) {
+    return {
+      ...(dto.name === undefined ? {} : { name: dto.name.trim() }),
+      ...(dto.description === undefined ? {} : { description: dto.description?.trim() || null }),
+      ...(dto.enabled === undefined ? {} : { enabled: dto.enabled }),
+      updatedAt: new Date(),
+    };
+  }
+
+  private validateProviderConfig(dto: UpsertProviderConfigDto) {
+    const invalidByok = dto.source === "byok" && !dto.apiKey;
+    const invalidTeamlyf = dto.source === "teamlyf" && Boolean(dto.apiKey);
+    if (invalidByok) {
+      throw new BadRequestException("BYOK provider configuration requires an API key");
+    }
+    if (invalidTeamlyf) {
+      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    }
+  }
+
+  private encryptOptionalApiKey(apiKey?: string): string | null {
+    return apiKey ? this.encrypt(apiKey) : null;
+  }
+
+  private async saveProviderConfig(
+    organizationId: string,
+    dto: UpsertProviderConfigDto,
+    encryptedApiKey: string | null,
+  ) {
+    const keyVersion = encryptedApiKey ? "v1" : null;
+    return this.db.insert(aiProviderConfig).values({
+      organizationId,
+      provider: dto.provider.trim(),
+      model: dto.model.trim(),
+      source: dto.source,
+      encryptedApiKey,
+      keyVersion,
+    }).onConflictDoUpdate({
+      target: [
+        aiProviderConfig.organizationId,
+        aiProviderConfig.source,
+        aiProviderConfig.provider,
+        aiProviderConfig.model,
+      ],
+      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
+    }).returning();
   }
 
   private async requireAgent(organizationId: string, agentId: string) {
