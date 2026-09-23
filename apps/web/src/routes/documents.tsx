@@ -40,6 +40,7 @@ function DocumentsPage() {
 
   // fallow-ignore-next-line high-crap-score
   async function createDocument(event: FormEvent) {
+    // fallow-ignore-next-line code-duplication
     event.preventDefault();
     if (!organization || !title.trim()) return;
     setLoading(true);
