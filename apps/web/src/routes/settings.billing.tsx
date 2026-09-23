@@ -41,28 +41,36 @@ function BillingSettings() {
     };
   }, [organization?.id]);
 
-  async function checkout(plan: BillingSummary["plan"]) {
+  function checkout(plan: BillingSummary["plan"]) {
     if (!organization) return;
     setLoading(true);
     setError(null);
-    try {
-      const result = await startCheckout(organization.id, plan);
-      const url = result.url ?? result.checkoutUrl;
-      if (!url) throw new Error("Billing provider did not return a checkout URL");
-      window.location.assign(url);
-    } catch (err) {
-      setError(getErrorMessage(err, "Unable to start checkout"));
-    } finally {
-      setLoading(false);
-    }
+    void startCheckout(organization.id, plan)
+      .then((result) => redirectToCheckout(result))
+      .catch((err: unknown) => setError(getErrorMessage(err, "Unable to start checkout")))
+      .finally(() => setLoading(false));
   }
 
-  if (!organization) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Select an organization before opening settings.</div>;
+  return <BillingContent organization={organization} summary={summary} loading={loading} error={error} checkout={checkout} />;
+}
+
+function BillingContent({
+  organization,
+  summary,
+  loading,
+  error,
+  checkout,
+}: {
+  organization: NonNullable<ReturnType<typeof useOrganization>["organization"]>;
+  summary: BillingSummary | null;
+  loading: boolean;
+  error: string | null;
+  checkout: (plan: BillingSummary["plan"]) => void;
+}) {
   if (error && !summary) return <BillingError message={error} onRetry={() => window.location.reload()} />;
   if (!summary) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Loading billing...</div>;
 
   const hasActiveSubscription = summary.status.toLowerCase() === "active";
-
   return (
     <div className="space-y-6">
       <section className="rounded-xl border bg-card p-5">
@@ -86,6 +94,12 @@ function BillingSettings() {
       {error && <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
     </div>
   );
+}
+
+function redirectToCheckout(result: CheckoutResponse) {
+  const url = result.url ?? result.checkoutUrl;
+  if (!url) throw new Error("Billing provider did not return a checkout URL");
+  window.location.assign(url);
 }
 
 async function loadBilling(orgId: string) {
