@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { member, note } from "@teamlyf/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateNoteDto, UpdateNoteDto } from "./note.dto";
 
@@ -48,7 +48,7 @@ export class NoteService {
     return this.db.query.note.findMany({
       where: parentId
         ? and(eq(note.organizationId, orgId), eq(note.parentId, parentId))
-        : and(eq(note.organizationId, orgId), eq(note.parentId, null)),
+        : and(eq(note.organizationId, orgId), isNull(note.parentId)),
       orderBy: (n, { desc }) => [desc(n.updatedAt)],
     });
   }

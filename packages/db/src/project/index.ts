@@ -8,7 +8,6 @@ export { taskActivity } from "./task-activity";
 export { taskComment } from "./task-comment";
 export { milestone } from "./milestone";
 export { milestoneTask } from "./milestone-task";
-export { organizationReference, memberReference } from "./references";
 export {
   projectRelations,
   statusRelations,

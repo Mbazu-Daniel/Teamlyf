@@ -1,5 +1,6 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { memberReference, organizationReference } from "../organization/membership-columns";
+import { generateId } from "../id";
+import { memberReference, organizationReference } from "../organization/membership";
 
 export const hrEmployeeProfile = pgTable("hr_employee_profile", {
   memberId: memberReference().primaryKey(),

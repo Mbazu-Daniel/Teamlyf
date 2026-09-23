@@ -11,7 +11,7 @@ import {
 import { sql } from "drizzle-orm";
 import { generateId } from "../id";
 import { aiProviderSource } from "./provider-source";
-import { organizationReference } from "../organization/membership-columns";
+import { organizationReference } from "../organization/membership";
 
 export const aiProviderConfig = pgTable(
   "ai_provider_config",
