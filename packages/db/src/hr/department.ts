@@ -1,6 +1,7 @@
 import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { memberReference, organizationReference } from "../organization/membership";
+import { member } from "../organization/member";
+import { organizationReference } from "../organization/membership";
 
 export const hrDepartment = pgTable("hr_department", {
   id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
@@ -16,6 +17,6 @@ export const hrDepartment = pgTable("hr_department", {
 
 export const hrDepartmentMember = pgTable("hr_department_member", {
   departmentId: uuid("department_id").notNull().references(() => hrDepartment.id, { onDelete: "cascade" }),
-  memberId: memberReference(),
+  memberId: uuid("member_id").notNull().references(() => member.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [index("hr_department_member_member_idx").on(t.memberId)]);
