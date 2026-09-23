@@ -7,4 +7,3 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 }
 
 export type Organization = { id: string; name: string; slug?: string };
-async function getOrganization(orgId: string) { return api<Organization>(`/organization/${orgId}`); }
