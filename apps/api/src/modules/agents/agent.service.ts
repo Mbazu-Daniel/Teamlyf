@@ -149,11 +149,14 @@ export class AgentService {
   }
 
   private validateProviderConfig(dto: UpsertProviderConfigDto) {
-    if (dto.source === "byok" && !dto.apiKey) {
-      throw new BadRequestException("BYOK provider configuration requires an API key");
-    }
-    if (dto.source === "teamlyf" && dto.apiKey) {
-      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    const invalidByok = dto.source === "byok" && !dto.apiKey;
+    const invalidTeamlyf = dto.source === "teamlyf" && Boolean(dto.apiKey);
+    if (invalidByok || invalidTeamlyf) {
+      throw new BadRequestException(
+        invalidByok
+          ? "BYOK provider configuration requires an API key"
+          : "Teamlyf-managed providers do not accept organization API keys",
+      );
     }
   }
 
