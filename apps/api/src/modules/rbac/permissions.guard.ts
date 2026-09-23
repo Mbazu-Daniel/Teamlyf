@@ -29,22 +29,16 @@ export class PermissionsGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const meta = this.reflector.getAllAndOverride<RequirePermissionMeta | undefined>(
-      REQUIRE_PERMISSION_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const meta = this.getMetadata(context);
     if (!meta) return true;
 
     const req = context.switchToHttp().getRequest<MemberRequest>();
-    if (!req.user?.id) throw new UnauthorizedException("Authentication required");
-
-    const orgId = this.getParamValue(req.params.orgId);
-    if (!orgId) throw new ForbiddenException("Organization id required");
-
+    const userId = this.requireUserId(req);
+    const orgId = this.requireOrganizationId(req);
     const resourceId = this.getResourceId(req.params, meta.resourceIdParam);
 
     const allowed = await this.permissionService.checkUserPermission(
-      req.user.id,
+      userId,
       toFetchHeaders(req),
       orgId,
       meta.resource,
@@ -52,11 +46,26 @@ export class PermissionsGuard implements CanActivate {
       resourceId,
     );
 
-    if (!allowed) {
-      throw new ForbiddenException("Missing permission");
-    }
-
+    if (!allowed) throw new ForbiddenException("Missing permission");
     return true;
+  }
+
+  private getMetadata(context: ExecutionContext): RequirePermissionMeta | undefined {
+    return this.reflector.getAllAndOverride<RequirePermissionMeta | undefined>(
+      REQUIRE_PERMISSION_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+  }
+
+  private requireUserId(req: MemberRequest): string {
+    if (!req.user?.id) throw new UnauthorizedException("Authentication required");
+    return req.user.id;
+  }
+
+  private requireOrganizationId(req: MemberRequest): string {
+    const orgId = this.getParamValue(req.params.orgId);
+    if (!orgId) throw new ForbiddenException("Organization id required");
+    return orgId;
   }
 
   private getResourceId(
