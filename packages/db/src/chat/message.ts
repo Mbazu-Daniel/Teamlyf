@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { foreignKey, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { channel } from "./channel";
 import { generateId } from "../id";
 
@@ -14,4 +14,9 @@ export const message = pgTable("message", {
 }, (table) => ({
   channelCreatedIdx: index("message_channel_created_idx").on(table.channelId, table.createdAt),
   threadIdx: index("message_thread_idx").on(table.threadRootId),
+  threadRootFk: foreignKey({
+    columns: [table.threadRootId],
+    foreignColumns: [table.id],
+    name: "message_thread_root_id_message_id_fk",
+  }).onDelete("cascade"),
 }));
