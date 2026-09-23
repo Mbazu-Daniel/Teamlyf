@@ -277,7 +277,7 @@ function MemberIdentity({ member }: { member: Member }) {
 }
 
 function memberDisplayName(member: Member) {
-  return member.user?.name ?? member.user?.email ?? member.id;
+  return [member.user?.name, member.user?.email, member.id].find(Boolean) ?? member.id;
 }
 
 function memberEmail(member: Member) {
