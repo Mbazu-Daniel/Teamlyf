@@ -64,7 +64,7 @@ export class ChatService {
 
   async thread(organizationId: string, channelId: string, messageId: string, memberId: string, cursor?: string) {
     await this.requireAccess(organizationId, channelId, memberId);
-    const root = await this.findThreadRoot(channelId, messageId);
+    await this.findThreadRoot(channelId, messageId);
     const cursorDate = this.parseThreadCursor(cursor);
     const rows = await this.findThreadMessages(channelId, messageId, cursorDate);
     return this.withReactions(rows.reverse());
