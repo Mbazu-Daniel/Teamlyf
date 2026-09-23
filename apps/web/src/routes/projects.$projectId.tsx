@@ -12,6 +12,34 @@ export const Route = createFileRoute("/projects/$projectId")({ component: Projec
 function ProjectPage() {
   const { projectId } = Route.useParams();
   const { organization } = useOrganization();
+  const state = useProjectPage(organization?.id, projectId);
+
+  if (!organization) return <EmptyProjectState />;
+  if (!state.project) return <LoadingProjectState error={state.error} />;
+
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <ProjectHeader project={state.project} />
+      <TaskForm
+        name={state.name}
+        statusId={state.statusId}
+        statuses={state.statuses}
+        loading={state.loading}
+        onNameChange={state.setName}
+        onStatusChange={state.setStatusId}
+        onSubmit={state.createTask}
+      />
+      {state.error && <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{state.error}</p>}
+      <section className="mt-8 space-y-6">
+        {state.statuses.map((status) => (
+          <StatusColumn key={status.id} status={status} tasks={state.tasks} statuses={state.statuses} onMove={state.moveTask} />
+        ))}
+      </section>
+    </main>
+  );
+}
+
+function useProjectPage(organizationId: string | undefined, projectId: string) {
   const [project, setProject] = useState<Project | null>(null);
   const [statuses, setStatuses] = useState<Status[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -21,14 +49,13 @@ function ProjectPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (organization) void loadProject();
-  }, [organization?.id, projectId]);
+    if (organizationId) void loadProject(organizationId, projectId);
+  }, [organizationId, projectId]);
 
-  async function loadProject() {
-    if (!organization) return;
+  async function loadProject(orgId: string, id: string) {
     setError(null);
     try {
-      const prefix = `/organization/${organization.id}/projects/${projectId}`;
+      const prefix = `/organization/${orgId}/projects/${id}`;
       const [projectData, statusData, taskData] = await Promise.all([
         api<Project>(prefix),
         api<Status[]>(`${prefix}/statuses`),
@@ -45,11 +72,11 @@ function ProjectPage() {
 
   async function createTask(event: React.FormEvent) {
     event.preventDefault();
-    if (!organization || !name.trim() || !statusId) return;
+    if (!organizationId || !name.trim() || !statusId) return;
     setLoading(true);
     setError(null);
     try {
-      const task = await api<Task>(`/organization/${organization.id}/projects/${projectId}/tasks`, {
+      const task = await api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks`, {
         method: "POST",
         body: JSON.stringify({ name: name.trim(), statusId }),
       });
@@ -63,10 +90,10 @@ function ProjectPage() {
   }
 
   async function moveTask(task: Task, nextStatusId: string) {
-    if (!organization || task.statusId === nextStatusId) return;
+    if (!organizationId || task.statusId === nextStatusId) return;
     setError(null);
     try {
-      const updated = await api<Task>(`/organization/${organization.id}/projects/${projectId}/tasks/${task.id}`, {
+      const updated = await api<Task>(`/organization/${organizationId}/projects/${projectId}/tasks/${task.id}`, {
         method: "PATCH",
         body: JSON.stringify({ statusId: nextStatusId }),
       });
@@ -76,21 +103,7 @@ function ProjectPage() {
     }
   }
 
-  if (!organization) return <EmptyProjectState />;
-  if (!project) return <LoadingProjectState error={error} />;
-
-  return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <ProjectHeader project={project} />
-      <TaskForm name={name} statusId={statusId} statuses={statuses} loading={loading} onNameChange={setName} onStatusChange={setStatusId} onSubmit={createTask} />
-      {error && <p className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
-      <section className="mt-8 space-y-6">
-        {statuses.map((status) => (
-          <StatusColumn key={status.id} status={status} tasks={tasks} statuses={statuses} onMove={moveTask} />
-        ))}
-      </section>
-    </main>
-  );
+  return { project, statuses, tasks, name, statusId, loading, error, setName, setStatusId, createTask, moveTask };
 }
 
 function EmptyProjectState() {
