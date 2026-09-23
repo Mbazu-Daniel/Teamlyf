@@ -6,7 +6,7 @@ import { organizationReference } from "../organization/membership-columns";
 export const document = pgTable("document", {
   id: text("id").primaryKey().$defaultFn(generateId),
   organizationId: organizationReference(),
-  ownerId: uuid("owner_id").notNull().references(() => member.id),
+  ownerId: uuid("owner_id").references(() => member.id, { onDelete: "set null" }),
   parentId: text("parent_id"),
   title: text("title").notNull(),
   mimeType: text("mime_type").notNull().default("text/plain"),

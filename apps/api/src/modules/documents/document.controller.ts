@@ -43,6 +43,17 @@ export class DocumentController {
     return this.documents.versions(orgId, documentId, member.id);
   }
 
+  @Post(":documentId/versions/:versionId/restore")
+  @RequirePermission("docs", "update", "documentId")
+  restoreVersion(
+    @Param("orgId") orgId: string,
+    @Param("documentId") documentId: string,
+    @Param("versionId") versionId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.documents.restoreVersion(orgId, documentId, versionId, member.id);
+  }
+
   @Post(":documentId/permissions")
   @RequirePermission("docs", "update", "documentId")
   permission(@Param("orgId") orgId: string, @Param("documentId") documentId: string, @CurrentMember() member: SessionMember, @Body() body: SetDocumentPermissionDto) {
