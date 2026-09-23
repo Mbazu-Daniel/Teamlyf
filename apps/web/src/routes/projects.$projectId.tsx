@@ -8,8 +8,6 @@ type Status = { id: string; name: string; group: string };
 type Task = { id: string; name: string; description: string | null; priority: string; statusId: string; targetDate: string | null };
 
 export const Route = createFileRoute("/projects/$projectId")({ component: ProjectPage });
-
-// fallow-ignore-next-line high-crap-score
 function ProjectPage() {
   const { projectId } = Route.useParams();
   const { organization } = useOrganization();
