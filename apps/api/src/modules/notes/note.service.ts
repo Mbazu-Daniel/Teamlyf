@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { note } from "@teamlyf/db/notes-schema";
+import { note } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
