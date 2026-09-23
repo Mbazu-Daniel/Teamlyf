@@ -58,17 +58,38 @@ export class BillingService {
     current: Awaited<ReturnType<BillingService["findSubscription"]>>,
     members: Array<{ total: number }>,
   ) {
-    const plan = current?.plan ?? "starter";
     return {
-      plan,
+      plan: this.subscriptionPlan(current),
       status: current?.status ?? "inactive",
-      seatLimit: Number(current?.seatLimit ?? this.defaultSeatLimit(this.normalizePlan(plan))),
-      agentLimit: Number(current?.agentLimit ?? this.defaultAgentLimit(this.normalizePlan(plan))),
-      currentPeriodEnd: current?.currentPeriodEnd?.toISOString() ?? null,
-      members: Number(members[0]?.total ?? 0),
+      seatLimit: this.subscriptionLimit(current?.seatLimit, current?.plan, "seatLimit"),
+      agentLimit: this.subscriptionLimit(current?.agentLimit, current?.plan, "agentLimit"),
+      currentPeriodEnd: this.periodEnd(current?.currentPeriodEnd),
+      members: this.memberCount(members),
       provider: current?.provider ?? "bachs",
       hasSubscription: Boolean(current?.providerSubscriptionId),
     };
+  }
+
+  private subscriptionPlan(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
+    return current?.plan ?? "starter";
+  }
+
+  private subscriptionLimit(
+    configured: string | null | undefined,
+    planValue: string | null | undefined,
+    kind: "seatLimit" | "agentLimit",
+  ) {
+    if (configured) return Number(configured);
+    const plan = this.normalizePlan(planValue);
+    return kind === "seatLimit" ? this.defaultSeatLimit(plan) : this.defaultAgentLimit(plan);
+  }
+
+  private periodEnd(value: Date | null | undefined) {
+    return value?.toISOString() ?? null;
+  }
+
+  private memberCount(members: Array<{ total: number }>) {
+    return Number(members[0]?.total ?? 0);
   }
 
   async checkout(organizationId: string, dto: CheckoutDto) {
@@ -100,7 +121,8 @@ export class BillingService {
 
   async handleWebhook(rawBody: Buffer, signature?: string) {
     this.verifySignature(rawBody, signature);
-    const data = this.requireEventData(this.parseEvent(rawBody));
+    const event = this.parseEvent(rawBody);
+    const data = this.requireEventData(event);
     const plan = this.normalizePlan(data.plan);
     const status = this.resolveStatus(event, data);
 
