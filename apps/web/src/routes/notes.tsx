@@ -29,6 +29,7 @@ function NotesPage() {
   }
 
   async function createNote(event: FormEvent) {
+    // fallow-ignore-next-line code-duplication
     event.preventDefault();
     if (!organization || !title.trim()) return;
     setLoading(true);
