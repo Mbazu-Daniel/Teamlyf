@@ -41,9 +41,7 @@ export class PermissionsGuard implements CanActivate {
     const orgId = this.getParamValue(req.params.orgId);
     if (!orgId) throw new ForbiddenException("Organization id required");
 
-    const resourceId = meta.resourceIdParam
-      ? this.getParamValue(req.params[meta.resourceIdParam])
-      : undefined;
+    const resourceId = this.getResourceId(req.params, meta.resourceIdParam);
 
     const allowed = await this.permissionService.checkUserPermission(
       req.user.id,
@@ -59,6 +57,14 @@ export class PermissionsGuard implements CanActivate {
     }
 
     return true;
+  }
+
+  private getResourceId(
+    params: MemberRequest["params"],
+    paramName?: string,
+  ): string | undefined {
+    if (!paramName) return undefined;
+    return this.getParamValue(params[paramName]);
   }
 
   private getParamValue(value: string | string[] | undefined): string | undefined {
