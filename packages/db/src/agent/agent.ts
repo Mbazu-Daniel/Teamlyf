@@ -16,5 +16,6 @@ export const agent = pgTable(
   (t) => [
     index("agent_organization_id_idx").on(t.organizationId),
     uniqueIndex("agent_organization_name_idx").on(t.organizationId, t.name),
+    uniqueIndex("agent_organization_id_id_idx").on(t.organizationId, t.id),
   ],
 );
