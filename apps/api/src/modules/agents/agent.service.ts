@@ -177,7 +177,7 @@ export class AgentService {
       }),
       this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
-    const plan = currentSubscription?.plan === "growth" || subscription?.plan === "scale" ? subscription.plan : "starter";
+    const plan = currentSubscription?.plan === "growth" || currentSubscription?.plan === "scale" ? currentSubscription.plan : "starter";
     const limit = Number(currentSubscription?.agentLimit ?? planEntitlements[plan].agentLimit) || planEntitlements[plan].agentLimit;
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
