@@ -144,8 +144,7 @@ async function runAction<T>(
   onSuccess: (value: T) => void | Promise<void>,
   fallback: string,
   setBusy: (busy: boolean) => void,
-  setError: (error: string | null) => void,
-  busyValue?: string,
+  setError: (error: string | null) => void
 ) {
   setBusy(true);
   setError(null);
