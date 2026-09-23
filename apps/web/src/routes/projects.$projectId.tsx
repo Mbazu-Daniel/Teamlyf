@@ -84,11 +84,10 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
   async function loadProject(orgId: string, id: string) {
     setError(null);
     try {
-      const prefix = `/organization/${orgId}/projects/${id}`;
       const [projectData, statusData, taskData] = await Promise.all([
-        client.request<Project>(prefix),
-        client.request<Status[]>(`${prefix}/statuses`),
-        client.request<Task[]>(`${prefix}/tasks`),
+        projectsApi.get(orgId, id),
+        projectsApi.listStatuses(orgId, id),
+        projectsApi.listTasks(orgId, id),
       ]);
       setProject(projectData);
       setStatuses(statusData);
@@ -130,19 +129,6 @@ function useProjectPage(organizationId: string | undefined, projectId: string) {
   return { project, statuses, tasks, name, statusId, loading, error, setName, setStatusId, createTask, moveTask };
 }
 
-async function createProjectTask(organizationId: string, projectId: string, name: string, statusId: string) {
-  return client.request<Task>(`/organization/${organizationId}/projects/${projectId}/tasks`, {
-    method: "POST",
-    body: JSON.stringify({ name: name.trim(), statusId }),
-  });
-}
-
-async function moveProjectTask(organizationId: string, projectId: string, taskId: string, statusId: string) {
-  return client.request<Task>(`/organization/${organizationId}/projects/${projectId}/tasks/${taskId}`, {
-    method: "PATCH",
-    body: JSON.stringify({ statusId }),
-  });
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) return error.message;
