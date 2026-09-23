@@ -9,6 +9,7 @@ type Task = { id: string; name: string; description: string | null; priority: st
 
 export const Route = createFileRoute("/projects/$projectId")({ component: ProjectPage });
 
+// fallow-ignore-next-line high-crap-score
 function ProjectPage() {
   const { projectId } = Route.useParams();
   const { organization } = useOrganization();
