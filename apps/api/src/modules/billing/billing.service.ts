@@ -2,7 +2,9 @@ import { BadRequestException, Inject, Injectable, UnauthorizedException } from "
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Database } from "@teamlyf/db";
 import { member, organization } from "@teamlyf/db/organization-schema";
-import { subscription } from "@teamlyf/db/billing-schema";
+import { billingSchema } from "@teamlyf/db";
+
+const { subscription } = billingSchema;
 import { count, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
@@ -11,7 +13,6 @@ import type { BillingPlan, CheckoutDto } from "./billing.dto";
 import { planEntitlements } from "./plan-entitlements";
 
 type BillingEvent = {
-  id?: string;
   type?: string;
   data?: {
     organizationId?: string;
@@ -20,9 +21,23 @@ type BillingEvent = {
     plan?: string;
     status?: string;
     seatLimit?: number;
-    agentLimit?: number;
     currentPeriodEnd?: string;
   };
+};
+
+type BillingEventData = NonNullable<BillingEvent["data"]>;
+type ValidBillingEventData = BillingEventData & {
+  organizationId: string;
+  customerId: string;
+};
+
+type SubscriptionSummary = {
+  plan: string;
+  status: string;
+  seatLimit: string;
+  currentPeriodEnd: Date | null;
+  provider: string;
+  providerSubscriptionId: string | null;
 };
 
 @Injectable()
@@ -34,84 +49,8 @@ export class BillingService {
 
   async summary(organizationId: string) {
     await this.requireOrganization(organizationId);
-    const [current, members] = await Promise.all([
-      this.findSubscription(organizationId),
-      this.countMembers(organizationId),
-    ]);
-    return this.buildSummary(current, members);
-  }
-
-  private findSubscription(organizationId: string) {
-    return this.db.query.subscription.findFirst({
-      where: eq(subscription.organizationId, organizationId),
-    });
-  }
-
-  private countMembers(organizationId: string) {
-    return this.db
-      .select({ total: count() })
-      .from(member)
-      .where(eq(member.organizationId, organizationId));
-  }
-
-  private buildSummary(
-    current: Awaited<ReturnType<BillingService["findSubscription"]>>,
-    members: Array<{ total: number }>,
-  ) {
-    return {
-      plan: this.subscriptionPlan(current),
-      status: this.subscriptionStatus(current),
-      seatLimit: this.seatLimit(current),
-      agentLimit: this.agentLimit(current),
-      currentPeriodEnd: this.periodEnd(current?.currentPeriodEnd),
-      members: this.memberCount(members),
-      provider: this.provider(current),
-      hasSubscription: this.hasSubscription(current),
-    };
-  }
-
-  private subscriptionStatus(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
-    if (current?.status) return current.status;
-    return "inactive";
-  }
-
-  private seatLimit(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
-    return this.subscriptionLimit(current?.seatLimit, current?.plan, "seatLimit");
-  }
-
-  private agentLimit(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
-    return this.subscriptionLimit(current?.agentLimit, current?.plan, "agentLimit");
-  }
-
-  private provider(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
-    if (current?.provider) return current.provider;
-    return "bachs";
-  }
-
-  private hasSubscription(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
-    return Boolean(current?.providerSubscriptionId);
-  }
-
-  private subscriptionPlan(current: Awaited<ReturnType<BillingService["findSubscription"]>>) {
-    return current?.plan ?? "starter";
-  }
-
-  private subscriptionLimit(
-    configured: string | null | undefined,
-    planValue: string | null | undefined,
-    kind: "seatLimit" | "agentLimit",
-  ) {
-    if (configured) return Number(configured);
-    const plan = this.normalizePlan(planValue);
-    return kind === "seatLimit" ? this.defaultSeatLimit(plan) : this.defaultAgentLimit(plan);
-  }
-
-  private periodEnd(value: Date | null | undefined) {
-    return value?.toISOString() ?? null;
-  }
-
-  private memberCount(members: Array<{ total: number }>) {
-    return Number(members[0]?.total ?? 0);
+    const [current, members] = await this.loadSummaryData(organizationId);
+    return this.buildSummary(current, Number(members[0]?.total ?? 0));
   }
 
   async checkout(organizationId: string, dto: CheckoutDto) {
@@ -133,7 +72,6 @@ export class BillingService {
           successUrl: dto.successUrl,
           cancelUrl: dto.cancelUrl,
         }),
-        signal: AbortSignal.timeout(10_000),
       },
     );
 
@@ -143,56 +81,10 @@ export class BillingService {
 
   async handleWebhook(rawBody: Buffer, signature?: string) {
     this.verifySignature(rawBody, signature);
-    const event = this.parseEvent(rawBody);
-    const data = this.requireEventData(event);
-    const plan = this.normalizePlan(data.plan);
-    const status = this.resolveStatus(event, data);
-
-    await this.upsertSubscription(data, plan, status);
+    const event = this.parseWebhook(rawBody);
+    const data = this.requireEventData(event.data);
+    await this.saveSubscription(data, event.type);
     return { received: true };
-  }
-
-  private async upsertSubscription(
-    data: NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string },
-    plan: BillingPlan,
-    status: string,
-  ) {
-    const values = this.subscriptionValues(data, plan, status);
-    await this.db.insert(subscription).values(values).onConflictDoUpdate({
-      target: subscription.organizationId,
-      set: this.subscriptionUpdate(values),
-    });
-  }
-
-  private subscriptionValues(
-    data: NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string },
-    plan: BillingPlan,
-    status: string,
-  ) {
-    return {
-      organizationId: data.organizationId,
-      provider: "bachs" as const,
-      providerCustomerId: data.customerId,
-      providerSubscriptionId: data.subscriptionId ?? null,
-      plan,
-      status,
-      seatLimit: String(data.seatLimit ?? this.defaultSeatLimit(plan)),
-      agentLimit: String(data.agentLimit ?? this.defaultAgentLimit(plan)),
-      currentPeriodEnd: this.parsePeriodEnd(data.currentPeriodEnd),
-    };
-  }
-
-  private subscriptionUpdate(values: ReturnType<BillingService["subscriptionValues"]>) {
-    return {
-      providerCustomerId: values.providerCustomerId,
-      providerSubscriptionId: values.providerSubscriptionId,
-      plan: values.plan,
-      status: values.status,
-      seatLimit: values.seatLimit,
-      agentLimit: values.agentLimit,
-      currentPeriodEnd: values.currentPeriodEnd,
-      updatedAt: new Date(),
-    };
   }
 
   private async requireOrganization(organizationId: string) {
@@ -203,7 +95,44 @@ export class BillingService {
     return org;
   }
 
-  private parseEvent(rawBody: Buffer): BillingEvent {
+  private async loadSummaryData(organizationId: string) {
+    return Promise.all([
+      this.db.query.subscription.findFirst({
+        where: eq(subscription.organizationId, organizationId),
+      }),
+      this.db.select({ total: count() }).from(member).where(eq(member.organizationId, organizationId)),
+    ]);
+  }
+
+  private buildSummary(current: SubscriptionSummary | undefined, memberCount: number) {
+    const defaults = {
+      plan: "starter",
+      status: "inactive",
+      seatLimit: "5",
+      currentPeriodEnd: null,
+      provider: "bachs",
+      providerSubscriptionId: null,
+    } as const;
+    const value = current ?? defaults;
+    const plan = this.normalizePlan(value.plan);
+
+    return {
+      plan,
+      status: value.status,
+      seatLimit: Number(value.seatLimit),
+      agentLimit: planEntitlements[plan].agentLimit,
+      currentPeriodEnd: this.formatPeriodEnd(value.currentPeriodEnd),
+      members: memberCount,
+      provider: value.provider,
+      hasSubscription: Boolean(value.providerSubscriptionId),
+    };
+  }
+
+  private formatPeriodEnd(value: Date | null) {
+    return value ? value.toISOString() : null;
+  }
+
+  private parseWebhook(rawBody: Buffer): BillingEvent {
     try {
       return JSON.parse(rawBody.toString("utf8")) as BillingEvent;
     } catch {
@@ -211,62 +140,105 @@ export class BillingService {
     }
   }
 
-  private requireEventData(event: BillingEvent): NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string } {
-    const data = event.data;
+  private requireEventData(data?: BillingEventData): ValidBillingEventData {
     if (!data?.organizationId || !data.customerId) {
       throw new BadRequestException("Invalid billing event");
     }
-    return data as NonNullable<BillingEvent["data"]> & { organizationId: string; customerId: string };
+    return data as ValidBillingEventData;
   }
 
-  private resolveStatus(event: BillingEvent, data: NonNullable<BillingEvent["data"]>): string {
-    if (data.status) return data.status;
-    const type = event.type ?? "";
-    const match = [
-      ["cancel", "cancelled"],
-      ["expire", "expired"],
-      ["activate", "active"],
-    ].find(([key]) => type.includes(key));
-    if (!match) throw new BadRequestException("Billing event status is required");
-    return match[1];
+  private async saveSubscription(data: ValidBillingEventData, eventType?: string) {
+    const plan = this.normalizePlan(data.plan);
+    const status = this.resolveEventStatus(data.status, eventType);
+    const seatLimit = this.resolveSeatLimit(data.seatLimit, plan);
+    const currentPeriodEnd = this.parsePeriodEnd(data.currentPeriodEnd);
+
+    await this.db
+      .insert(subscription)
+      .values(this.buildSubscriptionValues(data, plan, status, seatLimit, currentPeriodEnd))
+      .onConflictDoUpdate({
+        target: subscription.organizationId,
+        set: this.buildSubscriptionUpdate(data, plan, status, seatLimit, currentPeriodEnd),
+      });
   }
 
-  private parsePeriodEnd(value?: string): Date | null {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) throw new BadRequestException("Invalid billing period end");
-    return date;
+  private buildSubscriptionValues(
+    data: ValidBillingEventData,
+    plan: BillingPlan,
+    status: string,
+    seatLimit: string,
+    currentPeriodEnd: Date | null,
+  ) {
+    return {
+      organizationId: data.organizationId,
+      provider: "bachs" as const,
+      providerCustomerId: data.customerId,
+      providerSubscriptionId: data.subscriptionId ?? null,
+      plan,
+      status,
+      seatLimit,
+      currentPeriodEnd,
+    };
   }
 
-  private normalizePlan(value?: string | null): BillingPlan {
+  private buildSubscriptionUpdate(
+    data: ValidBillingEventData,
+    plan: BillingPlan,
+    status: string,
+    seatLimit: string,
+    currentPeriodEnd: Date | null,
+  ) {
+    return {
+      providerCustomerId: data.customerId,
+      providerSubscriptionId: data.subscriptionId ?? null,
+      plan,
+      status,
+      seatLimit,
+      currentPeriodEnd,
+      updatedAt: new Date(),
+    };
+  }
+
+  private resolveEventStatus(status?: string, eventType?: string) {
+    if (status) return status;
+    if (eventType?.includes("cancel")) return "cancelled";
+    return "active";
+  }
+
+  private resolveSeatLimit(value: number | undefined, plan: BillingPlan) {
+    return String(value ?? this.defaultSeatLimit(plan));
+  }
+
+  private parsePeriodEnd(value?: string) {
+    return value ? new Date(value) : null;
+  }
+
+  private normalizePlan(value?: string): BillingPlan {
     if (value === "growth" || value === "scale") return value;
     return "starter";
   }
 
   private defaultSeatLimit(plan: BillingPlan): number {
-    return planEntitlements[plan].seatLimit;
-  }
-
-  private defaultAgentLimit(plan: BillingPlan): number {
-    return planEntitlements[plan].agentLimit;
+    return plan === "scale" ? 250 : plan === "growth" ? 50 : 5;
   }
 
   private verifySignature(rawBody: Buffer, signature?: string) {
-    const secret = this.requireWebhookSecret(signature);
-    const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-    this.compareSignature(expected, signature ?? "");
-  }
-
-  private requireWebhookSecret(signature?: string) {
     const secret = this.env.BACHS_WEBHOOK_SECRET;
     if (!secret || !signature) throw new UnauthorizedException("Webhook signature missing");
-    return secret;
-  }
 
-  private compareSignature(expected: string, signature: string) {
+    const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
     const actual = Buffer.from(signature, "utf8");
     const expectedBuffer = Buffer.from(expected, "utf8");
-    const valid = actual.length === expectedBuffer.length && timingSafeEqual(actual, expectedBuffer);
-    if (!valid) throw new UnauthorizedException("Webhook signature invalid");
+
+    if (actual.length !== expectedBuffer.length) {
+      throw new UnauthorizedException("Webhook signature invalid");
+    }
+    this.assertSignatureMatch(actual, expectedBuffer);
+  }
+
+  private assertSignatureMatch(actual: Buffer, expected: Buffer) {
+    if (!timingSafeEqual(actual, expected)) {
+      throw new UnauthorizedException("Webhook signature invalid");
+    }
   }
 }

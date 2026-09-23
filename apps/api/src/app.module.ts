@@ -3,6 +3,7 @@ import { EnvModule } from "./common/config/env.module";
 import { DbModule } from "./common/db/db.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ChatModule } from "./modules/chat/chat.module";
+import { DocumentModule } from "./modules/documents/document.module";
 import { InvitationModule } from "./modules/invitation/invitation.module";
 import { MemberModule } from "./modules/member/member.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
@@ -20,6 +21,7 @@ import { AgentModule } from "./modules/agents/agent.module";
     DbModule,
     AuthModule,
     ChatModule,
+    DocumentModule,
     RbacModule,
     CallModule,
     BillingModule,

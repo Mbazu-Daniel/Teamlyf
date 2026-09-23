@@ -1,49 +1,31 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { createHmac } from "node:crypto";
-import type { Database } from "@teamlyf/db";
-import { subscription } from "@teamlyf/db/billing-schema";
-import { eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
-import { DATABASE } from "../../common/db/db.provider";
-import type { BillingPlan } from "../billing/billing.dto";
-import { planEntitlements } from "../billing/plan-entitlements";
+
+const TOKEN_TTL_SECONDS = 60 * 60;
 
 @Injectable()
 export class CallService {
-  constructor(
-    @Inject(API_ENV) private readonly env: ApiEnv,
-    @Inject(DATABASE) private readonly db: Database,
-  ) {}
+  constructor(@Inject(API_ENV) private readonly env: ApiEnv) {}
 
-  async issueToken(
-    organizationId: string,
-    memberId: string,
-    roomName: string,
-    participantName?: string,
-  ) {
-    const { apiKey, apiSecret, livekitUrl } = this.requireLiveKitConfig();
+  issueToken(organizationId: string, memberId: string, roomName: string, participantName?: string) {
+    const { apiKey, apiSecret, livekitUrl } = this.requireConfig();
     const normalizedRoom = this.normalizeRoom(roomName);
-    const plan = await this.getPlan(organizationId);
-    const durationMinutes = planEntitlements[plan].callDurationMinutes;
     const now = Math.floor(Date.now() / 1000);
-    const room = this.roomName(organizationId, normalizedRoom);
-    const payload = this.createTokenPayload(apiKey, memberId, participantName, room, now, durationMinutes);
+    const payload = this.buildPayload(organizationId, memberId, normalizedRoom, participantName, now, apiKey);
 
     return {
       url: livekitUrl,
-      room,
+      room: payload.video.room,
       token: this.sign(payload, apiSecret),
-      expiresAt: new Date((now + durationMinutes * 60) * 1000).toISOString(),
-      maxDurationMinutes: durationMinutes,
+      expiresAt: new Date((now + TOKEN_TTL_SECONDS) * 1000).toISOString(),
     };
   }
 
-  private requireLiveKitConfig() {
+  private requireConfig() {
     const { LIVEKIT_API_KEY: apiKey, LIVEKIT_API_SECRET: apiSecret, LIVEKIT_URL: livekitUrl } = this.env;
-    if (!apiKey || !apiSecret || !livekitUrl) {
-      throw new BadRequestException("LiveKit is not configured");
-    }
+    if (!apiKey || !apiSecret || !livekitUrl) throw new BadRequestException("LiveKit is not configured");
     return { apiKey, apiSecret, livekitUrl };
   }
 
@@ -53,38 +35,14 @@ export class CallService {
     return normalized;
   }
 
-  private async getPlan(organizationId: string): Promise<BillingPlan> {
-    const current = await this.db.query.subscription.findFirst({
-      where: eq(subscription.organizationId, organizationId),
-    });
-    return this.normalizePlan(current?.plan);
-  }
-
-  private normalizePlan(value?: string | null): BillingPlan {
-    if (value === "growth" || value === "scale") return value;
-    return "starter";
-  }
-
-  private createTokenPayload(
-    apiKey: string,
-    memberId: string,
-    participantName: string | undefined,
-    room: string,
-    now: number,
-    durationMinutes: number,
-  ) {
+  private buildPayload(organizationId: string, memberId: string, roomName: string, participantName: string | undefined, now: number, apiKey: string) {
     return {
       iss: apiKey,
       sub: memberId,
       nbf: now,
-      exp: now + durationMinutes * 60,
+      exp: now + TOKEN_TTL_SECONDS,
       name: participantName?.trim() || memberId,
-      video: {
-        roomJoin: true,
-        room,
-        canPublish: true,
-        canSubscribe: true,
-      },
+      video: { roomJoin: true, room: this.roomName(organizationId, roomName), canPublish: true, canSubscribe: true },
     };
   }
 
