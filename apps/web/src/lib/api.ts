@@ -5,11 +5,8 @@ type RequestOptions = RequestInit & {
 };
 
 function buildUrl(path: string, query?: RequestOptions["query"]) {
-  if (!query) return path;
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined) params.set(key, String(value));
-  }
+  const entries = Object.entries(query ?? {}).filter(([, value]) => value !== undefined);
+  const params = new URLSearchParams(entries.map(([key, value]) => [key, String(value)]));
   const suffix = params.toString();
   return suffix ? `${path}${path.includes("?") ? "&" : "?"}${suffix}` : path;
 }
@@ -50,5 +47,3 @@ export const client = {
   request,
   organization: organizationClient,
 };
-
-export const api = request;
