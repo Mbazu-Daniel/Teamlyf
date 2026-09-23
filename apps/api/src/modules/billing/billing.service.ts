@@ -216,7 +216,7 @@ export class BillingService {
     return date;
   }
 
-  private normalizePlan(value?: string): BillingPlan {
+  private normalizePlan(value?: string | null): BillingPlan {
     if (value === "growth" || value === "scale") return value;
     return "starter";
   }
@@ -232,7 +232,7 @@ export class BillingService {
   private verifySignature(rawBody: Buffer, signature?: string) {
     const secret = this.requireWebhookSecret(signature);
     const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-    this.compareSignature(expected, signature);
+    this.compareSignature(expected, signature ?? "");
   }
 
   private requireWebhookSecret(signature?: string) {
