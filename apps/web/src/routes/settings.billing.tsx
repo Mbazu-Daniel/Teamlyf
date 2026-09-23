@@ -66,15 +66,35 @@ function BillingContent({
   error: string | null;
   checkout: (plan: BillingSummary["plan"]) => void;
 }) {
-  if (error && !summary) return <BillingError message={error} onRetry={() => window.location.reload()} />;
-  if (!summary) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Loading billing...</div>;
+  if (!summary) return error
+    ? <BillingError message={error} onRetry={() => window.location.reload()} />
+    : <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Loading billing...</div>;
+  return <BillingLoaded summary={summary} loading={loading} error={error} onCheckout={checkout} />;
+}
+
+function BillingLoaded({
+  summary,
+  loading,
+  error,
+  onCheckout,
+}: {
+  summary: BillingSummary;
+  loading: boolean;
+  error: string | null;
+  onCheckout: (plan: BillingSummary["plan"]) => void;
+}) {
   return (
     <div className="space-y-6">
       <BillingOverview summary={summary} />
-      <BillingPlans summary={summary} loading={loading} onCheckout={checkout} />
-      {error && <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
+      <BillingPlans summary={summary} loading={loading} onCheckout={onCheckout} />
+      <BillingErrorMessage error={error} />
     </div>
   );
+}
+
+function BillingErrorMessage({ error }: { error: string | null }) {
+  if (!error) return null;
+  return <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>;
 }
 
 function BillingOverview({ summary }: { summary: BillingSummary }) {
