@@ -27,6 +27,15 @@ type BillingEvent = {
 
 type BillingEventData = NonNullable<BillingEvent["data"]>;
 
+type SubscriptionSummary = {
+  plan: string;
+  status: string;
+  seatLimit: string;
+  currentPeriodEnd: Date | null;
+  provider: string;
+  providerSubscriptionId: string | null;
+};
+
 @Injectable()
 export class BillingService {
   constructor(
@@ -91,28 +100,32 @@ export class BillingService {
     ]);
   }
 
-  private buildSummary(
-    current: {
-      plan: string;
-      status: string;
-      seatLimit: string;
-      currentPeriodEnd: Date | null;
-      provider: string;
-      providerSubscriptionId: string | null;
-    } | undefined,
-    memberCount: number,
-  ) {
-    const plan = this.normalizePlan(current?.plan);
+  private buildSummary(current: SubscriptionSummary | undefined, memberCount: number) {
+    const defaults = {
+      plan: "starter",
+      status: "inactive",
+      seatLimit: "5",
+      currentPeriodEnd: null,
+      provider: "bachs",
+      providerSubscriptionId: null,
+    } as const;
+    const value = current ?? defaults;
+    const plan = this.normalizePlan(value.plan);
+
     return {
       plan,
-      status: current?.status ?? "inactive",
-      seatLimit: Number(current?.seatLimit ?? 5),
+      status: value.status,
+      seatLimit: Number(value.seatLimit),
       agentLimit: planEntitlements[plan].agentLimit,
-      currentPeriodEnd: current?.currentPeriodEnd?.toISOString() ?? null,
+      currentPeriodEnd: this.formatPeriodEnd(value.currentPeriodEnd),
       members: memberCount,
-      provider: current?.provider ?? "bachs",
-      hasSubscription: Boolean(current?.providerSubscriptionId),
+      provider: value.provider,
+      hasSubscription: Boolean(value.providerSubscriptionId),
     };
+  }
+
+  private formatPeriodEnd(value: Date | null) {
+    return value ? value.toISOString() : null;
   }
 
   private parseWebhook(rawBody: Buffer): BillingEvent {
@@ -132,34 +145,68 @@ export class BillingService {
 
   private async saveSubscription(data: BillingEventData, eventType?: string) {
     const plan = this.normalizePlan(data.plan);
-    const status = data.status ?? (eventType?.includes("cancel") ? "cancelled" : "active");
-    const seatLimit = String(data.seatLimit ?? this.defaultSeatLimit(plan));
-    const currentPeriodEnd = data.currentPeriodEnd ? new Date(data.currentPeriodEnd) : null;
+    const status = this.resolveEventStatus(data.status, eventType);
+    const seatLimit = this.resolveSeatLimit(data.seatLimit, plan);
+    const currentPeriodEnd = this.parsePeriodEnd(data.currentPeriodEnd);
 
     await this.db
       .insert(subscription)
-      .values({
-        organizationId: data.organizationId!,
-        provider: "bachs",
-        providerCustomerId: data.customerId!,
-        providerSubscriptionId: data.subscriptionId ?? null,
-        plan,
-        status,
-        seatLimit,
-        currentPeriodEnd,
-      })
+      .values(this.buildSubscriptionValues(data, plan, status, seatLimit, currentPeriodEnd))
       .onConflictDoUpdate({
         target: subscription.organizationId,
-        set: {
-          providerCustomerId: data.customerId!,
-          providerSubscriptionId: data.subscriptionId ?? null,
-          plan,
-          status,
-          seatLimit,
-          currentPeriodEnd,
-          updatedAt: new Date(),
-        },
+        set: this.buildSubscriptionUpdate(data, plan, status, seatLimit, currentPeriodEnd),
       });
+  }
+
+  private buildSubscriptionValues(
+    data: BillingEventData,
+    plan: BillingPlan,
+    status: string,
+    seatLimit: string,
+    currentPeriodEnd: Date | null,
+  ) {
+    return {
+      organizationId: data.organizationId,
+      provider: "bachs" as const,
+      providerCustomerId: data.customerId,
+      providerSubscriptionId: data.subscriptionId ?? null,
+      plan,
+      status,
+      seatLimit,
+      currentPeriodEnd,
+    };
+  }
+
+  private buildSubscriptionUpdate(
+    data: BillingEventData,
+    plan: BillingPlan,
+    status: string,
+    seatLimit: string,
+    currentPeriodEnd: Date | null,
+  ) {
+    return {
+      providerCustomerId: data.customerId,
+      providerSubscriptionId: data.subscriptionId ?? null,
+      plan,
+      status,
+      seatLimit,
+      currentPeriodEnd,
+      updatedAt: new Date(),
+    };
+  }
+
+  private resolveEventStatus(status?: string, eventType?: string) {
+    if (status) return status;
+    if (eventType?.includes("cancel")) return "cancelled";
+    return "active";
+  }
+
+  private resolveSeatLimit(value: number | undefined, plan: BillingPlan) {
+    return String(value ?? this.defaultSeatLimit(plan));
+  }
+
+  private parsePeriodEnd(value?: string) {
+    return value ? new Date(value) : null;
   }
 
   private normalizePlan(value?: string): BillingPlan {
