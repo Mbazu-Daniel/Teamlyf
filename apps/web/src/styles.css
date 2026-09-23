@@ -150,7 +150,7 @@
     font-size: var(--font-size-not-found-title);
   }
 
-  .not-found-page > p:not(.eyebrow) {
+  .not-found-copy {
     max-width: 34rem;
     margin: -0.4rem 0 0;
     color: var(--muted-foreground);
