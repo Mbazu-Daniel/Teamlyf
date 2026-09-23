@@ -59,13 +59,22 @@ function useProjects(organizationId: string | undefined) {
     }
   }
 
-  async function createProject(event: React.FormEvent) {
+  function createProject(event: React.FormEvent) {
     event.preventDefault();
     if (!organizationId || !name.trim() || !identifier.trim()) return;
+    void submitProject(organizationId, name, identifier, description);
+  }
+
+  async function submitProject(
+    orgId: string,
+    projectName: string,
+    projectIdentifier: string,
+    projectDescription: string,
+  ) {
     setLoading(true);
     setError(null);
     try {
-      const project = await createProjectRequest(organizationId, name, identifier, description);
+      const project = await createProjectRequest(orgId, projectName, projectIdentifier, projectDescription);
       setProjects((current) => [project, ...current]);
       resetForm();
     } catch (err) {
