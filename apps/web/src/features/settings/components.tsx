@@ -1,4 +1,5 @@
 import { IconUsers } from "@tabler/icons-react";
+import type { FormEventHandler } from "react";
 import type { OrganizationMember } from "@/lib/api";
 import type { OrganizationForm } from "./hooks";
 
@@ -30,7 +31,7 @@ function OrganizationProfile({ form, saving, onChange, onSubmit }: {
   form: OrganizationForm;
   saving: boolean;
   onChange: (form: OrganizationForm) => void;
-  onSubmit: React.FormEventHandler;
+  onSubmit: FormEventHandler;
 }) {
   return (
     <section className="rounded-xl border bg-card p-5">
