@@ -16,6 +16,8 @@ ALTER TABLE "channel_member" ADD CONSTRAINT "channel_member_member_id_member_id_
 --> statement-breakpoint
 ALTER TABLE "message" ADD CONSTRAINT "message_channel_id_channel_id_fk" FOREIGN KEY ("channel_id") REFERENCES "public"."channel"("id") ON DELETE cascade ON UPDATE no action;
 --> statement-breakpoint
+ALTER TABLE "message" ADD CONSTRAINT "message_thread_root_id_message_id_fk" FOREIGN KEY ("thread_root_id") REFERENCES "public"."message"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
 ALTER TABLE "message_reaction" ADD CONSTRAINT "message_reaction_message_id_message_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."message"("id") ON DELETE cascade ON UPDATE no action;
 --> statement-breakpoint
 ALTER TABLE "message_reaction" ADD CONSTRAINT "message_reaction_member_id_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."member"("id") ON DELETE cascade ON UPDATE no action;
