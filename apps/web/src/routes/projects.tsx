@@ -74,7 +74,7 @@ function useProjects(organizationId: string | undefined) {
     setLoading(true);
     setError(null);
     try {
-      const project = await createProjectRequest(orgId, projectName, projectIdentifier, projectDescription);
+      const project = await projectsApi.create(orgId, { name: projectName.trim(), identifier: projectIdentifier.trim(), description: projectDescription.trim() || undefined });
       setProjects((current) => [project, ...current]);
       resetForm();
     } catch (err) {
