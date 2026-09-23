@@ -155,37 +155,6 @@ async function runAction<T>(
   }
 }
 
-async function loadMembers(orgId: string) {
-  return client.request<MemberResponse>("/organization/" + orgId + "/members", { query: { limit: 100 } });
-}
-
-async function updateOrganization(orgId: string, name: string, logo: string) {
-  return client.request<Organization>("/organization/" + orgId, {
-    method: "PATCH",
-    body: JSON.stringify({ name: name.trim(), logo: logo.trim() || undefined }),
-  });
-}
-
-async function sendInvitation(orgId: string, email: string, role: string) {
-  return client.request("/organization/" + orgId + "/invitations", {
-    method: "POST",
-    body: JSON.stringify({ email: email.trim(), role: [role] }),
-  });
-}
-
-async function changeMemberRole(orgId: string, memberId: string, role: string) {
-  return client.request("/organization/" + orgId + "/members/update-role", {
-    method: "POST",
-    body: JSON.stringify({ memberId, role: [role] }),
-  });
-}
-
-async function removeOrganizationMember(orgId: string, memberId: string) {
-  return client.request("/organization/" + orgId + "/members/remove", {
-    method: "POST",
-    body: JSON.stringify({ memberIdOrEmail: memberId }),
-  });
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
