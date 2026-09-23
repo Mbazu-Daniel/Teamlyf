@@ -23,6 +23,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const message = await response.text();
     throw new Error(message || "Request failed with " + response.status);
   }
+  return parseResponseBody<T>(response);
+}
+
+async function parseResponseBody<T>(response: Response): Promise<T> {
   if (response.status === 204) return null as T;
   const body = await response.text();
   return (body ? JSON.parse(body) : null) as T;
