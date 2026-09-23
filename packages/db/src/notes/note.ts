@@ -1,13 +1,14 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
-import { memberReference, organizationReference } from "../organization/membership-columns";
+import { member } from "../organization/member";
+import { organizationReference } from "../organization/membership-columns";
 
 export const note = pgTable(
   "note",
   {
     id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
     organizationId: organizationReference(),
-    ownerId: memberReference(),
+    ownerId: uuid("owner_id").notNull().references(() => member.id, { onDelete: "cascade" }),
     parentId: uuid("parent_id"),
     title: text("title").notNull(),
     content: text("content").notNull().default(""),
