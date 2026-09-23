@@ -1,7 +1,7 @@
 CREATE TABLE "document" (
   "id" text PRIMARY KEY NOT NULL,
-  "organization_id" text NOT NULL,
-  "owner_id" text NOT NULL,
+  "organization_id" uuid NOT NULL,
+  "owner_id" uuid NOT NULL,
   "parent_id" text,
   "title" text NOT NULL,
   "mime_type" text DEFAULT 'text/plain' NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE "document_version" (
   "version" text NOT NULL,
   "title" text NOT NULL,
   "content" text,
-  "created_by_id" text NOT NULL,
+  "created_by_id" uuid NOT NULL,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
