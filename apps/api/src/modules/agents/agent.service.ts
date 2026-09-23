@@ -10,7 +10,7 @@ import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
 import type { CreateAgentDto, CreateAgentRunDto, RecordUsageDto, UpdateAgentDto, UpsertProviderConfigDto } from "./agent.dto";
-import { planEntitlements } from "../billing/plan-entitlements";
+import { planEntitlements, type BillingPlan } from "../billing/plan-entitlements";
 
 @Injectable()
 export class AgentService {
@@ -179,8 +179,13 @@ export class AgentService {
       }),
       this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
     ]);
-    const plan = currentSubscription?.plan === "growth" || subscription?.plan === "scale" ? currentSubscription.plan : "starter";
+
+    const plan: BillingPlan =
+      currentSubscription?.plan === "growth" || currentSubscription?.plan === "scale"
+        ? currentSubscription.plan
+        : "starter";
     const limit = Number(currentSubscription?.agentLimit ?? planEntitlements[plan].agentLimit) || planEntitlements[plan].agentLimit;
+
     if (Number(result[0]?.total ?? 0) >= limit) {
       throw new ForbiddenException("Agent limit reached for the organization plan");
     }
