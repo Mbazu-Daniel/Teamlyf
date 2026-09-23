@@ -1,9 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { member, note } from "@teamlyf/db";
+import { note } from "@teamlyf/db";
 import { and, eq, isNull } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
+import { findOrganizationMember } from "../../common/organization-member";
 import type { CreateNoteDto, UpdateNoteDto } from "./note.dto";
 
 @Injectable()
@@ -11,9 +12,7 @@ export class NoteService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   private async requireMember(orgId: string, memberId: string) {
-    const found = await this.db.query.member.findFirst({
-      where: and(eq(member.id, memberId), eq(member.organizationId, orgId)),
-    });
+    const found = await findOrganizationMember(this.db, orgId, memberId);
     if (!found) throw new NotFoundException("Member not found in organization");
     return found;
   }
