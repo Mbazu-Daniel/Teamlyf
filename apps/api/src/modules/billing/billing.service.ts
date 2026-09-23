@@ -230,14 +230,21 @@ export class BillingService {
   }
 
   private verifySignature(rawBody: Buffer, signature?: string) {
-    if (!this.env.BACHS_WEBHOOK_SECRET || !signature) {
-      throw new UnauthorizedException("Webhook signature missing");
-    }
-    const expected = createHmac("sha256", this.env.BACHS_WEBHOOK_SECRET).update(rawBody).digest("hex");
+    const secret = this.requireWebhookSecret(signature);
+    const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
+    this.compareSignature(expected, signature);
+  }
+
+  private requireWebhookSecret(signature?: string) {
+    const secret = this.env.BACHS_WEBHOOK_SECRET;
+    if (!secret || !signature) throw new UnauthorizedException("Webhook signature missing");
+    return secret;
+  }
+
+  private compareSignature(expected: string, signature: string) {
     const actual = Buffer.from(signature, "utf8");
     const expectedBuffer = Buffer.from(expected, "utf8");
-    if (actual.length !== expectedBuffer.length || !timingSafeEqual(actual, expectedBuffer)) {
-      throw new UnauthorizedException("Webhook signature invalid");
-    }
+    const valid = actual.length === expectedBuffer.length && timingSafeEqual(actual, expectedBuffer);
+    if (!valid) throw new UnauthorizedException("Webhook signature invalid");
   }
 }
