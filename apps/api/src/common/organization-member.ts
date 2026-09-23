@@ -3,7 +3,7 @@ import type { Database } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import { and, eq } from "drizzle-orm";
 
-export async function findOrganizationMember(
+async function findOrganizationMember(
   db: Database,
   organizationId: string,
   memberId: string,
