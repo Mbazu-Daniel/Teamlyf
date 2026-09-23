@@ -1,4 +1,4 @@
-import { index, integer, pgTable, text, timestamp, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { memberReference } from "./references";
 import { project } from "./project";
@@ -16,7 +16,7 @@ export const task = pgTable(
     statusId: uuid("status_id")
       .notNull()
       .references(() => status.id, { onDelete: "cascade" }),
-    parentId: uuid("parent_id").references((): AnyPgColumn => task.id, { onDelete: "cascade" }),
+    parentId: uuid("parent_id").references((): any => task.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     description: text("description"),
     priority: text("priority").notNull().default("none"),

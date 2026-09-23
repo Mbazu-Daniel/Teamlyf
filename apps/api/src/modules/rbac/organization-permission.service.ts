@@ -4,6 +4,7 @@ import { member, permissionGrant } from "@teamlyf/db/organization-schema";
 import { and, eq, isNull, or } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { AuthService } from "../auth/auth.service";
+
 @Injectable()
 export class OrganizationPermissionService {
   constructor(
@@ -86,10 +87,7 @@ export class OrganizationPermissionService {
         eq(permissionGrant.module, input.resource),
         eq(permissionGrant.action, input.action),
         input.resourceId
-          ? or(
-              eq(permissionGrant.resourceId, input.resourceId),
-              isNull(permissionGrant.resourceId),
-            )
+          ? or(eq(permissionGrant.resourceId, input.resourceId), isNull(permissionGrant.resourceId))
           : isNull(permissionGrant.resourceId),
       ),
       limit: 1,

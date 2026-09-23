@@ -9,20 +9,18 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-  sql,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { generateId } from "../id";
-import { agent } from "./agent";
 import { member } from "../organization/member";
-import { agentRunStatus } from "./run-status";
 import { organizationReference } from "../organization/membership-columns";
+import { agent } from "./agent";
+import { agentRunStatus } from "./run-status";
 
 export const agentRun = pgTable(
   "agent_run",
   {
-    id: uuid("id")
-      .$defaultFn(() => generateId())
-      .primaryKey(),
+    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
     organizationId: organizationReference(),
     agentId: uuid("agent_id").notNull(),
     memberId: uuid("member_id").notNull(),

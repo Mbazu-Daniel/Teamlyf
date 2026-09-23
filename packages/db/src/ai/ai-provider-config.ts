@@ -7,8 +7,8 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-  sql,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { generateId } from "../id";
 import { aiProviderSource } from "./provider-source";
 import { organizationReference } from "../organization/membership-columns";
@@ -16,9 +16,7 @@ import { organizationReference } from "../organization/membership-columns";
 export const aiProviderConfig = pgTable(
   "ai_provider_config",
   {
-    id: uuid("id")
-      .$defaultFn(() => generateId())
-      .primaryKey(),
+    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
     organizationId: organizationReference(),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
@@ -30,14 +28,8 @@ export const aiProviderConfig = pgTable(
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
   (t) => [
-    check(
-      "ai_provider_config_provider_non_empty_check",
-      sql`length(trim(${t.provider})) > 0`,
-    ),
-    check(
-      "ai_provider_config_model_non_empty_check",
-      sql`length(trim(${t.model})) > 0`,
-    ),
+    check("ai_provider_config_provider_non_empty_check", sql`length(trim(${t.provider})) > 0`),
+    check("ai_provider_config_model_non_empty_check", sql`length(trim(${t.model})) > 0`),
     check(
       "ai_provider_config_byok_key_check",
       sql`(${t.source} = 'byok' AND ${t.encryptedApiKey} IS NOT NULL) OR (${t.source} = 'teamlyf' AND ${t.encryptedApiKey} IS NULL)`,

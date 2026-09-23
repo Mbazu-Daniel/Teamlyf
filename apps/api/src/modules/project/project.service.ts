@@ -23,29 +23,29 @@ export class ProjectService {
   ) {}
 
   async createProject(orgId: string, dto: CreateProjectDto) {
-    const [created] = await this.db
-      .insert(project)
-      .values({
-        organizationId: orgId,
-        name: dto.name,
-        identifier: dto.identifier.toUpperCase(),
-        description: dto.description ?? null,
-        emoji: dto.emoji ?? null,
-      })
-      .returning();
+    const [created] = await this.db.insert(project).values({
+      organizationId: orgId,
+      name: dto.name,
+      identifier: dto.identifier.toUpperCase(),
+      description: dto.description ?? null,
+      emoji: dto.emoji ?? null,
+    }).returning();
 
-    await this.db.insert(status).values(
-      DEFAULT_STATUSES.map((s) => ({
-        projectId: created.id,
-        name: s.name,
-        color: s.color,
-        group: s.group,
-        sequence: s.sequence,
-        default: s.default ?? false,
+    await this.createDefaultStatuses(created.id);
+    return created;
+  }
+
+  private createDefaultStatuses(projectId: string) {
+    return this.db.insert(status).values(
+      DEFAULT_STATUSES.map((item) => ({
+        projectId,
+        name: item.name,
+        color: item.color,
+        group: item.group,
+        sequence: item.sequence,
+        default: item.default ?? false,
       })),
     );
-
-    return created;
   }
 
   async getProjects(orgId: string) {

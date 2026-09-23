@@ -8,20 +8,18 @@ import {
   text,
   timestamp,
   uuid,
-  sql,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { generateId } from "../id";
-import { aiProviderSource } from "./provider-source";
 import { member } from "../organization/member";
-import { agent } from "../agent/agent";
 import { organizationReference } from "../organization/membership-columns";
+import { agent } from "../agent/agent";
+import { aiProviderSource } from "./provider-source";
 
 export const aiUsage = pgTable(
   "ai_usage",
   {
-    id: uuid("id")
-      .$defaultFn(() => generateId())
-      .primaryKey(),
+    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
     organizationId: organizationReference(),
     memberId: uuid("member_id").notNull(),
     agentId: uuid("agent_id"),
@@ -31,11 +29,7 @@ export const aiUsage = pgTable(
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     totalTokens: integer("total_tokens").notNull().default(0),
-    estimatedCostUsd: numeric("estimated_cost_usd", {
-      precision: 14,
-      scale: 8,
-      mode: "number",
-    }),
+    estimatedCostUsd: numeric("estimated_cost_usd", { precision: 14, scale: 8, mode: "number" }),
     allowanceConsumed: integer("allowance_consumed").notNull().default(0),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
