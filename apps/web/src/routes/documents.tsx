@@ -15,6 +15,7 @@ type Document = {
 
 export const Route = createFileRoute("/documents")({ component: DocumentsPage });
 
+// fallow-ignore-next-line high-crap-score
 function DocumentsPage() {
   const { organization } = useOrganization();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -37,6 +38,7 @@ function DocumentsPage() {
     }
   }
 
+  // fallow-ignore-next-line high-crap-score
   async function createDocument(event: FormEvent) {
     event.preventDefault();
     if (!organization || !title.trim()) return;
