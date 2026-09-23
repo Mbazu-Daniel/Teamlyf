@@ -1,28 +1,23 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { hrEmployeeProfile, hrLeavePolicy, hrLeaveRequest, member } from "@teamlyf/db";
+import { hrEmployeeProfile, hrLeavePolicy, hrLeaveRequest } from "@teamlyf/db";
 import { and, desc, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
+import { requireOrganizationMemberOrNotFound } from "../../common/organization-member";
 import type { EmployeeProfileDto, LeaveRequestDto, ReviewLeaveDto } from "./hr.dto";
 
 @Injectable()
 export class HrService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  private async requireMember(orgId: string, memberId: string) {
-    const found = await this.db.query.member.findFirst({ where: and(eq(member.id, memberId), eq(member.organizationId, orgId)) });
-    if (!found) throw new NotFoundException("Member not found in organization");
-    return found;
-  }
-
   async getProfile(orgId: string, memberId: string) {
-    await this.requireMember(orgId, memberId);
+    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     return this.db.query.hrEmployeeProfile.findFirst({ where: and(eq(hrEmployeeProfile.organizationId, orgId), eq(hrEmployeeProfile.memberId, memberId)) });
   }
 
   async upsertProfile(orgId: string, memberId: string, dto: EmployeeProfileDto) {
-    await this.requireMember(orgId, memberId);
+    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     const existing = await this.db.query.hrEmployeeProfile.findFirst({ where: and(eq(hrEmployeeProfile.organizationId, orgId), eq(hrEmployeeProfile.memberId, memberId)) });
     const values = {
       organizationId: orgId,
@@ -49,7 +44,7 @@ export class HrService {
   }
 
   async requestLeave(orgId: string, memberId: string, dto: LeaveRequestDto) {
-    await this.requireMember(orgId, memberId);
+    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     const policy = await this.db.query.hrLeavePolicy.findFirst({ where: and(eq(hrLeavePolicy.id, dto.policyId), eq(hrLeavePolicy.organizationId, orgId)) });
     if (!policy) throw new BadRequestException("Leave policy not found in organization");
     const start = new Date(dto.startDate);
@@ -62,12 +57,12 @@ export class HrService {
   }
 
   async listLeaveRequests(orgId: string, memberId: string) {
-    await this.requireMember(orgId, memberId);
+    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     return this.db.query.hrLeaveRequest.findMany({ where: and(eq(hrLeaveRequest.organizationId, orgId), eq(hrLeaveRequest.memberId, memberId)), orderBy: [desc(hrLeaveRequest.createdAt)] });
   }
 
   async reviewLeave(orgId: string, reviewerId: string, requestId: string, dto: ReviewLeaveDto) {
-    await this.requireMember(orgId, reviewerId);
+    await requireOrganizationMemberOrNotFound(this.db, orgId, reviewerId);
     if (!["approved", "rejected"].includes(dto.status)) throw new BadRequestException("Status must be approved or rejected");
     const request = await this.db.query.hrLeaveRequest.findFirst({ where: and(eq(hrLeaveRequest.id, requestId), eq(hrLeaveRequest.organizationId, orgId)) });
     if (!request) throw new NotFoundException("Leave request not found");
