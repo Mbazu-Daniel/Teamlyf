@@ -26,6 +26,10 @@ type BillingEvent = {
 };
 
 type BillingEventData = NonNullable<BillingEvent["data"]>;
+type ValidBillingEventData = BillingEventData & {
+  organizationId: string;
+  customerId: string;
+};
 
 type SubscriptionSummary = {
   plan: string;
@@ -136,14 +140,14 @@ export class BillingService {
     }
   }
 
-  private requireEventData(data?: BillingEventData): BillingEventData {
+  private requireEventData(data?: BillingEventData): ValidBillingEventData {
     if (!data?.organizationId || !data.customerId) {
       throw new BadRequestException("Invalid billing event");
     }
-    return data;
+    return data as ValidBillingEventData;
   }
 
-  private async saveSubscription(data: BillingEventData, eventType?: string) {
+  private async saveSubscription(data: ValidBillingEventData, eventType?: string) {
     const plan = this.normalizePlan(data.plan);
     const status = this.resolveEventStatus(data.status, eventType);
     const seatLimit = this.resolveSeatLimit(data.seatLimit, plan);
@@ -159,7 +163,7 @@ export class BillingService {
   }
 
   private buildSubscriptionValues(
-    data: BillingEventData,
+    data: ValidBillingEventData,
     plan: BillingPlan,
     status: string,
     seatLimit: string,
@@ -178,7 +182,7 @@ export class BillingService {
   }
 
   private buildSubscriptionUpdate(
-    data: BillingEventData,
+    data: ValidBillingEventData,
     plan: BillingPlan,
     status: string,
     seatLimit: string,
