@@ -24,9 +24,21 @@ function AccessSettings() {
 
   useEffect(() => {
     if (!organization) return;
-    void client.request<ActiveMemberRole>(`/organization/${organization.id}/members/active-role?organizationId=${organization.id}`)
-      .then((result) => setMemberRole(Array.isArray(result.role) ? result.role[0] ?? "member" : result.role ?? "member"))
-      .catch((err) => setError(err instanceof Error ? err.message : "Unable to load access settings"));
+
+    const load = async () => {
+      try {
+        const result = await client.request<ActiveMemberRole>(
+          `/organization/${organization.id}/members/active-role?organizationId=${organization.id}`,
+        );
+        setMemberRole(
+          Array.isArray(result.role) ? result.role[0] ?? "member" : result.role ?? "member",
+        );
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unable to load access settings");
+      }
+    };
+
+    void load();
   }, [organization?.id]);
 
   if (!organization) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Select an organization before opening settings.</div>;
