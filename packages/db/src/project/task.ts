@@ -1,4 +1,4 @@
-import { index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { foreignKey, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { memberReference } from "./references";
 import { project } from "./project";
@@ -34,5 +34,10 @@ export const task = pgTable(
     index("task_status_id_idx").on(t.statusId),
     index("task_parent_id_idx").on(t.parentId),
     index("task_created_by_id_idx").on(t.createdById),
+    foreignKey({
+      columns: [t.projectId, t.statusId],
+      foreignColumns: [status.projectId, status.id],
+      name: "task_project_status_fk",
+    }),
   ],
 );
