@@ -1,6 +1,6 @@
 import { client, type Organization } from "./client";
 
-type OrganizationMember = {
+export type OrganizationMember = {
   id: string;
   userId: string;
   role: string;
@@ -8,7 +8,7 @@ type OrganizationMember = {
 };
 type OrganizationMembersResponse = { members: OrganizationMember[]; total: number };
 type ActiveMemberRole = { role?: string | string[] };
-type BillingSummary = {
+export type BillingSummary = {
   plan: "starter" | "growth" | "scale";
   status: string;
   seatLimit: number;
@@ -18,7 +18,7 @@ type BillingSummary = {
   provider: string;
   hasSubscription: boolean;
 };
-type CheckoutResponse = { url?: string; checkoutUrl?: string };
+export type CheckoutResponse = { url?: string; checkoutUrl?: string };
 
 const organizationPath = (organizationId: string, suffix = "") => "/organization/" + organizationId + suffix;
 
