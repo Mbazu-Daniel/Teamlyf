@@ -2,7 +2,7 @@ import { toApiError, type ApiErrorPayload } from "./errors";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3101";
 
-export type RequestOptions = RequestInit & {
+type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined>;
 };
 
@@ -14,7 +14,7 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   return path + (path.includes("?") ? "&" : "?") + suffix;
 }
 
-export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, ...init } = options;
   const response = await fetch(API_URL + buildUrl(path, query), {
     ...init,
@@ -22,10 +22,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     headers: { "Content-Type": "application/json", ...init.headers },
   });
 
-  if (!response.ok) {
-    throw await parseApiError(response);
-  }
-
+  if (!response.ok) throw await parseApiError(response);
   return parseResponseBody<T>(response);
 }
 
@@ -45,6 +42,6 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
   return (body ? JSON.parse(body) : null) as T;
 }
 
-export type Organization = { id: string; name: string; slug?: string };
+type Organization = { id: string; name: string; slug?: string };
 
 export const client = { request };
