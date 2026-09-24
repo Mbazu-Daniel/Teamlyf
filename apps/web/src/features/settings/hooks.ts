@@ -48,7 +48,13 @@ export function useOrganizationSettings(organization: Organization | null, selec
 
   async function updateRole(memberId: string, role: string) {
     if (!organization) return;
-    await runAction(() => settingsApi.updateMemberRole(organization.id, memberId, role), async () => { setMembers(await settingsApi.members(organization.id).then((data) => data.members)); }, "Unable to update member role", (busy) => setBusyMember(busy ? memberId : null), setError);
+    await runAction(
+      () => settingsApi.updateMemberRole(organization.id, memberId, role),
+      () => setMembers((current) => current.map((member) => member.id === memberId ? { ...member, role } : member)),
+      "Unable to update member role",
+      (busy) => setBusyMember(busy ? memberId : null),
+      setError,
+    );
   }
 
   async function removeMember(memberId: string) {
