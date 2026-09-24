@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { client, listOrganizations, type Organization } from "./api";
+import { client, getOrganizations, type Organization } from "./api";
 
 const ORG_STORAGE_KEY = "teamlyf:organization-id";
 
@@ -62,12 +62,12 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         });
       },
       refreshOrganizations: async () => {
-        const next = await listOrganizations();
+        const next = await getOrganizations();
         setOrganizations(next);
         return next;
       },
       resolveSlug: async (slug) => {
-        const next = await listOrganizations();
+        const next = await getOrganizations();
         setOrganizations(next);
         const match = next.find((item) => organizationSlug(item) === slug || item.id === slug) ?? null;
         if (match) {

@@ -13,7 +13,7 @@ const { document, documentPermission, documentVersion } = documentsSchema;
 export class DocumentService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  async list(organizationId: string, memberId: string, page = 1, limit = 50) {
+  async getDocuments(organizationId: string, memberId: string, page = 1, limit = 50) {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(100, Math.max(1, limit));
     const permissions = await this.db.query.documentPermission.findMany({

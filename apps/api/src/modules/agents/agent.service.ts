@@ -19,7 +19,7 @@ export class AgentService {
     @Inject(API_ENV) private readonly env: ApiEnv,
   ) {}
 
-  async list(organizationId: string) {
+  async getAgents(organizationId: string) {
     return this.db.query.agent.findMany({
       where: eq(agent.organizationId, organizationId),
       orderBy: (table, { asc }) => asc(table.createdAt),
@@ -63,7 +63,7 @@ export class AgentService {
     return run;
   }
 
-  async listRuns(organizationId: string, agentId: string) {
+  async getAgentRuns(organizationId: string, agentId: string) {
     await this.requireAgent(organizationId, agentId);
     return this.db.query.agentRun.findMany({
       where: and(eq(agentRun.organizationId, organizationId), eq(agentRun.agentId, agentId)),
@@ -72,7 +72,7 @@ export class AgentService {
     });
   }
 
-  async listUsage(organizationId: string, memberId: string) {
+  async getAgentUsage(organizationId: string, memberId: string) {
     return this.db.query.aiUsage.findMany({
       where: and(eq(aiUsage.organizationId, organizationId), eq(aiUsage.memberId, memberId)),
       orderBy: (table, { desc }) => desc(table.createdAt),
@@ -95,7 +95,7 @@ export class AgentService {
     };
   }
 
-  async listProviderConfigs(organizationId: string) {
+  async getProviderConfigs(organizationId: string) {
     return this.db.query.aiProviderConfig.findMany({
       where: eq(aiProviderConfig.organizationId, organizationId),
       columns: {

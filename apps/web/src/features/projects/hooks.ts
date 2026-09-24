@@ -7,22 +7,22 @@ export function useProjects(organizationId: string | undefined) {
   const [identifier, setIdentifier] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [listLoading, setListLoading] = useState(false);
+  const [projectsLoading, setProjectsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setProjects([]);
     if (!organizationId) {
-      setListLoading(false);
+      setProjectsLoading(false);
       return;
     }
     let active = true;
     setError(null);
-    setListLoading(true);
-    void projectsApi.list(organizationId)
+    setProjectsLoading(true);
+    void projectsApi.getProjects(organizationId)
       .then((data) => { if (active) setProjects(data); })
       .catch((err: unknown) => { if (active) setError(getErrorMessage(err, "Unable to load projects")); })
-      .finally(() => { if (active) setListLoading(false); });
+      .finally(() => { if (active) setProjectsLoading(false); });
     return () => { active = false; };
   }, [organizationId]);
 
@@ -45,7 +45,7 @@ export function useProjects(organizationId: string | undefined) {
     }).finally(() => setLoading(false));
   }
 
-  return { projects, name, identifier, description, loading, listLoading, error, setName, setIdentifier, setDescription, createProject };
+  return { projects, name, identifier, description, loading, projectsLoading, error, setName, setIdentifier, setDescription, createProject };
 }
 
 export function useProjectPage(organizationId: string | undefined, projectId: string) {
@@ -67,8 +67,8 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     setError(null);
     void Promise.all([
       projectsApi.get(organizationId, projectId),
-      projectsApi.listStatuses(organizationId, projectId),
-      projectsApi.listTasks(organizationId, projectId),
+      projectsApi.getStatuses(organizationId, projectId),
+      projectsApi.getTasks(organizationId, projectId),
     ]).then(([projectData, statusData, taskData]) => {
       if (!active) return;
       setProject(projectData);

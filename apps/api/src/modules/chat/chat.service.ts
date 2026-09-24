@@ -15,7 +15,7 @@ const THREAD_PAGE_SIZE = 100;
 export class ChatService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  async listChannels(organizationId: string, memberId: string) {
+  async getChannels(organizationId: string, memberId: string) {
     const [channels, memberships] = await Promise.all([
       this.db.query.channel.findMany({ where: eq(channel.organizationId, organizationId) }),
       this.db.query.channelMember.findMany({ where: eq(channelMember.memberId, memberId) }),

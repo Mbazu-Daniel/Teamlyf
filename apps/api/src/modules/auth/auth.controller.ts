@@ -77,7 +77,7 @@ export class AuthController {
   }
 
   @Get("sessions")
-  @ApiOperation({ summary: "List all sessions" })
+  @ApiOperation({ summary: "Get all sessions" })
   @ApiResponse({ status: 200, description: "Sessions returned" })
   async getSessions(@Req() req: Request) {
     const headers = toFetchHeaders(req);

@@ -9,7 +9,7 @@ import { MemberService } from "./member.service";
 import {
   GetActiveMemberRoleQueryDto,
   LeaveOrganizationDto,
-  ListMembersQueryDto,
+  GetMembersQueryDto,
   RemoveMemberDto,
   UpdateMemberProfileDto,
   UpdateMemberRoleDto,
@@ -21,14 +21,14 @@ export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
   @Get()
-  @ApiOperation({ summary: "List members of an organization" })
+  @ApiOperation({ summary: "Get members of an organization" })
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Members returned" })
   @ApiResponse({ status: 400, description: "No active organization" })
   @ApiResponse({ status: 403, description: "Not a member of this organization" })
   async getMembers(
     @Param("orgId") orgId: string,
-    @Query() query: ListMembersQueryDto,
+    @Query() query: GetMembersQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {

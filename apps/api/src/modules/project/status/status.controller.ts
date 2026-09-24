@@ -11,7 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
-import { CreateStatusDto, UpdateStatusDto } from "../dto";
+import { CreateStatusDto, UpdateStatusDto } from "./dto";
 import { StatusService } from "./status.service";
 
 @ApiTags("Statuses")
@@ -36,7 +36,7 @@ export class StatusController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List statuses" })
+  @ApiOperation({ summary: "Get statuses" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "projectId" })
   getStatuses(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {

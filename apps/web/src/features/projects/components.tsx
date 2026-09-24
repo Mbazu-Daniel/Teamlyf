@@ -33,7 +33,7 @@ function ProjectListContent({ state }: { state: ProjectsState }) {
 }
 
 function ProjectListState({ state }: { state: ProjectsState }) {
-  if (state.listLoading) return <p className="text-sm text-muted-foreground">Loading projects...</p>;
+  if (state.projectsLoading) return <p className="text-sm text-muted-foreground">Loading projects...</p>;
   if (!state.projects.length) return <p className="text-sm text-muted-foreground">No projects yet. Create the first one above.</p>;
   return <ProjectCards projects={state.projects} />;
 }

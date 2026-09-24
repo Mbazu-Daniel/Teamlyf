@@ -15,8 +15,8 @@ export class DocumentController {
 
   @Get()
   @RequirePermission("docs", "read")
-  list(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) {
-    return this.documents.list(orgId, member.id);
+  getDocuments(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) {
+    return this.documents.getDocuments(orgId, member.id);
   }
 
   @Post()

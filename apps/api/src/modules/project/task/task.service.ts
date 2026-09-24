@@ -13,7 +13,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
-import type { CreateTaskDto, TaskAssigneeInputDto, UpdateTaskDto } from "../dto";
+import type { CreateTaskDto, TaskAssigneeInputDto, UpdateTaskDto } from "./dto";
 
 @Injectable()
 export class TaskService {

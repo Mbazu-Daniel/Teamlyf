@@ -29,7 +29,7 @@ const projectPath = (organizationId: string, projectId?: string) =>
     : "/organization/" + organizationId + "/projects";
 
 export const projectsApi = {
-  list(organizationId: string) {
+  getProjects(organizationId: string) {
     return client.request<Project[]>(projectPath(organizationId));
   },
   create(organizationId: string, input: { name: string; identifier: string; description?: string }) {
@@ -41,10 +41,10 @@ export const projectsApi = {
   get(organizationId: string, projectId: string) {
     return client.request<Project>(projectPath(organizationId, projectId));
   },
-  listStatuses(organizationId: string, projectId: string) {
+  getStatuses(organizationId: string, projectId: string) {
     return client.request<ProjectStatus[]>(projectPath(organizationId, projectId) + "/statuses");
   },
-  listTasks(organizationId: string, projectId: string) {
+  getTasks(organizationId: string, projectId: string) {
     return client.request<ProjectTask[]>(projectPath(organizationId, projectId) + "/tasks");
   },
   createTask(organizationId: string, projectId: string, input: { name: string; statusId: string }) {

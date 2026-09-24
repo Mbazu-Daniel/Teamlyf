@@ -5,7 +5,7 @@ import { taskComment } from "@teamlyf/db/project-schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
-import type { CreateCommentDto, UpdateCommentDto } from "../dto";
+import type { CreateCommentDto, UpdateCommentDto } from "./dto";
 
 @Injectable()
 export class CommentService {

@@ -18,7 +18,7 @@ export class OrganizationService {
     });
   }
 
-  async listOrganizations(headers: Headers) {
+  async getOrganizations(headers: Headers) {
     return this.authService.auth.api.listOrganizations({
       headers,
       asResponse: true,

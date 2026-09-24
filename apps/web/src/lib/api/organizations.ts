@@ -1,22 +1,22 @@
 import { client, type Organization } from "./client";
 
-const LIST_KEYS = ["organizations", "data", "records"] as const;
+const COLLECTION_KEYS = ["organizations", "data", "records"] as const;
 
-/** The list endpoint answers bare or wrapped under one of these envelope keys. */
-function envelopeList(payload: Record<string, unknown>): unknown[] {
-  for (const key of LIST_KEYS) {
+/** The collection endpoint answers bare or wrapped under one of these envelope keys. */
+function unwrapCollection(payload: Record<string, unknown>): unknown[] {
+  for (const key of COLLECTION_KEYS) {
     const value = payload[key];
     if (Array.isArray(value)) return value;
   }
   return [];
 }
 
-/** List every organization the signed-in user belongs to. */
-export async function listOrganizations(): Promise<Organization[]> {
-  const payload = await client.request<unknown>("/organization/list");
+/** Get every organization the signed-in user belongs to. */
+export async function getOrganizations(): Promise<Organization[]> {
+  const payload = await client.request<unknown>("/organization");
   if (Array.isArray(payload)) return payload as Organization[];
   if (typeof payload === "object" && payload) {
-    return envelopeList(payload as Record<string, unknown>) as Organization[];
+    return unwrapCollection(payload as Record<string, unknown>) as Organization[];
   }
   return [];
 }

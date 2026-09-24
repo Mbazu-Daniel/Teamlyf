@@ -15,8 +15,8 @@ export class ChatController {
 
   @Get()
   @RequirePermission("chat", "read")
-  list(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) {
-    return this.chat.listChannels(orgId, member.id);
+  getChannels(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember) {
+    return this.chat.getChannels(orgId, member.id);
   }
 
   @Post()
