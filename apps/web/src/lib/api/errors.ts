@@ -9,7 +9,7 @@ type ApiErrorCode =
   | "INTERNAL_ERROR"
   | "UNKNOWN";
 
-type ApiErrorPayload = {
+export type ApiErrorPayload = {
   code?: string;
   message?: string;
   details?: unknown;
