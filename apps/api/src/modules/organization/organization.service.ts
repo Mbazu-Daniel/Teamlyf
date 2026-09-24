@@ -18,6 +18,13 @@ export class OrganizationService {
     });
   }
 
+  async listOrganizations(headers: Headers) {
+    return this.authService.auth.api.listOrganizations({
+      headers,
+      asResponse: true,
+    });
+  }
+
   async getOrganization(orgId: string, headers: Headers) {
     return this.authService.auth.api.getOrganization({
       query: { organizationId: orgId },

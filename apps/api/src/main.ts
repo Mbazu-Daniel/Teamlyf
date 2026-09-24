@@ -19,7 +19,10 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix("api/v1");
 
   app.enableCors({
-    origin: process.env.WEB_ORIGIN,
+    origin: (process.env.WEB_ORIGIN ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
     credentials: true,
   });
 

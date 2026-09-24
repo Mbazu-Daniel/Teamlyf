@@ -1,13 +1,17 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { Request, Response as ExpressResponse } from "express";
 import { proxyBetterAuth } from "../../common/better-auth/better-auth-proxy";
+import { SessionGuard } from "../../common/better-auth/session.guard";
+import type { SessionMember } from "../../common/types";
+import { CurrentMember, OrgMemberGuard } from "../rbac";
 import { MemberService } from "./member.service";
 import {
   GetActiveMemberRoleQueryDto,
   LeaveOrganizationDto,
   ListMembersQueryDto,
   RemoveMemberDto,
+  UpdateMemberProfileDto,
   UpdateMemberRoleDto,
 } from "./dto";
 
@@ -65,6 +69,21 @@ export class MemberController {
     return proxyBetterAuth(req, res, (headers) =>
       this.memberService.updateMemberRole(orgId, body, headers),
     );
+  }
+
+  @Patch("profile")
+  @UseGuards(SessionGuard, OrgMemberGuard)
+  @ApiOperation({ summary: "Update the current member's profile name" })
+  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiResponse({ status: 200, description: "Member name updated" })
+  @ApiResponse({ status: 401, description: "Not authenticated" })
+  @ApiResponse({ status: 403, description: "Not a member of this organization" })
+  async updateMemberProfile(
+    @Param("orgId") orgId: string,
+    @CurrentMember() current: SessionMember,
+    @Body() body: UpdateMemberProfileDto,
+  ) {
+    return this.memberService.updateProfile(orgId, current.id, body);
   }
 
   @Get("active")

@@ -28,6 +28,9 @@ export class AuthController {
     const response = await this.authService.signUpEmail(body, headers);
 
     forwardSetCookies(res, response);
+    // Forward better-auth's status (201 on success, 400/409 on failure).
+    // Without this Nest defaults POST to 201 and failures look like successes.
+    res.status(response.status);
     return readResponseBody(response);
   }
 
@@ -44,6 +47,9 @@ export class AuthController {
     const response = await this.authService.signInEmail(body, headers);
 
     forwardSetCookies(res, response);
+    // Forward better-auth's status (200 on success, 401 on bad credentials).
+    // Without this Nest defaults POST to 201 and a bad password looks like a success.
+    res.status(response.status);
     return readResponseBody(response);
   }
 

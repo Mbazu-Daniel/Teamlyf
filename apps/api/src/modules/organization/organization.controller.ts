@@ -30,6 +30,18 @@ export class OrganizationController {
     return this.proxy(req, res, (h) => this.organizationService.createOrganization(body, h));
   }
 
+  // Static "list" must be declared before the ":orgId" param route.
+  @Get("list")
+  @ApiOperation({ summary: "List the organizations the current user belongs to" })
+  @ApiResponse({ status: 200, description: "Organizations returned" })
+  @ApiResponse({ status: 401, description: "Not authenticated" })
+  async listOrganizations(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return this.proxy(req, res, (h) => this.organizationService.listOrganizations(h));
+  }
+
   @Get(":orgId")
   @ApiOperation({ summary: "Get an organization by ID" })
   @ApiParam({ name: "orgId", description: "Organization ID" })

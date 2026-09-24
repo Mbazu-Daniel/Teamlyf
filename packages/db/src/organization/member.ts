@@ -10,6 +10,8 @@ export const member = pgTable(
       .primaryKey(),
     userId: userReference("user_id"),
     organizationId: organizationReference(),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
     role: text("role").notNull().default("member"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
