@@ -1,4 +1,8 @@
-export type ApiErrorPayload = { message?: string | string[]; code?: string; details?: unknown };
+export type ApiErrorPayload = {
+  message?: string | string[];
+  code?: string;
+  details?: unknown;
+};
 
 export class ApiError extends Error {
   readonly status: number;
@@ -14,8 +18,28 @@ export class ApiError extends Error {
   }
 }
 
+function normalizePayload(payload: ApiErrorPayload | string) {
+  if (typeof payload === "string") {
+    return { message: payload, code: undefined, details: undefined };
+  }
+
+  return {
+    message: Array.isArray(payload.message) ? payload.message.join(", ") : payload.message,
+    code: payload.code,
+    details: payload.details,
+  };
+}
+
+function fallbackMessage(status: number) {
+  return "Request failed with status " + status;
+}
+
 export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
-  if (typeof payload === "string") return new ApiError(status, payload || "Request failed with status " + status);
-  const message = Array.isArray(payload.message) ? payload.message.join(", ") : payload.message;
-  return new ApiError(status, message ?? "Request failed with status " + status, payload.code, payload.details);
+  const normalized = normalizePayload(payload);
+  return new ApiError(
+    status,
+    normalized.message ?? fallbackMessage(status),
+    normalized.code,
+    normalized.details,
+  );
 }
