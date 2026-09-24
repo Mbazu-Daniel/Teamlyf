@@ -29,9 +29,37 @@ export class ApiError extends Error {
   }
 }
 
+const KNOWN_CODES: ReadonlySet<string> = new Set([
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "VALIDATION_ERROR",
+  "CONFLICT",
+  "RATE_LIMITED",
+  "BILLING_REQUIRED",
+  "INTERNAL_ERROR",
+]);
+
+const STATUS_CODES: Readonly<Record<number, ApiErrorCode>> = {
+  401: "UNAUTHORIZED",
+  403: "FORBIDDEN",
+  404: "NOT_FOUND",
+  409: "CONFLICT",
+  429: "RATE_LIMITED",
+};
+
+const STATUS_MESSAGES: Readonly<Record<number, string>> = {
+  401: "Authentication is required",
+  403: "You do not have permission to perform this action",
+  404: "The requested resource was not found",
+  409: "The request conflicts with existing data",
+  429: "Too many requests",
+};
+
 export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
   const message = typeof payload === "string" ? payload : payload.message;
   const code = typeof payload === "string" ? undefined : payload.code;
+
   return new ApiError(
     message || defaultMessage(status),
     status,
@@ -41,30 +69,14 @@ export function toApiError(status: number, payload: ApiErrorPayload | string): A
 }
 
 function normalizeCode(code: string | undefined, status: number): ApiErrorCode {
-  if (
-    code === "UNAUTHORIZED" ||
-    code === "FORBIDDEN" ||
-    code === "NOT_FOUND" ||
-    code === "VALIDATION_ERROR" ||
-    code === "CONFLICT" ||
-    code === "RATE_LIMITED" ||
-    code === "BILLING_REQUIRED" ||
-    code === "INTERNAL_ERROR"
-  ) return code;
-  if (status === 401) return "UNAUTHORIZED";
-  if (status === 403) return "FORBIDDEN";
-  if (status === 404) return "NOT_FOUND";
-  if (status === 409) return "CONFLICT";
-  if (status === 429) return "RATE_LIMITED";
-  if (status >= 500) return "INTERNAL_ERROR";
-  return "UNKNOWN";
+  if (code && KNOWN_CODES.has(code)) {
+    return code as ApiErrorCode;
+  }
+
+  return STATUS_CODES[status] ?? (status >= 500 ? "INTERNAL_ERROR" : "UNKNOWN");
 }
 
 function defaultMessage(status: number) {
-  if (status === 401) return "Authentication is required";
-  if (status === 403) return "You do not have permission to perform this action";
-  if (status === 404) return "The requested resource was not found";
-  if (status === 409) return "The request conflicts with existing data";
-  if (status === 429) return "Too many requests";
-  return status >= 500 ? "An internal server error occurred" : "Request failed with " + status;
+  return STATUS_MESSAGES[status]
+    ?? (status >= 500 ? "An internal server error occurred" : `Request failed with ${status}`);
 }
