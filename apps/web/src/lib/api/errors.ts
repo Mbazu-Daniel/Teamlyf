@@ -1,4 +1,4 @@
-export type ApiErrorCode =
+type ApiErrorCode =
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "NOT_FOUND"
@@ -9,13 +9,13 @@ export type ApiErrorCode =
   | "INTERNAL_ERROR"
   | "UNKNOWN";
 
-export type ApiErrorPayload = {
+type ApiErrorPayload = {
   code?: string;
   message?: string;
   details?: unknown;
 };
 
-export class ApiError extends Error {
+class ApiError extends Error {
   readonly code: ApiErrorCode;
   readonly status: number;
   readonly details: unknown;
@@ -56,7 +56,7 @@ const STATUS_MESSAGES: Readonly<Record<number, string>> = {
   429: "Too many requests",
 };
 
-export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
+function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
   const { message, code, details } = normalizePayload(payload);
   return new ApiError(message ?? defaultMessage(status), status, normalizeCode(code, status), details);
 }
