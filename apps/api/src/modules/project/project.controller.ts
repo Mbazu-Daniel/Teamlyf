@@ -31,7 +31,7 @@ export class ProjectController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List projects" })
+  @ApiOperation({ summary: "Get projects" })
   @ApiParam({ name: "orgId" })
   getProjects(@Param("orgId") orgId: string) {
     return this.projectService.getProjects(orgId);

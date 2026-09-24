@@ -5,7 +5,7 @@ import { milestone, milestoneTask } from "@teamlyf/db/project-schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
-import type { CreateMilestoneDto, UpdateMilestoneDto } from "../dto";
+import type { CreateMilestoneDto, UpdateMilestoneDto } from "./dto";
 
 @Injectable()
 export class MilestoneService {

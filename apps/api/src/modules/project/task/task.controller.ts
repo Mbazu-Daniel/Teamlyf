@@ -17,7 +17,7 @@ import {
   RequirePermission,
 } from "../../rbac";
 import type { SessionMember } from "../../../common/types";
-import { CreateTaskDto, UpdateTaskDto } from "../dto";
+import { CreateTaskDto, UpdateTaskDto } from "./dto";
 import { TaskService } from "./task.service";
 
 @ApiTags("Tasks")
@@ -43,7 +43,7 @@ export class TaskController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List tasks" })
+  @ApiOperation({ summary: "Get tasks" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "projectId" })
   getTasks(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {

@@ -5,7 +5,7 @@ import { status } from "@teamlyf/db/project-schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
-import type { CreateStatusDto, UpdateStatusDto } from "../dto";
+import type { CreateStatusDto, UpdateStatusDto } from "./dto";
 
 @Injectable()
 export class StatusService {

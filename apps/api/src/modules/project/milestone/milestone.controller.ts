@@ -17,7 +17,7 @@ import {
   RequirePermission,
 } from "../../rbac";
 import type { SessionMember } from "../../../common/types";
-import { CreateMilestoneDto, UpdateMilestoneDto } from "../dto";
+import { CreateMilestoneDto, UpdateMilestoneDto } from "./dto";
 import { MilestoneService } from "./milestone.service";
 
 @ApiTags("Milestones")
@@ -43,7 +43,7 @@ export class MilestoneController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List milestones" })
+  @ApiOperation({ summary: "Get milestones" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "projectId" })
   getMilestones(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {

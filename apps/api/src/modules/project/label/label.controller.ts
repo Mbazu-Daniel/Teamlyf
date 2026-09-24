@@ -11,7 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
-import { CreateLabelDto, UpdateLabelDto } from "../dto";
+import { CreateLabelDto, UpdateLabelDto } from "./dto";
 import { LabelService } from "./label.service";
 
 @ApiTags("Labels")
@@ -36,7 +36,7 @@ export class LabelController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List labels" })
+  @ApiOperation({ summary: "Get labels" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "projectId" })
   getLabels(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {
