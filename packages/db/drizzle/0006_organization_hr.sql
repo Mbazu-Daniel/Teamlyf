@@ -4,7 +4,7 @@ CREATE UNIQUE INDEX "hr_department_org_name_idx" ON "hr_department" USING btree 
 --> statement-breakpoint
 CREATE TABLE "hr_department_member" ("department_id" uuid NOT NULL, "member_id" uuid NOT NULL, "created_at" timestamp DEFAULT now() NOT NULL, PRIMARY KEY ("department_id","member_id"));
 --> statement-breakpoint
-CREATE TABLE "hr_employee_profile" ("member_id" uuid PRIMARY KEY NOT NULL, "organization_id" uuid NOT NULL, "employee_number" text, "job_title" text, "employment_type" text DEFAULT 'full_time' NOT NULL, "status" text DEFAULT 'active' NOT NULL, "start_date" timestamp, "phone" text, "address" text, "emergency_contact_name" text, "emergency_contact_phone" text, "created_at" timestamp DEFAULT now() NOT NULL, "updated_at" timestamp DEFAULT now() NOT NULL);
+CREATE TABLE "member_profile" ("member_id" uuid PRIMARY KEY NOT NULL, "organization_id" uuid NOT NULL, "employee_number" text, "job_title" text, "employment_type" text DEFAULT 'full_time' NOT NULL, "status" text DEFAULT 'active' NOT NULL, "start_date" timestamp, "phone" text, "address" text, "emergency_contact_name" text, "emergency_contact_phone" text, "created_at" timestamp DEFAULT now() NOT NULL, "updated_at" timestamp DEFAULT now() NOT NULL);
 --> statement-breakpoint
 CREATE TABLE "hr_leave_policy" ("id" uuid PRIMARY KEY NOT NULL, "organization_id" uuid NOT NULL, "name" text NOT NULL, "days_per_year" integer NOT NULL, "created_at" timestamp DEFAULT now() NOT NULL);
 --> statement-breakpoint
@@ -16,9 +16,9 @@ ALTER TABLE "hr_department_member" ADD CONSTRAINT "hr_department_member_departme
 --> statement-breakpoint
 ALTER TABLE "hr_department_member" ADD CONSTRAINT "hr_department_member_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "member"("id") ON DELETE CASCADE;
 --> statement-breakpoint
-ALTER TABLE "hr_employee_profile" ADD CONSTRAINT "hr_employee_profile_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "member"("id") ON DELETE CASCADE;
+ALTER TABLE "member_profile" ADD CONSTRAINT "member_profile_member_id_fk" FOREIGN KEY ("member_id") REFERENCES "member"("id") ON DELETE CASCADE;
 --> statement-breakpoint
-ALTER TABLE "hr_employee_profile" ADD CONSTRAINT "hr_employee_profile_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
+ALTER TABLE "member_profile" ADD CONSTRAINT "member_profile_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
 --> statement-breakpoint
 ALTER TABLE "hr_leave_policy" ADD CONSTRAINT "hr_leave_policy_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
 --> statement-breakpoint
@@ -29,3 +29,5 @@ ALTER TABLE "hr_leave_request" ADD CONSTRAINT "hr_leave_request_member_id_fk" FO
 ALTER TABLE "hr_leave_request" ADD CONSTRAINT "hr_leave_request_policy_id_fk" FOREIGN KEY ("policy_id") REFERENCES "hr_leave_policy"("id") ON DELETE RESTRICT;
 --> statement-breakpoint
 ALTER TABLE "hr_leave_request" ADD CONSTRAINT "hr_leave_request_reviewer_fk" FOREIGN KEY ("reviewed_by_id") REFERENCES "member"("id") ON DELETE SET NULL;
+--> statement-breakpoint
+CREATE INDEX "member_profile_org_idx" ON "member_profile" USING btree ("organization_id");

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BillingContent, useBilling } from "@/features/settings/billing";
 import { useOrganization } from "@/lib/organization";
 
-export const Route = createFileRoute("/settings/billing")({ component: BillingRoute });
+export const Route = createFileRoute("/_app/settings/billing")({ component: BillingRoute });
 
 function BillingRoute() {
   const { organization } = useOrganization();

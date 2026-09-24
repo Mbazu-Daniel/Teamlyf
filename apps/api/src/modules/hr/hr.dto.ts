@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
-export class EmployeeProfileDto {
+export class MemberProfileDto {
   @ApiPropertyOptional() @IsOptional() @IsString() employeeNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() jobTitle?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() employmentType?: string;

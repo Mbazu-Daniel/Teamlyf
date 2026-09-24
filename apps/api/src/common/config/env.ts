@@ -9,7 +9,13 @@ function loadEnv(): void {
 
 const apiEnvSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(3101),
-  WEB_ORIGIN: z.string().url().default("http://localhost:3100"),
+  WEB_ORIGIN: z
+    .string()
+    .default("http://localhost:3100")
+    .refine(
+      (value) => value.split(",").every((entry) => z.string().url().safeParse(entry.trim()).success),
+      { message: "must be one or more comma-separated URLs" },
+    ),
   DATABASE_URL: z.string().nonempty(),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3101").transform((url) => url.replace(/\/+$/, "")),

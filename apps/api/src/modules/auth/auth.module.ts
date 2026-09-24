@@ -15,6 +15,7 @@ export class AuthModule implements NestModule {
     consumer.apply(AuthMiddleware).forRoutes(
       { path: "auth/callback/*", method: RequestMethod.GET },
       { path: "auth/sign-in/social", method: RequestMethod.POST },
+      { path: "auth/update-user", method: RequestMethod.POST },
     );
   }
 }

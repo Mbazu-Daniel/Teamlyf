@@ -1,16 +1,24 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { member } from "@teamlyf/db";
+import type { Database } from "@teamlyf/db";
+import { and, eq } from "drizzle-orm";
+import { DATABASE } from "../../common/db/db.provider";
 import { AuthService } from "../auth/auth.service";
 import type {
   GetActiveMemberRoleQueryDto,
   LeaveOrganizationDto,
   ListMembersQueryDto,
   RemoveMemberDto,
+  UpdateMemberProfileDto,
   UpdateMemberRoleDto,
 } from "./dto";
 
 @Injectable()
 export class MemberService {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    @Inject(DATABASE) private readonly db: Database,
+  ) {}
 
   async getMembers(orgId: string, query: ListMembersQueryDto, headers: Headers) {
     return this.authService.auth.api.listMembers({
@@ -57,5 +65,19 @@ export class MemberService {
       headers,
       asResponse: true,
     });
+  }
+
+  async updateProfile(orgId: string, memberId: string, body: UpdateMemberProfileDto) {
+    const [updated] = await this.db
+      .update(member)
+      .set({ firstName: body.firstName, lastName: body.lastName, updatedAt: new Date() })
+      .where(and(eq(member.id, memberId), eq(member.organizationId, orgId)))
+      .returning({ id: member.id, firstName: member.firstName, lastName: member.lastName });
+
+    if (!updated) {
+      throw new NotFoundException("Member not found");
+    }
+
+    return updated;
   }
 }

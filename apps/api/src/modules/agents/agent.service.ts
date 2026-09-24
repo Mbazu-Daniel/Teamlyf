@@ -119,7 +119,7 @@ export class AgentService {
   ) {
     await this.requireAgent(organizationId, dto.agentId);
     const totalTokens = dto.inputTokens + dto.outputTokens;
-    const allowanceConsumed = dto.source === "teamlyf" ? totalTokens : 0;
+    const allowanceConsumed = dto.source === "managed" ? totalTokens : 0;
 
     const [usage] = await this.db.insert(aiUsage).values({
       organizationId,
@@ -157,8 +157,8 @@ export class AgentService {
       this.requireApiKey(dto.apiKey);
       return;
     }
-    if (dto.source === "teamlyf" && dto.apiKey) {
-      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    if (dto.source === "managed" && dto.apiKey) {
+      throw new BadRequestException("Managed providers do not accept organization API keys");
     }
   }
 

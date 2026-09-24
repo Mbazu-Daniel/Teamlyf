@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
-import { EmployeeProfileDto, LeaveRequestDto, ReviewLeaveDto } from "./hr.dto";
+import { LeaveRequestDto, MemberProfileDto, ReviewLeaveDto } from "./hr.dto";
 import { HrService } from "./hr.service";
 
 @ApiTags("HR")
@@ -23,7 +23,7 @@ export class HrController {
 
   @Patch("profile")
   @RequirePermission("hr", "update")
-  upsertProfile(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Body() body: EmployeeProfileDto) {
+  upsertProfile(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Body() body: MemberProfileDto) {
     return this.hr.upsertProfile(orgId, member.id, body);
   }
 
