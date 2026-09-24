@@ -39,8 +39,16 @@ function MemberRow({ member, busy, onRoleChange, onRemove }: { member: Organizat
   return <div className="flex flex-wrap items-center justify-between gap-3 py-3"><MemberIdentity member={member} /><MemberActions member={member} busy={busy} onRoleChange={onRoleChange} onRemove={onRemove} /></div>;
 }
 
+function memberDisplayName(member: OrganizationMember) {
+  return member.user?.name ?? member.id;
+}
+
+function memberDisplayEmail(member: OrganizationMember) {
+  return member.user?.email ?? "Organization member";
+}
+
 function MemberIdentity({ member }: { member: OrganizationMember }) {
-  return <div><p className="text-sm font-medium">{member.user?.name ?? member.id}</p><p className="text-xs text-muted-foreground">{member.user?.email ?? "Organization member"}</p></div>;
+  return <div><p className="text-sm font-medium">{memberDisplayName(member)}</p><p className="text-xs text-muted-foreground">{memberDisplayEmail(member)}</p></div>;
 }
 
 function MemberActions({ member, busy, onRoleChange, onRemove }: { member: OrganizationMember; busy: boolean; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
