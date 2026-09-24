@@ -15,6 +15,16 @@ const permissions = [
   ["Agents", "agents", "create, read, update, delete"],
 ] as const;
 
+function memberRoleFromResponse(result: ActiveMemberRole): string {
+  if (Array.isArray(result.role)) return result.role[0] ?? "member";
+  return result.role ?? "member";
+}
+
+function accessErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return "Unable to load access settings";
+}
+
 export const Route = createFileRoute("/settings/access")({ component: AccessSettings });
 
 function AccessSettings() {
@@ -25,20 +35,12 @@ function AccessSettings() {
   useEffect(() => {
     if (!organization) return;
 
-    const load = async () => {
-      try {
-        const result = await client.request<ActiveMemberRole>(
-          `/organization/${organization.id}/members/active-role?organizationId=${organization.id}`,
-        );
-        setMemberRole(
-          Array.isArray(result.role) ? result.role[0] ?? "member" : result.role ?? "member",
-        );
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Unable to load access settings");
-      }
-    };
-
-    void load();
+    void client
+      .request<ActiveMemberRole>(
+        `/organization/${organization.id}/members/active-role?organizationId=${organization.id}`,
+      )
+      .then((result) => setMemberRole(memberRoleFromResponse(result)))
+      .catch((reason: unknown) => setError(accessErrorMessage(reason)));
   }, [organization?.id]);
 
   if (!organization) return <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">Select an organization before opening settings.</div>;
