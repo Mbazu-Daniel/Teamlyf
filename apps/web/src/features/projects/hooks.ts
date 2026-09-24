@@ -16,7 +16,6 @@ export function useProjects(organizationId: string | undefined) {
       setListLoading(false);
       return;
     }
-
     let active = true;
     setError(null);
     setListLoading(true);
@@ -24,14 +23,12 @@ export function useProjects(organizationId: string | undefined) {
       .then((data) => { if (active) setProjects(data); })
       .catch((err: unknown) => { if (active) setError(getErrorMessage(err, "Unable to load projects")); })
       .finally(() => { if (active) setListLoading(false); });
-
     return () => { active = false; };
   }, [organizationId]);
 
   function createProject(event: FormEvent) {
     event.preventDefault();
-    if (!organizationId || !name.trim() || !identifier.trim()) return;
-
+    if (!organizationId || !isProjectFormValid(name, identifier)) return;
     setLoading(true);
     setError(null);
     void projectsApi.create(organizationId, {
@@ -66,7 +63,6 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     setTasks([]);
     setStatusId("");
     if (!organizationId) return;
-
     let active = true;
     setError(null);
     void Promise.all([
@@ -82,14 +78,12 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     }).catch((err: unknown) => {
       if (active) setError(getErrorMessage(err, "Unable to load project"));
     });
-
     return () => { active = false; };
   }, [organizationId, projectId]);
 
   async function createTask(event: FormEvent) {
     event.preventDefault();
-    if (!organizationId || !name.trim() || !statusId) return;
-
+    if (!organizationId || !isTaskFormValid(name, statusId)) return;
     setLoading(true);
     setError(null);
     try {
@@ -115,6 +109,14 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
   }
 
   return { project, statuses, tasks, name, statusId, loading, error, setName, setStatusId, createTask, moveTask };
+}
+
+function isProjectFormValid(name: string, identifier: string) {
+  return Boolean(name.trim() && identifier.trim());
+}
+
+function isTaskFormValid(name: string, statusId: string) {
+  return Boolean(name.trim() && statusId);
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
