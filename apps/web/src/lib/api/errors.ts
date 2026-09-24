@@ -56,7 +56,7 @@ const STATUS_MESSAGES: Readonly<Record<number, string>> = {
   429: "Too many requests",
 };
 
-function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
+export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
   const { message, code, details } = normalizePayload(payload);
   return new ApiError(message ?? defaultMessage(status), status, normalizeCode(code, status), details);
 }
