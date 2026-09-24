@@ -8,14 +8,11 @@ function ProjectRoute() {
   const { projectId } = Route.useParams();
   const { organization } = useOrganization();
   const state = useProjectPage(organization?.id, projectId);
+  return <ProjectRouteContent organization={organization} state={state} />;
+}
 
-  if (!organization) {
-    return <main className="mx-auto max-w-6xl px-6 py-12"><h1 className="text-2xl font-semibold">Project</h1><p className="mt-2 text-muted-foreground">Select an organization first.</p></main>;
-  }
-
-  if (!state.project) {
-    return <main className="mx-auto max-w-6xl px-6 py-12"><p className="text-sm text-muted-foreground">{state.error ?? "Loading project..."}</p></main>;
-  }
-
+function ProjectRouteContent({ organization, state }: { organization: ReturnType<typeof useOrganization>["organization"]; state: ReturnType<typeof useProjectPage> }) {
+  if (!organization) return <main className="mx-auto max-w-6xl px-6 py-12"><h1 className="text-2xl font-semibold">Project</h1><p className="mt-2 text-muted-foreground">Select an organization first.</p></main>;
+  if (!state.project) return <main className="mx-auto max-w-6xl px-6 py-12"><p className="text-sm text-muted-foreground">{state.error ?? "Loading project..."}</p></main>;
   return <ProjectDetailPage project={state.project} state={state} />;
 }
