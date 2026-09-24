@@ -1,6 +1,6 @@
 CREATE TYPE "public"."agent_run_status" AS ENUM('queued', 'running', 'completed', 'failed', 'cancelled');
 --> statement-breakpoint
-CREATE TYPE "public"."ai_provider_source" AS ENUM('teamlyf', 'byok');
+CREATE TYPE "public"."ai_provider_source" AS ENUM('managed', 'byok');
 --> statement-breakpoint
 CREATE TABLE "agent" (
   "id" uuid PRIMARY KEY NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE "ai_provider_config" (
   "updated_at" timestamp DEFAULT now() NOT NULL,
   CONSTRAINT "ai_provider_config_provider_non_empty_check" CHECK (length(trim("provider")) > 0),
   CONSTRAINT "ai_provider_config_model_non_empty_check" CHECK (length(trim("model")) > 0),
-  CONSTRAINT "ai_provider_config_byok_key_check" CHECK (("source" = 'byok' AND "encrypted_api_key" IS NOT NULL) OR ("source" = 'teamlyf' AND "encrypted_api_key" IS NULL)),
+  CONSTRAINT "ai_provider_config_byok_key_check" CHECK (("source" = 'byok' AND "encrypted_api_key" IS NOT NULL) OR ("source" = 'managed' AND "encrypted_api_key" IS NULL)),
   CONSTRAINT "ai_provider_config_key_version_check" CHECK (("encrypted_api_key" IS NULL AND "key_version" IS NULL) OR ("encrypted_api_key" IS NOT NULL AND "key_version" IS NOT NULL))
 );
 --> statement-breakpoint
@@ -74,6 +74,8 @@ CREATE UNIQUE INDEX "member_organization_id_id_idx" ON "member" USING btree ("or
 --> statement-breakpoint
 ALTER TABLE "agent" ADD CONSTRAINT "agent_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
 --> statement-breakpoint
+CREATE UNIQUE INDEX "agent_organization_id_id_idx" ON "agent" USING btree ("organization_id","id");
+--> statement-breakpoint
 ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id");
 --> statement-breakpoint
 ALTER TABLE "agent_run" ADD CONSTRAINT "agent_run_organization_member_fk" FOREIGN KEY ("organization_id","member_id") REFERENCES "member"("organization_id","id");
@@ -83,8 +85,6 @@ ALTER TABLE "ai_provider_config" ADD CONSTRAINT "ai_provider_config_organization
 ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_member_fk" FOREIGN KEY ("organization_id","member_id") REFERENCES "member"("organization_id","id") ON DELETE CASCADE;
 --> statement-breakpoint
 ALTER TABLE "ai_usage" ADD CONSTRAINT "ai_usage_organization_agent_fk" FOREIGN KEY ("organization_id","agent_id") REFERENCES "agent"("organization_id","id");
---> statement-breakpoint
-CREATE UNIQUE INDEX "agent_organization_id_id_idx" ON "agent" USING btree ("organization_id","id");
 --> statement-breakpoint
 CREATE UNIQUE INDEX "agent_organization_name_idx" ON "agent" USING btree ("organization_id","name");
 --> statement-breakpoint

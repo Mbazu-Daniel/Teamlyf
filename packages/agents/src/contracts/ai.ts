@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const aiProviderSourceSchema = z.enum(["teamlyf", "byok"]);
+export const aiProviderSourceSchema = z.enum(["managed", "byok"]);
 export type AiProviderSource = z.infer<typeof aiProviderSourceSchema>;
 
 export const aiProviderSchema = z.object({

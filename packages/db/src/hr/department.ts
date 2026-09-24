@@ -3,7 +3,7 @@ import { generateId } from "../id";
 import { member } from "../organization/member";
 import { organizationReference } from "../organization/membership-columns";
 
-export const hrDepartment = pgTable("hr_department", {
+export const department = pgTable("department", {
   id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
   organizationId: organizationReference(),
   name: text("name").notNull(),
@@ -11,12 +11,12 @@ export const hrDepartment = pgTable("hr_department", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => [
-  index("hr_department_org_idx").on(t.organizationId),
-  uniqueIndex("hr_department_org_name_idx").on(t.organizationId, t.name),
+  index("department_org_idx").on(t.organizationId),
+  uniqueIndex("department_org_name_idx").on(t.organizationId, t.name),
 ]);
 
-export const hrDepartmentMember = pgTable("hr_department_member", {
-  departmentId: uuid("department_id").notNull().references(() => hrDepartment.id, { onDelete: "cascade" }),
+export const departmentMember = pgTable("department_member", {
+  departmentId: uuid("department_id").notNull().references(() => department.id, { onDelete: "cascade" }),
   memberId: uuid("member_id").notNull().references(() => member.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-}, (t) => [index("hr_department_member_member_idx").on(t.memberId)]);
+}, (t) => [index("department_member_member_idx").on(t.memberId)]);
