@@ -4,8 +4,8 @@ import type {
   GetInvitationQueryDto,
   InvitationIdDto,
   InviteMemberDto,
-  ListInvitationsQueryDto,
-  ListUserInvitationsQueryDto,
+  GetInvitationsQueryDto,
+  GetUserInvitationsQueryDto,
 } from "./dto";
 
 @Injectable()
@@ -52,7 +52,7 @@ export class InvitationService {
     });
   }
 
-  async getInvitations(orgId: string, query: ListInvitationsQueryDto, headers: Headers) {
+  async getInvitations(orgId: string, query: GetInvitationsQueryDto, headers: Headers) {
     return this.authService.auth.api.listInvitations({
       query: { ...query, organizationId: orgId },
       headers,
@@ -60,7 +60,7 @@ export class InvitationService {
     });
   }
 
-  async getUserInvitations(query: ListUserInvitationsQueryDto, headers: Headers) {
+  async getUserInvitations(query: GetUserInvitationsQueryDto, headers: Headers) {
     return this.authService.auth.api.listUserInvitations({
       query,
       headers,

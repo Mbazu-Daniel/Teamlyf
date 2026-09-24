@@ -16,7 +16,7 @@ const FILTER_OPERATORS = [
   "ends_with",
 ] as const;
 
-export class ListMembersQueryDto {
+export class GetMembersQueryDto {
   @ApiPropertyOptional({ example: 100 })
   @IsOptional()
   @Type(() => Number)

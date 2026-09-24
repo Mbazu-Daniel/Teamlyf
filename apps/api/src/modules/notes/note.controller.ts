@@ -22,9 +22,9 @@ export class NoteController {
 
   @Get()
   @RequirePermission("notes", "read")
-  @ApiOperation({ summary: "List notes" })
+  @ApiOperation({ summary: "Get notes" })
   @ApiQuery({ name: "parentId", required: false })
-  list(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("parentId") parentId?: string) {
+  getNotes(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("parentId") parentId?: string) {
     return this.notes.getNotes(orgId, member.id, parentId);
   }
 

@@ -7,7 +7,7 @@ import { AuthService } from "../auth/auth.service";
 import type {
   GetActiveMemberRoleQueryDto,
   LeaveOrganizationDto,
-  ListMembersQueryDto,
+  GetMembersQueryDto,
   RemoveMemberDto,
   UpdateMemberProfileDto,
   UpdateMemberRoleDto,
@@ -20,7 +20,7 @@ export class MemberService {
     @Inject(DATABASE) private readonly db: Database,
   ) {}
 
-  async getMembers(orgId: string, query: ListMembersQueryDto, headers: Headers) {
+  async getMembers(orgId: string, query: GetMembersQueryDto, headers: Headers) {
     return this.authService.auth.api.listMembers({
       query: { ...query, organizationId: orgId },
       headers,
