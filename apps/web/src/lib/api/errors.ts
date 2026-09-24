@@ -57,26 +57,20 @@ const STATUS_MESSAGES: Readonly<Record<number, string>> = {
 };
 
 export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
-  const message = typeof payload === "string" ? payload : payload.message;
-  const code = typeof payload === "string" ? undefined : payload.code;
+  const { message, code, details } = normalizePayload(payload);
+  return new ApiError(message ?? defaultMessage(status), status, normalizeCode(code, status), details);
+}
 
-  return new ApiError(
-    message || defaultMessage(status),
-    status,
-    normalizeCode(code, status),
-    typeof payload === "string" ? undefined : payload.details,
-  );
+function normalizePayload(payload: ApiErrorPayload | string) {
+  if (typeof payload === "string") return { message: payload, code: undefined, details: undefined };
+  return { message: payload.message, code: payload.code, details: payload.details };
 }
 
 function normalizeCode(code: string | undefined, status: number): ApiErrorCode {
-  if (code && KNOWN_CODES.has(code)) {
-    return code as ApiErrorCode;
-  }
-
+  if (code && KNOWN_CODES.has(code)) return code as ApiErrorCode;
   return STATUS_CODES[status] ?? (status >= 500 ? "INTERNAL_ERROR" : "UNKNOWN");
 }
 
 function defaultMessage(status: number) {
-  return STATUS_MESSAGES[status]
-    ?? (status >= 500 ? "An internal server error occurred" : `Request failed with ${status}`);
+  return STATUS_MESSAGES[status] ?? (status >= 500 ? "An internal server error occurred" : `Request failed with ${status}`);
 }
