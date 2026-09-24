@@ -68,7 +68,14 @@ function normalizePayload(payload: ApiErrorPayload | string) {
 
 function normalizeCode(code: string | undefined, status: number): ApiErrorCode {
   if (code && KNOWN_CODES.has(code)) return code as ApiErrorCode;
-  return STATUS_CODES[status] ?? (status >= 500 ? "INTERNAL_ERROR" : "UNKNOWN");
+  return statusCodeFallback(status);
+}
+
+function statusCodeFallback(status: number): ApiErrorCode {
+  const mapped = STATUS_CODES[status];
+  if (mapped) return mapped;
+  if (status >= 500) return "INTERNAL_ERROR";
+  return "UNKNOWN";
 }
 
 function defaultMessage(status: number) {
