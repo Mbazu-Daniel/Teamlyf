@@ -7,19 +7,23 @@ export function useProjects(organizationId: string | undefined) {
   const [identifier, setIdentifier] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setProjects([]);
     if (!organizationId) {
-      setProjects([]);
+      setListLoading(false);
       return;
     }
 
     let active = true;
     setError(null);
+    setListLoading(true);
     void projectsApi.list(organizationId)
       .then((data) => { if (active) setProjects(data); })
-      .catch((err: unknown) => { if (active) setError(getErrorMessage(err, "Unable to load projects")); });
+      .catch((err: unknown) => { if (active) setError(getErrorMessage(err, "Unable to load projects")); })
+      .finally(() => { if (active) setListLoading(false); });
 
     return () => { active = false; };
   }, [organizationId]);
@@ -44,7 +48,7 @@ export function useProjects(organizationId: string | undefined) {
     }).finally(() => setLoading(false));
   }
 
-  return { projects, name, identifier, description, loading, error, setName, setIdentifier, setDescription, createProject };
+  return { projects, name, identifier, description, loading, listLoading, error, setName, setIdentifier, setDescription, createProject };
 }
 
 export function useProjectPage(organizationId: string | undefined, projectId: string) {
@@ -57,12 +61,11 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!organizationId) {
-      setProject(null);
-      setStatuses([]);
-      setTasks([]);
-      return;
-    }
+    setProject(null);
+    setStatuses([]);
+    setTasks([]);
+    setStatusId("");
+    if (!organizationId) return;
 
     let active = true;
     setError(null);
