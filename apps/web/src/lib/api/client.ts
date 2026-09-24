@@ -2,7 +2,7 @@ import { toApiError, type ApiErrorPayload } from "./errors";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3101";
 
-export type RequestOptions = RequestInit & {
+type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined>;
 };
 
