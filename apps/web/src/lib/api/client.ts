@@ -1,3 +1,5 @@
+import { toApiError, type ApiErrorPayload } from "./errors";
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3101";
 
 type RequestOptions = RequestInit & {
@@ -19,11 +21,19 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     credentials: "include",
     headers: { "Content-Type": "application/json", ...init.headers },
   });
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "Request failed with " + response.status);
-  }
+
+  if (!response.ok) throw await parseApiError(response);
   return parseResponseBody<T>(response);
+}
+
+async function parseApiError(response: Response) {
+  const body = await response.text();
+  if (!body) return toApiError(response.status, "");
+  try {
+    return toApiError(response.status, JSON.parse(body) as ApiErrorPayload);
+  } catch {
+    return toApiError(response.status, body);
+  }
 }
 
 async function parseResponseBody<T>(response: Response): Promise<T> {
@@ -32,24 +42,6 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
   return (body ? JSON.parse(body) : null) as T;
 }
 
-function resourcePath(organizationId: string, resource: string, suffix = "") {
-  return "/organization/" + organizationId + "/" + resource + suffix;
-}
-
-function organizationClient(organizationId: string) {
-  return {
-    get: <T>(resource: string, suffix = "", options?: RequestOptions) =>
-      request<T>(resourcePath(organizationId, resource, suffix), { ...options, method: "GET" }),
-    post: <T>(resource: string, suffix = "", options: RequestOptions = {}) =>
-      request<T>(resourcePath(organizationId, resource, suffix), { ...options, method: "POST" }),
-    patch: <T>(resource: string, suffix = "", options: RequestOptions = {}) =>
-      request<T>(resourcePath(organizationId, resource, suffix), { ...options, method: "PATCH" }),
-  };
-}
-
 export type Organization = { id: string; name: string; slug?: string };
 
-export const client = {
-  request,
-  organization: organizationClient,
-};
+export const client = { request };
