@@ -58,12 +58,16 @@ const STATUS_MESSAGES: Readonly<Record<number, string>> = {
 
 export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
   const { message, code, details } = normalizePayload(payload);
-  return new ApiError(message ?? defaultMessage(status), status, normalizeCode(code, status), details);
+  return new ApiError(normalizeMessage(message, status), status, normalizeCode(code, status), details);
 }
 
 function normalizePayload(payload: ApiErrorPayload | string) {
   if (typeof payload === "string") return { message: payload, code: undefined, details: undefined };
   return { message: payload.message, code: payload.code, details: payload.details };
+}
+
+function normalizeMessage(message: string | undefined, status: number) {
+  return message?.trim() ? message : defaultMessage(status);
 }
 
 function normalizeCode(code: string | undefined, status: number): ApiErrorCode {
