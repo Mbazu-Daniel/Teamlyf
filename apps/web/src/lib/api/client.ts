@@ -14,7 +14,7 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   return path + (path.includes("?") ? "&" : "?") + suffix;
 }
 
-export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, ...init } = options;
   const response = await fetch(API_URL + buildUrl(path, query), {
     ...init,
