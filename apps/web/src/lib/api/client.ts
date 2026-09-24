@@ -2,7 +2,7 @@ import { toApiError, type ApiErrorPayload } from "./errors";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3101";
 
-type RequestOptions = RequestInit & {
+export type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined>;
 };
 
@@ -14,7 +14,7 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   return path + (path.includes("?") ? "&" : "?") + suffix;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, ...init } = options;
   const response = await fetch(API_URL + buildUrl(path, query), {
     ...init,
