@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AccessSettingsContent, useAccessSettings } from "@/features/settings/access";
 import { useOrganization } from "@/lib/organization";
 
-export const Route = createFileRoute("/settings/access")({ component: AccessSettingsRoute });
+export const Route = createFileRoute("/_app/settings/access")({ component: AccessSettingsRoute });
 
 function AccessSettingsRoute() {
   const { organization } = useOrganization();

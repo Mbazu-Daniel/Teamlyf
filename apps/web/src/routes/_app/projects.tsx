@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ProjectListPage, useProjects } from "@/features/projects";
 import { useOrganization } from "@/lib/organization";
 
-export const Route = createFileRoute("/projects")({ component: ProjectsRoute });
+export const Route = createFileRoute("/_app/projects")({ component: ProjectsRoute });
 
 function ProjectsRoute() {
   const { organization } = useOrganization();
