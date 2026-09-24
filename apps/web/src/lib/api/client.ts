@@ -42,6 +42,6 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
   return (body ? JSON.parse(body) : null) as T;
 }
 
-type Organization = { id: string; name: string; slug?: string };
+export type Organization = { id: string; name: string; slug?: string };
 
 export const client = { request };
