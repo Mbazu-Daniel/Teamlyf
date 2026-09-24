@@ -40,9 +40,7 @@ function MemberRow({ member, busy, onRoleChange, onRemove }: { member: Organizat
 }
 
 function MemberIdentity({ member }: { member: OrganizationMember }) {
-  const name = member.user?.name ?? member.id;
-  const email = member.user?.email ?? "Organization member";
-  return <div><p className="text-sm font-medium">{name}</p><p className="text-xs text-muted-foreground">{email}</p></div>;
+  return <div><p className="text-sm font-medium">{member.user?.name ?? member.id}</p><p className="text-xs text-muted-foreground">{member.user?.email ?? "Organization member"}</p></div>;
 }
 
 function MemberActions({ member, busy, onRoleChange, onRemove }: { member: OrganizationMember; busy: boolean; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
