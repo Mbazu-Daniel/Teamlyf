@@ -1,4 +1,4 @@
-import { boolean, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { project } from "./project";
 
@@ -19,5 +19,8 @@ export const status = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => [index("status_project_id_idx").on(t.projectId)],
+  (t) => [
+    index("status_project_id_idx").on(t.projectId),
+    uniqueIndex("status_project_id_id_uidx").on(t.projectId, t.id),
+  ],
 );
