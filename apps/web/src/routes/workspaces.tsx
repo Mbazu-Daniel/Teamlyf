@@ -5,7 +5,7 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
 import { IconPlus, IconRocket, IconUsers } from "@tabler/icons-react";
-import { createOrganization, listOrganizations, type Organization } from "@/lib/api";
+import { createOrganization, getOrganizations, type Organization } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { SessionGate } from "@/lib/session";
 import { useOrganization } from "@/lib/organization";
@@ -48,13 +48,13 @@ type WorkspaceQueryState = {
 
 function WorkspaceBody({
   query,
-  list,
+  workspaces,
   showCreate,
   onShowCreate,
   onHideCreate,
 }: Readonly<{
   query: WorkspaceQueryState;
-  list: Organization[];
+  workspaces: Organization[];
   showCreate: boolean;
   onShowCreate: () => void;
   onHideCreate: () => void;
@@ -80,7 +80,7 @@ function WorkspaceBody({
     return (
       <CreateWorkspaceForm
         onDone={onHideCreate}
-        canGoBack={list.length > 0}
+        canGoBack={workspaces.length > 0}
         onBack={onHideCreate}
       />
     );
@@ -89,7 +89,7 @@ function WorkspaceBody({
   return (
     <div className="grid gap-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        {list.map((workspace) => (
+        {workspaces.map((workspace) => (
           <WorkspaceTile key={workspace.id} workspace={workspace} />
         ))}
       </div>
@@ -107,14 +107,14 @@ function WorkspaceBody({
 
 function WorkspacesPage() {
   const [creating, setCreating] = useState(false);
-  const { data: workspaces, isPending, isError, refetch } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.organizations,
-    queryFn: listOrganizations,
+    queryFn: getOrganizations,
     retry: 1,
   });
 
-  const list = workspaces ?? [];
-  const showCreate = creating || list.length === 0;
+  const workspaces = data ?? [];
+  const showCreate = creating || workspaces.length === 0;
 
   return (
     <div className="min-h-svh bg-background px-4 py-12 text-foreground">
@@ -130,7 +130,7 @@ function WorkspacesPage() {
         </a>
 
         <h1 className="mt-6 text-3xl font-bold tracking-tight">
-          {workspaceHeading(list.length, showCreate)}
+          {workspaceHeading(workspaces.length, showCreate)}
         </h1>
         <p className="mt-2 max-w-prose text-muted-foreground">
           A workspace holds your projects, chat and people. Create one to open Teamlyf.
@@ -139,7 +139,7 @@ function WorkspacesPage() {
         <div className="mt-8">
           <WorkspaceBody
             query={{ isPending, isError, refetch }}
-            list={list}
+            workspaces={workspaces}
             showCreate={showCreate}
             onShowCreate={() => setCreating(true)}
             onHideCreate={() => setCreating(false)}
@@ -199,11 +199,11 @@ async function createWorkspace(name: string, queryClient: QueryClient) {
   }
 
   // The create endpoint answers with an empty body, so read the
-  // fresh list instead of trusting the response.
+  // fresh collection instead of trusting the response.
   await createOrganization({ name, slug: address });
   const fresh = await queryClient.fetchQuery({
     queryKey: queryKeys.organizations,
-    queryFn: listOrganizations,
+    queryFn: getOrganizations,
   });
 
   return fresh.find((item) => matchesWorkspace(item, address, name)) ?? fresh[0];
@@ -305,7 +305,7 @@ function CreateWorkspaceForm({
                 onClick={onBack}
                 className="text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
               >
-                Back to list
+                Back to workspaces
               </button>
             ) : null}
           </div>
