@@ -10,7 +10,15 @@ apps/web/src/routeTree.gen.ts
 
 # Local-only agent / docs / tooling (work on disk; not for GitHub)
 *.md
+!README.md
+
 .agents/
 .cursor/
 .scratch/
 .fallowrc.json
+
+# Local tooling output / build noise (never commit)
+.hallmark/
+*.log
+*.mjs
+briefcase-test.svg
