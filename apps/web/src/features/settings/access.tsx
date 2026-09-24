@@ -25,11 +25,11 @@ function normalizeRole(role: unknown): string | null {
 }
 
 export function AccessSettingsContent({ state }: { state: ReturnType<typeof useAccessSettings> }) {
-  return <div className="space-y-6"><AccessSummary memberRole={state.memberRole} /><PermissionList />{state.error && <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{state.error}</p>}</div>;
+  return <div className="space-y-6"><AccessSummary memberRole={state.memberRole} error={state.error} /><PermissionList />{state.error && <p className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{state.error}</p>}</div>;
 }
 
-function AccessSummary({ memberRole }: { memberRole: string | null }) {
-  return <section className="rounded-xl border bg-card p-5"><h2 className="font-medium">Access</h2><p className="mt-1 text-sm text-muted-foreground">Access is controlled by the organization RBAC model. There is no separate settings-level permission system.</p><div className="mt-5 rounded-lg border bg-muted/30 p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Your role</p><p className="mt-1 text-lg font-semibold capitalize">{memberRole ?? "Loading..."}</p></div></section>;
+function AccessSummary({ memberRole, error }: { memberRole: string | null; error: string | null }) {
+  return <section className="rounded-xl border bg-card p-5"><h2 className="font-medium">Access</h2><p className="mt-1 text-sm text-muted-foreground">Access is controlled by the organization RBAC model. There is no separate settings-level permission system.</p><div className="mt-5 rounded-lg border bg-muted/30 p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">Your role</p><p className="mt-1 text-lg font-semibold capitalize">{error ? "Unavailable" : memberRole ?? "Loading..."}</p></div></section>;
 }
 
 function PermissionList() {
