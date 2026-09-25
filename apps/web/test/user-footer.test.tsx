@@ -76,7 +76,7 @@ describe("UserFooter", () => {
     await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }));
 
     const settings = await screen.findByRole("menuitem", { name: "Settings" });
-    expect(settings).toHaveAttribute("href", "/$organizationSlug");
+    expect(settings).toHaveAttribute("href", "/$organizationSlug/settings");
     expect(screen.getByRole("menuitem", { name: "Log out" })).toBeInTheDocument();
   });
 
