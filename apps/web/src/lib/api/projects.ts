@@ -11,11 +11,16 @@ export type Project = {
 
 export type ProjectTask = {
   id: string;
+  sequenceId: number;
   name: string;
   description: string | null;
   priority: string;
   statusId: string;
+  startDate: string | null;
   targetDate: string | null;
+  taskAssignees?: Array<{ id: string; kind: "member" | "agent"; memberId: string | null; agentId: string | null }>;
+  taskLabels?: Array<{ id: string; taskId: string; labelId: string }>;
+  milestoneTasks?: Array<{ id: string; milestoneId: string; taskId: string }>;
 };
 
 export type TaskPriority = "urgent" | "high" | "medium" | "low" | "none";
