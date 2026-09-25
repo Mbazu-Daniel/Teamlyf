@@ -1,53 +1,41 @@
 import { Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { ActionPill } from "./action-pill";
+import { IconArrowDownRight, IconSparkles } from "@tabler/icons-react";
 import { HeroCards } from "./hero-cards";
 
-/**
- * Centred hero over a floating product collage, lit by the brand aurora.
- * The copy column carries the reveal; the collage columns carry the offsets,
- * so the two never fight over `transform`.
- */
 export function Hero() {
   return (
-    <section className="relative px-4 pt-32 pb-20 sm:pt-40 sm:pb-28">
-      <div className="aurora" aria-hidden="true" />
+    <section className="landing-hero relative px-4 pb-16 pt-32 sm:px-6 sm:pb-24 sm:pt-40">
+      <div className="landing-orb landing-orb-one" aria-hidden="true" />
+      <div className="landing-orb landing-orb-two" aria-hidden="true" />
 
-      <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
-        <span
-          className="reveal reveal-y rounded-full border border-border bg-card/80 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur-sm"
-          style={{ animationDelay: "0ms" }}
-        >
-          One login for every module
-        </span>
+      <div className="relative mx-auto max-w-5xl text-center">
+        <div className="landing-reveal inline-flex items-center gap-2 rounded-full border border-[var(--landing-line)] bg-white/70 px-3.5 py-1.5 text-sm font-medium text-[var(--landing-muted)] shadow-sm backdrop-blur-sm">
+          <IconSparkles className="size-3.5" aria-hidden="true" />
+          One place for the way your team works
+        </div>
 
-        <h1
-          className="reveal reveal-y mt-7 text-4xl leading-[1.02] tracking-[-0.03em] text-balance sm:text-5xl lg:text-6xl"
-          style={{ animationDelay: "60ms" }}
-        >
-          Projects, chat, docs, and AI agents in one place.
+        <h1 className="landing-reveal landing-reveal-delay-1 mx-auto mt-7 max-w-4xl text-balance text-5xl font-semibold leading-[0.98] tracking-[-0.045em] text-[var(--landing-ink)] sm:text-6xl lg:text-7xl">
+          Everything your team needs. <span className="landing-accent">Finally together.</span>
         </h1>
 
-        <p
-          className="reveal reveal-y mt-6 max-w-[52ch] text-xl leading-relaxed text-balance text-muted-foreground"
-          style={{ animationDelay: "120ms" }}
-        >
-          Teamlyf is one project management workspace. It holds tasks, chat, notes, HR, calls, and
-          AI agents. Your team stops switching tools.
+        <p className="landing-reveal landing-reveal-delay-2 mx-auto mt-6 max-w-2xl text-pretty text-lg leading-7 text-[var(--landing-muted)] sm:text-xl">
+          Projects, chat, documents, notes, HR, calls, and AI agents in one organization. Teamlyf keeps the work, the people, and the context connected.
         </p>
 
-        <div
-          className="reveal reveal-y mt-9 flex flex-wrap items-center justify-center gap-3"
-          style={{ animationDelay: "180ms" }}
-        >
-          <ActionPill render={<Link to="/sign-up" />}>Get started</ActionPill>
-          <Button render={<a href="#features" />} variant="outline" size="lg">
-            See how it works
-          </Button>
+        <div className="landing-reveal landing-reveal-delay-3 mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Link to="/sign-up" className="landing-dark-button inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
+            Start building
+            <span className="grid size-6 place-items-center rounded-full bg-white/15">
+              <IconArrowDownRight className="size-3.5" aria-hidden="true" />
+            </span>
+          </Link>
+          <a href="#product" className="inline-flex items-center rounded-full border border-[var(--landing-line)] bg-white/65 px-6 py-3 text-sm font-semibold text-[var(--landing-ink)] transition-all hover:-translate-y-0.5 hover:bg-white">
+            See the workspace
+          </a>
         </div>
       </div>
 
-      <div className="relative mx-auto mt-20 max-w-5xl sm:mt-24">
+      <div className="landing-reveal landing-reveal-delay-4 relative mx-auto mt-16 max-w-6xl sm:mt-20">
         <HeroCards />
       </div>
     </section>
