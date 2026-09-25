@@ -24,8 +24,8 @@ type WorkspaceSwitcherProps = Readonly<{ collapsed: boolean }>;
 
 /**
  * Shows the active workspace and lists the member's other workspaces.
- * Picking one persists it under `teamlyf:organization-id` (the key
- * OrganizationProvider restores from) and reloads the new workspace's data.
+ * Picking one persists it for the signed-in user, and OrganizationProvider restores
+ * it on the next login without forcing the workspace picker again.
  */
 export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
   const navigate = useNavigate();
