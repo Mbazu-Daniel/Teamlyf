@@ -25,9 +25,9 @@ export function HeroCards() {
   return (
     <div className="landing-product-shell">
       <div className="flex items-center gap-2 border-b border-[var(--landing-line)] px-4 py-3 sm:px-5">
-        <span className="size-2.5 rounded-full bg-[#ff6b6b]" />
-        <span className="size-2.5 rounded-full bg-[#f7c948]" />
-        <span className="size-2.5 rounded-full bg-[#51cf66]" />
+        <span className="size-2.5 rounded-full bg-[var(--landing-red)]" />
+        <span className="size-2.5 rounded-full bg-[var(--landing-yellow)]" />
+        <span className="size-2.5 rounded-full bg-[var(--landing-green)]" />
         <div className="ml-3 flex-1 rounded-full bg-[var(--landing-soft)] px-3 py-1.5 text-[10px] text-[var(--landing-muted)]">teamlyf / Acme / projects</div>
       </div>
 
@@ -75,7 +75,7 @@ export function HeroCards() {
             <div className="space-y-3">
               <div className="landing-mini-card">
                 <div className="flex items-center justify-between"><span className="text-[10px] font-semibold text-[var(--landing-ink)]">Team activity</span><IconMessage className="size-3.5 text-[var(--landing-muted)]" /></div>
-                <div className="mt-4 h-20 flex items-end gap-1.5">
+                <div className="mt-4 flex h-20 items-end gap-1.5">
                   {[35, 52, 43, 68, 56, 82, 72].map((height, index) => <span key={index} className="flex-1 rounded-t bg-[var(--landing-chart)]" style={{ height: `${height}%` }} />)}
                 </div>
               </div>
