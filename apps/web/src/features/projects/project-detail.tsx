@@ -133,7 +133,7 @@ export function ProjectDetailPage({
 
               <div className="p-3 sm:p-4">
                 {view === "list" ? (
-                  <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} />
+                  <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={state.deleteTask} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
                 ) : (
                   <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} />
                 )}
