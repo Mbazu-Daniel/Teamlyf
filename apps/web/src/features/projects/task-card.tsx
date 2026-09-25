@@ -12,7 +12,11 @@ export function TaskCard({
   onSelect: (task: ProjectTask) => void;
 }) {
   return (
-    <article className="rounded-lg border bg-background p-3">
+    <article
+      draggable
+      onDragStart={(event) => event.dataTransfer.setData("text/plain", task.id)}
+      className="cursor-grab rounded-xl border bg-background p-3 shadow-sm transition hover:border-primary/40 hover:shadow-md active:cursor-grabbing"
+    >
       <button
         type="button"
         onClick={() => onSelect(task)}
@@ -20,7 +24,7 @@ export function TaskCard({
       >
         {task.name}
       </button>
-      <p className="mt-1 text-xs text-muted-foreground">{task.priority}</p>
+      <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">\n        <span className="rounded-full bg-muted px-2 py-0.5 font-medium">{task.priority}</span>\n        {task.targetDate && <span>{new Date(task.targetDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}\n      </div>
       <select
         value={task.statusId}
         onChange={(event) => void onMove(task, event.target.value)}
