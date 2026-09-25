@@ -10,6 +10,7 @@ type ProjectDetailPageProps = {
   project: Project;
   state: ProjectPageState;
   organizationId: string;
+  organizationSlug: string;
   selectedTaskId: string | null;
   onSelectTask: (task: ProjectTask) => void;
   onCloseTask: () => void;
@@ -19,13 +20,15 @@ export function ProjectDetailPage({
   project,
   state,
   organizationId,
+  organizationSlug,
   selectedTaskId,
   onSelectTask,
   onCloseTask,
 }: ProjectDetailPageProps) {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <Link to="/projects" className="text-sm text-muted-foreground hover:text-foreground">
+      <Link to="/$organizationSlug/projects"
+        params={{ organizationSlug }} className="text-sm text-muted-foreground hover:text-foreground">
         ← Projects
       </Link>
       <header className="mt-6">
