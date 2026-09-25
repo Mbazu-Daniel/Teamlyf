@@ -1,7 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { client, getOrganizations, type Organization } from "./api";
+import { useSession } from "./session";
 
-const ORG_STORAGE_KEY = "teamlyf:organization-id";
+const ORG_STORAGE_PREFIX = "teamlyf:last-organization-id:";
+
+function organizationStorageKey(userId: string) {
+  return `${ORG_STORAGE_PREFIX}${userId}`;
+}
 
 type OrganizationContextValue = {
   organization: Organization | null;
@@ -46,7 +51,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [session, sessionPending]);
 
   const value = useMemo<OrganizationContextValue>(
     () => ({
@@ -54,7 +59,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       organizations,
       bootstrapped,
       selectOrganization: (next) => {
-        localStorage.setItem(ORG_STORAGE_KEY, next.id);
+        const userId = session?.user?.id;\n        if (userId) localStorage.setItem(organizationStorageKey(userId), next.id);
         setOrganization(next);
         setOrganizations((current) => {
           const exists = current.some((item) => item.id === next.id);
@@ -71,7 +76,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         setOrganizations(next);
         const match = next.find((item) => organizationSlug(item) === slug || item.id === slug) ?? null;
         if (match) {
-          localStorage.setItem(ORG_STORAGE_KEY, match.id);
+          const userId = session?.user?.id;\n          if (userId) localStorage.setItem(organizationStorageKey(userId), match.id);
           setOrganization(match);
         }
         return match;
@@ -82,7 +87,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         setOrganizations([]);
       },
     }),
-    [organization, organizations, bootstrapped],
+    [organization, organizations, bootstrapped, session?.user?.id],
   );
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
