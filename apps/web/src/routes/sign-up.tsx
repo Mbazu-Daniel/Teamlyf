@@ -17,6 +17,7 @@ function SignUp() {
   const { error, pending, submit } = usePasswordAuth(
     (credentials) => signUpEmail(credentials),
     "We could not create your account.",
+    "/workspaces",
   );
 
   return (
@@ -50,8 +51,8 @@ function SignUp() {
           </p>
         )}
 
-        <Button className="w-full" type="submit" disabled={pending}>
-          {pending ? "Creating account..." : "Create account"}
+        <Button className="w-full" size="lg" type="submit" disabled={pending}>
+          {pending ? "Creating your account..." : "Create your account"}
         </Button>
       </form>
 
@@ -59,7 +60,7 @@ function SignUp() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/sign-in" className="font-bold text-foreground">
+        <Link to="/sign-in" className="font-bold text-foreground underline-offset-4 hover:underline">
           Sign in
         </Link>
       </p>
