@@ -114,7 +114,7 @@ export function KanbanBoard({
   tasks: ProjectTask[];
   onMove: (task: ProjectTask, statusId: string) => void;
   onSelect: (task: ProjectTask) => void;
-  onAddTask?: (statusId: string) => void;
+  onAddTask?: (statusId: string) => void;\n  onDelete?: (task: ProjectTask) => void;\n  onDuplicate?: (task: ProjectTask) => void;
 }) {
   return (
     <div className="flex min-h-[420px] gap-3 overflow-x-auto pb-2">
