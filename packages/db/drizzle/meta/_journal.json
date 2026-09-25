@@ -11,6 +11,9 @@
     {"idx": 6, "version": "7", "when": 1789750800000, "tag": "0006_organization_hr", "breakpoints": true},
     {"idx": 7, "version": "7", "when": 1789754400000, "tag": "0007_organization_billing", "breakpoints": true},
     {"idx": 8, "version": "7", "when": 1789758000000, "tag": "0008_organization_agents", "breakpoints": true},
+    {"idx": 9, "version": "7", "when": 1789761600000, "tag": "0009_organization_chat", "breakpoints": true},
+    {"idx": 10, "version": "7", "when": 1790220000000, "tag": "0010_plan_entitlement_agent_limit", "breakpoints": true},
+    {"idx": 11, "version": "7", "when": 1790223600000, "tag": "0011_project_status_integrity", "breakpoints": true}
     {"idx": 10, "version": "7", "when": 1790220000000, "tag": "0010_plan_entitlement_agent_limit", "breakpoints": true},
     {"idx": 11, "version": "7", "when": 1790223600000, "tag": "0011_project_status_integrity", "breakpoints": true},
     {"idx": 12, "version": "7", "when": 1790400000000, "tag": "0012_note_task_channel_read", "breakpoints": true}
