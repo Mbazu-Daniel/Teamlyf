@@ -94,6 +94,24 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
   });
 
+  const addMilestoneTaskMutation = useMutation({
+    mutationFn: (input: { milestoneId: string; taskId: string }) =>
+      milestonesApi.createMilestoneTask(organizationKey, projectId, input.milestoneId, input.taskId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: milestonesKey });
+      queryClient.invalidateQueries({ queryKey: tasksKey });
+    },
+  });
+
+  const removeMilestoneTaskMutation = useMutation({
+    mutationFn: (input: { milestoneId: string; taskId: string }) =>
+      milestonesApi.deleteMilestoneTask(organizationKey, projectId, input.milestoneId, input.taskId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: milestonesKey });
+      queryClient.invalidateQueries({ queryKey: tasksKey });
+    },
+  });
+
   const moveTaskMutation = useMutation({
     mutationFn: (input: MoveTaskInput) =>
       projectsApi.moveTask(organizationKey, projectId, input.taskId, input.statusId),
@@ -155,6 +173,8 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     createMilestone: createMilestoneMutation.mutate,
     updateMilestone: updateMilestoneMutation.mutate,
     deleteMilestone: deleteMilestoneMutation.mutate,
+    addTaskToMilestone: addMilestoneTaskMutation.mutate,
+    removeTaskFromMilestone: removeMilestoneTaskMutation.mutate,
   };
 }
 
