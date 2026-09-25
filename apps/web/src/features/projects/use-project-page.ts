@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { projectsApi, statusesApi, type ProjectTask, type Status } from "@/lib/api";
+import { milestonesApi, projectsApi, statusesApi, type Milestone, type ProjectTask, type Status } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -18,6 +18,7 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
   const projectKey = queryKeys.project(organizationKey, projectId);
   const statusesKey = queryKeys.statuses(organizationKey, projectId);
   const tasksKey = queryKeys.tasks(organizationKey, projectId);
+  const milestonesKey = queryKeys.milestones(organizationKey, projectId);
 
   const projectQuery = useQuery({
     queryKey: projectKey,
@@ -40,6 +41,13 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     retry: false,
   });
 
+  const milestonesQuery = useQuery({
+    queryKey: milestonesKey,
+    queryFn: () => milestonesApi.getMilestones(organizationKey, projectId),
+    enabled,
+    retry: false,
+  });
+
   const createTaskMutation = useMutation({
     mutationFn: (input: CreateTaskInput) =>
       projectsApi.createTask(organizationKey, projectId, input),
@@ -48,6 +56,31 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
       queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  const createMilestoneMutation = useMutation({
+    mutationFn: (input: { name: string; description?: string; startDate?: string; targetDate?: string }) =>
+      milestonesApi.createMilestone(organizationKey, projectId, input),
+    onSuccess: (milestone) => {
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) => [milestone, ...(current ?? [])]);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
+  });
+
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: (milestoneId: string) => milestonesApi.deleteMilestone(organizationKey, projectId, milestoneId),
+    onMutate: async (milestoneId) => {
+      await queryClient.cancelQueries({ queryKey: milestonesKey });
+      const previous = queryClient.getQueryData<Milestone[]>(milestonesKey);
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) =>
+        (current ?? []).filter((milestone) => milestone.id !== milestoneId),
+      );
+      return { previous };
+    },
+    onError: (_error, _milestoneId, context) => {
+      if (context?.previous) queryClient.setQueryData(milestonesKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
   });
 
   const moveTaskMutation = useMutation({
@@ -85,6 +118,8 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
 
   const error =
     getErrorMessage(createTaskMutation.error, "Unable to create task") ??
+    getErrorMessage(createMilestoneMutation.error, "Unable to create milestone") ??
+    getErrorMessage(deleteMilestoneMutation.error, "Unable to update milestones") ??
     getErrorMessage(moveTaskMutation.error, "Unable to update task") ??
     getErrorMessage(
       projectQuery.error ?? statusesQuery.error ?? tasksQuery.error,
@@ -95,6 +130,8 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     project: projectQuery.data ?? null,
     statuses,
     tasks: tasksQuery.data ?? [],
+    milestones: milestonesQuery.data ?? [],
+    milestonesLoading: milestonesQuery.isLoading,
     name,
     statusId: selectedStatusId,
     loading: createTaskMutation.isPending,
@@ -103,6 +140,8 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     setStatusId,
     createTask,
     moveTask,
+    createMilestone: createMilestoneMutation.mutate,
+    deleteMilestone: deleteMilestoneMutation.mutate,
   };
 }
 
