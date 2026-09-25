@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { IconArrowUpRight, IconCheck, IconFolder, IconSparkles } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
+import { useOrganization } from "@/lib/organization";
 import { ErrorMessage, MutedMessage } from "./feedback";
 
 type ProjectsState = ReturnType<typeof import("./hooks").useProjects>;
@@ -13,6 +14,8 @@ export function ProjectListPage({
   state: ProjectsState;
 }) {
   const featuredProject = state.projects[0];
+  const { organization } = useOrganization();
+  const organizationSlug = organization?.slug || organization?.id;
 
   return (
     <main className="min-h-full bg-background px-4 py-6 sm:px-6 lg:px-8">
@@ -26,13 +29,15 @@ export function ProjectListPage({
           </div>
           <div className="flex items-center gap-2">
             <Link
-              to="/"
+              to={organizationSlug ? "/$organizationSlug" : "/"}
+              params={organizationSlug ? { organizationSlug } : undefined}
               className="rounded-full border px-3.5 py-2 text-xs font-semibold transition hover:bg-muted"
             >
               Home
             </Link>
             <Link
-              to="/settings"
+              to="/$organizationSlug/settings"
+              params={{ organizationSlug: organizationSlug ?? "" }}
               className="rounded-full border px-3.5 py-2 text-xs font-semibold transition hover:bg-muted"
             >
               Settings
@@ -164,25 +169,25 @@ function ProjectForm({
   );
 }
 
-function ProjectListContent({ state }: { state: ProjectsState }) {
-  return <div className="grid gap-2">{<ProjectListState state={state} />}</div>;
+function ProjectListContent({ state, organizationSlug }: { state: ProjectsState; organizationSlug?: string }) {
+  return <div className="grid gap-2">{<ProjectListState state={state} organizationSlug={organizationSlug} />}</div>;
 }
 
-function ProjectListState({ state }: { state: ProjectsState }) {
+function ProjectListState({ state, organizationSlug }: { state: ProjectsState; organizationSlug?: string }) {
   if (state.projectsLoading) return <MutedMessage message="Loading projects..." />;
   if (!state.projects.length)
     return <MutedMessage message="No projects yet. Create the first one below." />;
-  return <ProjectCards projects={state.projects} />;
+  return <ProjectCards projects={state.projects} organizationSlug={organizationSlug} />;
 }
 
-function ProjectCards({ projects }: { projects: Project[] }) {
+function ProjectCards({ projects, organizationSlug }: { projects: Project[]; organizationSlug?: string }) {
   return (
     <>
       {projects.map((project) => (
         <Link
           key={project.id}
-          to="/projects/$projectId"
-          params={{ projectId: project.id }}
+          to="/$organizationSlug/projects/$projectId"
+          params={{ organizationSlug: organizationSlug ?? "", projectId: project.id }}
           className="group flex items-center gap-3 rounded-xl border p-3 transition hover:border-primary/40 hover:bg-muted/40"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
