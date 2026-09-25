@@ -1,9 +1,31 @@
 {
+  "settings": {
+    "shadcn": {
+      "ui": "@/components/ui"
+    }
+  },
   "ignorePatterns": [
     "**/node_modules/**",
     "**/dist/**",
     "**/.output/**",
     "**/.tanstack/**",
     "**/routeTree.gen.ts"
-  ]
+  ],
+  "jsPlugins": [
+    "@shadcn/lint"
+  ],
+  "rules": {
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "allow": ["layout"],
+        "contracts": [
+          {
+            "pattern": "^DialogContent$",
+            "allow": ["layout", "rounded-none", "border-y-0", "border-r-0"]
+          }
+        ]
+      }
+    ]
+  }
 }
