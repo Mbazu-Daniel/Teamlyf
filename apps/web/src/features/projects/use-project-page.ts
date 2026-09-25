@@ -68,8 +68,8 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
   });
 
   const updateMilestoneMutation = useMutation({
-    mutationFn: (input: { milestoneId: string; name?: string; description?: string; status?: import("@/lib/api").MilestoneStatus; startDate?: string; targetDate?: string }) =>
-      milestonesApi.updateMilestone(organizationKey, projectId, input.milestoneId, input),
+    mutationFn: ({ milestoneId, ...input }: { milestoneId: string; name?: string; description?: string; status?: import("@/lib/api").MilestoneStatus; startDate?: string; targetDate?: string }) =>
+      milestonesApi.updateMilestone(organizationKey, projectId, milestoneId, input),
     onSuccess: (updated) => {
       queryClient.setQueryData<Milestone[]>(milestonesKey, (current) =>
         (current ?? []).map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
