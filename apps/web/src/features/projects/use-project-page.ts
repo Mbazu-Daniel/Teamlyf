@@ -34,21 +34,21 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
   const statusesQuery = useQuery({
     queryKey: statusesKey,
     queryFn: () => statusesApi.getStatuses(organizationKey, projectId),
-    enabled,
+    enabled: projectEnabled,
     retry: false,
   });
 
   const tasksQuery = useQuery({
     queryKey: tasksKey,
     queryFn: () => projectsApi.getTasks(organizationKey, projectId),
-    enabled,
+    enabled: projectEnabled,
     retry: false,
   });
 
   const milestonesQuery = useQuery({
     queryKey: milestonesKey,
     queryFn: () => milestonesApi.getMilestones(organizationKey, projectId),
-    enabled,
+    enabled: projectEnabled,
     retry: false,
   });
 
