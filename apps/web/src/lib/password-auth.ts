@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useResetSession } from "./session";
-import { getOrganizations } from "./api";
+import { getOrganizations, getSession } from "./api";
 
 function credentials(form: FormData): { email: string; password: string } {
   return {
