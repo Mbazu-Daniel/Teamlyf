@@ -3,6 +3,7 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { NAV_SECTIONS, isNavItemActive, type NavItem } from "./nav-items";
 import { Brand } from "@/components/ui/brand";
 import { cn } from "@/lib/utils";
+import { useOrganization } from "@/lib/organization";
 
 type AppSidebarProps = Readonly<{ collapsed: boolean; onToggle: () => void }>;
 
@@ -20,13 +21,14 @@ function navLinkClass(active: boolean, collapsed: boolean) {
 function NavItemLink({
   item,
   active,
+  href,
   collapsed,
-}: Readonly<{ item: NavItem; active: boolean; collapsed: boolean }>) {
+}: Readonly<{ item: NavItem; active: boolean; collapsed: boolean; href: string }>) {
   const Icon = item.icon;
   const label = collapsed ? undefined : item.label;
 
   return (
-    <Link to={item.to} title={label} className={navLinkClass(active, collapsed)}>
+    <Link to={href} title={label} className={navLinkClass(active, collapsed)}>
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       {label && <span className="truncate">{item.label}</span>}
     </Link>
@@ -55,6 +57,8 @@ function CollapseToggle({ collapsed, onToggle }: Readonly<{ collapsed: boolean; 
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { pathname } = useLocation();
+  const { organization } = useOrganization();
+  const organizationSlug = organization?.slug || organization?.id || "";
 
   return (
     <aside
@@ -75,7 +79,8 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               <NavItemLink
                 key={item.id}
                 item={item}
-                active={isNavItemActive(pathname, item.to)}
+                active={isNavItemActive(pathname, item.to ? `/${organizationSlug}/${item.to}` : `/${organizationSlug}`)}
+                href={item.to ? `/${organizationSlug}/${item.to}` : `/${organizationSlug}`}
                 collapsed={collapsed}
               />
             ))}
