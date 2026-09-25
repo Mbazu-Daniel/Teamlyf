@@ -16,6 +16,11 @@ export class CreateNoteDto {
   @IsOptional()
   @IsUUID()
   parentId?: string;
+
+  @ApiPropertyOptional({ description: "Task this note is linked to" })
+  @IsOptional()
+  @IsUUID()
+  taskId?: string;
 }
 
 export class UpdateNoteDto {
@@ -34,4 +39,9 @@ export class UpdateNoteDto {
   @IsOptional()
   @IsUUID()
   parentId?: string | null;
+
+  @ApiPropertyOptional({ nullable: true, description: "Task this note is linked to" })
+  @IsOptional()
+  @IsUUID()
+  taskId?: string | null;
 }
