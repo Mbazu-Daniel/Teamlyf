@@ -1,4 +1,4 @@
-import { IconCalendar, IconFlag, IconMilestone } from "@tabler/icons-react";
+import { IconCalendar, IconFlag, IconTarget } from "@tabler/icons-react";
 import type { ProjectTask, Status } from "@/lib/api";
 
 const priorityTone: Record<string, string> = {
