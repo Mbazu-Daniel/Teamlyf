@@ -11,7 +11,7 @@ export function Navbar() {
     <header className="landing-nav fixed inset-x-0 top-0 z-30">
       <nav aria-label="Primary" className="mx-auto flex h-[72px] max-w-6xl items-center px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-2.5" aria-label="Teamlyf home">
-          <span className="grid size-8 place-items-center rounded-[10px] bg-[var(--landing-ink)] text-sm font-bold text-[var(--landing-ink)]">T</span>
+          <span className="grid size-8 place-items-center rounded-[10px] bg-[var(--landing-primary)] text-sm font-bold text-[var(--text-50)]">T</span>
           <span className="text-base font-bold tracking-[-0.02em] text-[var(--landing-ink)]">Teamlyf</span>
         </Link>
 
