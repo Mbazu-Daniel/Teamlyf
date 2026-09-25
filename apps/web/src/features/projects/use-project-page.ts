@@ -62,6 +62,25 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   });
 
+
+  const duplicateTaskMutation = useMutation({
+    mutationFn: (task: ProjectTask) => projectsApi.createTask(organizationKey, projectId, { name: task.name + " (copy)", statusId: task.statusId }),
+    onSuccess: (task) => queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: string) => projectsApi.deleteTask(organizationKey, projectId, taskId),
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: tasksKey });
+      const previous = queryClient.getQueryData<ProjectTask[]>(tasksKey);
+      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => (current ?? []).filter((task) => task.id !== taskId));
+      return { previous };
+    },
+    onError: (_error, _taskId, context) => { if (context?.previous) queryClient.setQueryData(tasksKey, context.previous); },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
   const createMilestoneMutation = useMutation({
     mutationFn: (input: { name: string; description?: string; startDate?: string; targetDate?: string }) =>
       milestonesApi.createMilestone(organizationKey, projectId, input),
@@ -151,6 +170,8 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
 
   const error =
     getErrorMessage(createTaskMutation.error, "Unable to create task") ??
+    getErrorMessage(duplicateTaskMutation.error, "Unable to duplicate task") ??
+    getErrorMessage(deleteTaskMutation.error, "Unable to delete task") ??
     getErrorMessage(createMilestoneMutation.error, "Unable to create milestone") ??
     getErrorMessage(updateMilestoneMutation.error, "Unable to update milestone") ??
     getErrorMessage(deleteMilestoneMutation.error, "Unable to update milestones") ??
@@ -174,6 +195,8 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
     setStatusId,
     createTask,
     moveTask,
+    duplicateTask: duplicateTaskMutation.mutate,
+    deleteTask: deleteTaskMutation.mutate,
     createMilestone: createMilestoneMutation.mutate,
     updateMilestone: updateMilestoneMutation.mutate,
     deleteMilestone: deleteMilestoneMutation.mutate,
