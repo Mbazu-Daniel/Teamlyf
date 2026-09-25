@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useResetSession } from "./session";
 import { getOrganizations, getSession } from "./api";
+import { useResetSession } from "./session";
 
 function credentials(form: FormData): { email: string; password: string } {
   return {
@@ -12,16 +12,13 @@ function credentials(form: FormData): { email: string; password: string } {
 
 /**
  * Shared email+password submit flow for the sign-in and sign-up routes.
- * `authenticate` performs the API call; `fallbackError` is shown when it rejects
- * with something that carries no message of its own; `destination` is where the
- * account lands — sign-up drops straight into the workspace step that starts
- * onboarding, while sign-in opens the app and lets the guard forward accounts
- * that have no workspace yet to the same picker.
+ * Explicit destinations are used for onboarding. Normal sign-in restores the
+ * user's last workspace and only opens the picker when none is remembered.
  */
 export function usePasswordAuth(
   authenticate: (credentials: { email: string; password: string }) => Promise<unknown>,
   fallbackError: string,
-  destination: "/projects" | "/workspaces" | null = null,
+  destination: "/workspaces" | null = null,
 ) {
   const navigate = useNavigate();
   const resetSession = useResetSession();
@@ -33,11 +30,36 @@ export function usePasswordAuth(
     const form = new FormData(event.currentTarget);
     setError("");
     setPending(true);
+
     try {
       await authenticate(credentials(form));
-      // The guard caches the previous answer; drop it or it bounces us back here.
       resetSession();
-      await navigate({ to: destination });
+
+      if (destination) {
+        await navigate({ to: destination });
+        return;
+      }
+
+      const session = await getSession();
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        await navigate({ to: "/workspaces" });
+        return;
+      }
+
+      const organizations = await getOrganizations();
+      const savedId = localStorage.getItem("teamlyf:last-organization-id:" + userId);
+      const savedOrganization = organizations.find((organization) => organization.id === savedId);
+
+      if (savedOrganization) {
+        await navigate({
+          to: "/$organizationSlug/projects",
+          params: { organizationSlug: savedOrganization.slug || savedOrganization.id },
+        });
+      } else {
+        await navigate({ to: "/workspaces" });
+      }
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : fallbackError);
     } finally {
