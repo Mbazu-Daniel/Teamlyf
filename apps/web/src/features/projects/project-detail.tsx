@@ -164,8 +164,8 @@ function ViewButton({
 }: {
   active: boolean;
   onClick: () => void;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  icon: ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button type="button" onClick={onClick} className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-semibold transition ${active ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
