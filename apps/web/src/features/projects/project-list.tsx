@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { IconArrowUpRight, IconCheck, IconFolder, IconSparkles } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
+import { slugify } from "@/lib/slug";
 import { ErrorMessage, MutedMessage } from "./feedback";
 
 type ProjectsState = ReturnType<typeof import("./hooks").useProjects>;
@@ -186,7 +187,7 @@ function ProjectCards({ projects, organizationSlug }: { projects: Project[]; org
         <Link
           key={project.id}
           to="/$organizationSlug/projects/$projectId"
-          params={{ organizationSlug: organizationSlug ?? "", projectId: project.id }}
+          params={{ organizationSlug: organizationSlug ?? "", projectId: slugify(project.name) }}
           className="group flex items-center gap-3 rounded-xl border p-3 transition hover:border-primary/40 hover:bg-muted/40"
         >
           <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
