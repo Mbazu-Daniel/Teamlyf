@@ -18,6 +18,7 @@ export type Milestone = {
   startDate: string | null;
   targetDate: string | null;
   createdById: string;
+  milestoneTasks?: MilestoneTask[];
 };
 
 export type MilestoneTask = {
