@@ -5,7 +5,7 @@ import { getSession } from "./api";
 import { queryKeys } from "./queryKeys";
 
 /** Single session read shared by every guard and by ownership checks (task comments), cached for a minute. */
-function useSession() {
+export function useSession() {
   return useQuery({
     queryKey: queryKeys.session,
     queryFn: getSession,

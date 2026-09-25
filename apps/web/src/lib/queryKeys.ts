@@ -16,4 +16,14 @@ export const queryKeys = {
     ["organizations", organizationId, "projects", projectId, "statuses"] as const,
   tasks: (organizationId: string, projectId: string) =>
     ["organizations", organizationId, "projects", projectId, "tasks"] as const,
+  task: (organizationId: string, projectId: string, taskId: string) =>
+    ["organizations", organizationId, "projects", projectId, "tasks", taskId] as const,
+  labels: (organizationId: string, projectId: string) =>
+    ["organizations", organizationId, "projects", projectId, "labels"] as const,
+  milestones: (organizationId: string, projectId: string) =>
+    ["organizations", organizationId, "projects", projectId, "milestones"] as const,
+  comments: (organizationId: string, projectId: string, taskId: string) =>
+    ["organizations", organizationId, "projects", projectId, "tasks", taskId, "comments"] as const,
+  activity: (organizationId: string, projectId: string, taskId: string) =>
+    ["organizations", organizationId, "projects", projectId, "tasks", taskId, "activity"] as const,
 } as const;

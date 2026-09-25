@@ -5,3 +5,8 @@ export * from "./auth";
 export * from "./organizations";
 export * from "./projects";
 export * from "./settings";
+export * from "./statuses";
+export * from "./labels";
+export * from "./milestones";
+export * from "./comments";
+export * from "./task-activity";
