@@ -17,7 +17,8 @@ import {
   RequirePermission,
 } from "../../rbac";
 import type { SessionMember } from "../../../common/types";
-import { CreateTaskDto, UpdateTaskDto } from "../dto";
+import { ReorderDto } from "../dto";
+import { CreateTaskDto, UpdateTaskDto } from "./dto";
 import { TaskService } from "./task.service";
 
 @ApiTags("Tasks")
@@ -43,7 +44,7 @@ export class TaskController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List tasks" })
+  @ApiOperation({ summary: "Get tasks" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "projectId" })
   getTasks(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {
@@ -76,6 +77,19 @@ export class TaskController {
     @Param("taskId") taskId: string,
   ) {
     return this.taskService.getTask(orgId, projectId, taskId);
+  }
+
+  @Patch("reorder")
+  @RequirePermission("pm", "update", "projectId")
+  @ApiOperation({ summary: "Reorder tasks; ids are ranked top-to-bottom" })
+  @ApiParam({ name: "orgId" })
+  @ApiParam({ name: "projectId" })
+  reorderTasks(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Body() body: ReorderDto,
+  ) {
+    return this.taskService.reorderTasks(orgId, projectId, body.ids);
   }
 
   @Patch(":taskId")

@@ -32,7 +32,7 @@ export const aiProviderConfig = pgTable(
     check("ai_provider_config_model_non_empty_check", sql`length(trim(${t.model})) > 0`),
     check(
       "ai_provider_config_byok_key_check",
-      sql`(${t.source} = 'byok' AND ${t.encryptedApiKey} IS NOT NULL) OR (${t.source} = 'teamlyf' AND ${t.encryptedApiKey} IS NULL)`,
+      sql`(${t.source} = 'byok' AND ${t.encryptedApiKey} IS NOT NULL) OR (${t.source} = 'managed' AND ${t.encryptedApiKey} IS NULL)`,
     ),
     check(
       "ai_provider_config_key_version_check",

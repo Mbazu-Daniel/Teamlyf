@@ -30,7 +30,7 @@ export function createAuth(options: CreateAuthOptions) {
     }),
     secret: options.secret,
     baseURL: options.baseURL,
-    trustedOrigins: [options.webOrigin],
+    trustedOrigins: options.webOrigin.split(",").map((origin) => origin.trim()).filter(Boolean),
     advanced: {
       database: {
         generateId,
@@ -55,6 +55,14 @@ export function createAuth(options: CreateAuthOptions) {
         ac,
         roles: { owner, admin, member },
         dynamicAccessControl: { enabled: true },
+    schema: {
+      member: {
+        additionalFields: {
+          firstName: { type: "string", required: false, returned: true, stored: true, input: true },
+          lastName: { type: "string", required: false, returned: true, stored: true, input: true },
+        },
+      },
+    },
         // ponytail: invitation IDs are uuidv7 (opaque, not guessable), so the verified-email
         // gate on by-ID invitation actions is not load-bearing yet and no email-verification
         // flow exists. Flip to `true` once email verification is wired.

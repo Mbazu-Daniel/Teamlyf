@@ -39,8 +39,8 @@ export class UpsertProviderConfigDto {
   @MinLength(1)
   model!: string;
 
-  @IsIn(["teamlyf", "byok"])
-  source!: "teamlyf" | "byok";
+  @IsIn(["managed", "byok"])
+  source!: "managed" | "byok";
 
   @IsOptional()
   @IsString()
@@ -60,8 +60,8 @@ export class RecordUsageDto {
   @MinLength(1)
   model!: string;
 
-  @IsIn(["teamlyf", "byok"])
-  source!: "teamlyf" | "byok";
+  @IsIn(["managed", "byok"])
+  source!: "managed" | "byok";
 
   @IsInt()
   @Min(0)

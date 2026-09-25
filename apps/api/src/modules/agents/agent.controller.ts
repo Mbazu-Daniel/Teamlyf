@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
@@ -23,8 +23,8 @@ export class AgentController {
 
   @Get()
   @RequirePermission("agents", "read")
-  list(@Param("orgId") organizationId: string) {
-    return this.agents.list(organizationId);
+  getAgents(@Param("orgId") organizationId: string) {
+    return this.agents.getAgents(organizationId);
   }
 
   @Post()
@@ -57,13 +57,13 @@ export class AgentController {
   @Get(":agentId/runs")
   @RequirePermission("agents", "read")
   runs(@Param("orgId") organizationId: string, @Param("agentId") agentId: string) {
-    return this.agents.listRuns(organizationId, agentId);
+    return this.agents.getAgentRuns(organizationId, agentId);
   }
 
   @Get("provider-configs")
   @RequirePermission("agents", "read")
   providers(@Param("orgId") organizationId: string) {
-    return this.agents.listProviderConfigs(organizationId);
+    return this.agents.getProviderConfigs(organizationId);
   }
 
   @Post("provider-configs")
@@ -81,7 +81,7 @@ export class AgentController {
     @Param("orgId") organizationId: string,
     @CurrentMember() member: SessionMember,
   ) {
-    return this.agents.listUsage(organizationId, member.id);
+    return this.agents.getAgentUsage(organizationId, member.id);
   }
 
   @Post("usage")
@@ -92,5 +92,30 @@ export class AgentController {
     @Body() body: RecordUsageDto,
   ) {
     return this.agents.recordUsage(organizationId, member.id, body);
+  }
+
+  @Delete("provider-configs/:configId")
+  @RequirePermission("agents", "update")
+  deleteProviderConfig(
+    @Param("orgId") organizationId: string,
+    @Param("configId") configId: string,
+  ) {
+    return this.agents.deleteProviderConfig(organizationId, configId);
+  }
+
+  @Post(":agentId/runs/:runId/cancel")
+  @RequirePermission("agents", "update")
+  cancelRun(
+    @Param("orgId") organizationId: string,
+    @Param("agentId") agentId: string,
+    @Param("runId") runId: string,
+  ) {
+    return this.agents.cancelRun(organizationId, agentId, runId);
+  }
+
+  @Delete(":agentId")
+  @RequirePermission("agents", "delete")
+  deleteAgent(@Param("orgId") organizationId: string, @Param("agentId") agentId: string) {
+    return this.agents.deleteAgent(organizationId, agentId);
   }
 }

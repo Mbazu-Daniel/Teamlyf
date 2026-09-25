@@ -13,7 +13,7 @@ const { document, documentPermission, documentVersion } = documentsSchema;
 export class DocumentService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  async list(organizationId: string, memberId: string, page = 1, limit = 50) {
+  async getDocuments(organizationId: string, memberId: string, page = 1, limit = 50) {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(100, Math.max(1, limit));
     const permissions = await this.db.query.documentPermission.findMany({
@@ -130,6 +130,35 @@ export class DocumentService {
       set: { access: dto.access },
     }).returning();
     return created;
+  }
+
+  async getPermissions(organizationId: string, documentId: string, memberId: string) {
+    await this.requireReadable(organizationId, documentId, memberId);
+    return this.db.query.documentPermission.findMany({
+      where: eq(documentPermission.documentId, documentId),
+    });
+  }
+
+  async deletePermission(
+    organizationId: string,
+    documentId: string,
+    memberId: string,
+    subjectKind: string,
+    subjectId: string,
+  ) {
+    await this.requireWritable(organizationId, documentId, memberId);
+    const [deleted] = await this.db
+      .delete(documentPermission)
+      .where(
+        and(
+          eq(documentPermission.documentId, documentId),
+          eq(documentPermission.subjectKind, subjectKind),
+          eq(documentPermission.subjectId, subjectId),
+        ),
+      )
+      .returning();
+    if (!deleted) throw new NotFoundException("Document permission not found");
+    return deleted;
   }
 
   private async createVersion(documentId: string, memberId: string, title: string, content: string | null) {

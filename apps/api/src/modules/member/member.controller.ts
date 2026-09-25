@@ -1,30 +1,39 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { Request, Response as ExpressResponse } from "express";
 import { proxyBetterAuth } from "../../common/better-auth/better-auth-proxy";
+import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
+import { SessionGuard } from "../../common/better-auth/session.guard";
+import type { SessionMember } from "../../common/types";
+import { CurrentMember, OrgMemberGuard } from "../rbac";
+import { OrganizationPermissionService } from "../rbac/organization-permission.service";
 import { MemberService } from "./member.service";
 import {
   GetActiveMemberRoleQueryDto,
   LeaveOrganizationDto,
-  ListMembersQueryDto,
+  GetMembersQueryDto,
   RemoveMemberDto,
+  UpdateMemberProfileDto,
   UpdateMemberRoleDto,
 } from "./dto";
 
 @ApiTags("Organization Members")
 @Controller("organization/:orgId/members")
 export class MemberController {
-  constructor(private readonly memberService: MemberService) {}
+  constructor(
+    private readonly memberService: MemberService,
+    private readonly permissions: OrganizationPermissionService,
+  ) {}
 
   @Get()
-  @ApiOperation({ summary: "List members of an organization" })
+  @ApiOperation({ summary: "Get members of an organization" })
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Members returned" })
   @ApiResponse({ status: 400, description: "No active organization" })
   @ApiResponse({ status: 403, description: "Not a member of this organization" })
   async getMembers(
     @Param("orgId") orgId: string,
-    @Query() query: ListMembersQueryDto,
+    @Query() query: GetMembersQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
@@ -65,6 +74,21 @@ export class MemberController {
     return proxyBetterAuth(req, res, (headers) =>
       this.memberService.updateMemberRole(orgId, body, headers),
     );
+  }
+
+  @Patch("profile")
+  @UseGuards(SessionGuard, OrgMemberGuard)
+  @ApiOperation({ summary: "Update the current member's profile name" })
+  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiResponse({ status: 200, description: "Member name updated" })
+  @ApiResponse({ status: 401, description: "Not authenticated" })
+  @ApiResponse({ status: 403, description: "Not a member of this organization" })
+  async updateMemberProfile(
+    @Param("orgId") orgId: string,
+    @CurrentMember() current: SessionMember,
+    @Body() body: UpdateMemberProfileDto,
+  ) {
+    return this.memberService.updateProfile(orgId, current.id, body);
   }
 
   @Get("active")
@@ -111,5 +135,46 @@ export class MemberController {
     return proxyBetterAuth(req, res, (headers) =>
       this.memberService.leaveOrganization(orgId, body, headers),
     );
+  }
+
+  // Keep ":memberId" routes last: literal routes (profile, active, remove, ...)
+  // must keep winning the Express path match.
+  @Get(":memberId")
+  @UseGuards(SessionGuard, OrgMemberGuard)
+  @ApiOperation({ summary: "Get a member with their linked user account" })
+  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "memberId", description: "Member ID" })
+  @ApiResponse({ status: 200, description: "Member returned" })
+  @ApiResponse({ status: 404, description: "Member not found in organization" })
+  async getMember(@Param("orgId") orgId: string, @Param("memberId") memberId: string) {
+    return this.memberService.getMember(orgId, memberId);
+  }
+
+  @Patch(":memberId")
+  @UseGuards(SessionGuard, OrgMemberGuard)
+  @ApiOperation({ summary: "Update a member's names (self, or any with member:update)" })
+  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "memberId", description: "Member ID" })
+  @ApiResponse({ status: 200, description: "Member updated" })
+  @ApiResponse({ status: 403, description: "Not self and missing member:update" })
+  @ApiResponse({ status: 404, description: "Member not found in organization" })
+  async updateMember(
+    @Param("orgId") orgId: string,
+    @Param("memberId") memberId: string,
+    @CurrentMember() current: SessionMember,
+    @Body() body: UpdateMemberProfileDto,
+    @Req() req: Request,
+  ) {
+    if (memberId !== current.id) {
+      const allowed = await this.permissions.checkUserPermission(
+        current.userId,
+        toFetchHeaders(req),
+        orgId,
+        "member",
+        "update",
+      );
+      if (!allowed) throw new ForbiddenException("You can only update your own profile");
+    }
+    return this.memberService.updateMember(orgId, memberId, body);
   }
 }

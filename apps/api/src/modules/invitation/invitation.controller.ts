@@ -6,8 +6,8 @@ import { InvitationService } from "./invitation.service";
 import {
   InvitationIdDto,
   InviteMemberDto,
-  ListInvitationsQueryDto,
-  ListUserInvitationsQueryDto,
+  GetInvitationsQueryDto,
+  GetUserInvitationsQueryDto,
 } from "./dto";
 
 @ApiTags("Organization Invitations")
@@ -85,13 +85,31 @@ export class InvitationController {
     return this.invitationById(req, res, body, "cancelInvitation");
   }
 
+  @Post(":invitationId/resend")
+  @ApiOperation({ summary: "Resend an outstanding invitation email" })
+  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "invitationId", description: "Invitation ID" })
+  @ApiResponse({ status: 200, description: "Invitation resent" })
+  @ApiResponse({ status: 404, description: "Invitation not found" })
+  @ApiResponse({ status: 403, description: "Not allowed to invite" })
+  async resendInvitation(
+    @Param("orgId") orgId: string,
+    @Param("invitationId") invitationId: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return proxyBetterAuth(req, res, (headers) =>
+      this.invitationService.resendInvitation(orgId, invitationId, headers),
+    );
+  }
+
   @Get("user")
-  @ApiOperation({ summary: "List the invitations the current user has received" })
+  @ApiOperation({ summary: "Get the invitations the current user has received" })
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Invitations returned" })
   @ApiResponse({ status: 400, description: "Missing session headers" })
   async getUserInvitations(
-    @Query() query: ListUserInvitationsQueryDto,
+    @Query() query: GetUserInvitationsQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
@@ -118,14 +136,14 @@ export class InvitationController {
   }
 
   @Get()
-  @ApiOperation({ summary: "List invitations of an organization" })
+  @ApiOperation({ summary: "Get invitations of an organization" })
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Invitations returned" })
   @ApiResponse({ status: 400, description: "Organization ID is required" })
   @ApiResponse({ status: 403, description: "Not a member of this organization" })
   async getInvitations(
     @Param("orgId") orgId: string,
-    @Query() query: ListInvitationsQueryDto,
+    @Query() query: GetInvitationsQueryDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {

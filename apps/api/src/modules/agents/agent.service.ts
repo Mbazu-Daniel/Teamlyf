@@ -19,7 +19,7 @@ export class AgentService {
     @Inject(API_ENV) private readonly env: ApiEnv,
   ) {}
 
-  async list(organizationId: string) {
+  async getAgents(organizationId: string) {
     return this.db.query.agent.findMany({
       where: eq(agent.organizationId, organizationId),
       orderBy: (table, { asc }) => asc(table.createdAt),
@@ -63,7 +63,7 @@ export class AgentService {
     return run;
   }
 
-  async listRuns(organizationId: string, agentId: string) {
+  async getAgentRuns(organizationId: string, agentId: string) {
     await this.requireAgent(organizationId, agentId);
     return this.db.query.agentRun.findMany({
       where: and(eq(agentRun.organizationId, organizationId), eq(agentRun.agentId, agentId)),
@@ -72,7 +72,7 @@ export class AgentService {
     });
   }
 
-  async listUsage(organizationId: string, memberId: string) {
+  async getAgentUsage(organizationId: string, memberId: string) {
     return this.db.query.aiUsage.findMany({
       where: and(eq(aiUsage.organizationId, organizationId), eq(aiUsage.memberId, memberId)),
       orderBy: (table, { desc }) => desc(table.createdAt),
@@ -95,7 +95,7 @@ export class AgentService {
     };
   }
 
-  async listProviderConfigs(organizationId: string) {
+  async getProviderConfigs(organizationId: string) {
     return this.db.query.aiProviderConfig.findMany({
       where: eq(aiProviderConfig.organizationId, organizationId),
       columns: {
@@ -119,7 +119,7 @@ export class AgentService {
   ) {
     await this.requireAgent(organizationId, dto.agentId);
     const totalTokens = dto.inputTokens + dto.outputTokens;
-    const allowanceConsumed = dto.source === "teamlyf" ? totalTokens : 0;
+    const allowanceConsumed = dto.source === "managed" ? totalTokens : 0;
 
     const [usage] = await this.db.insert(aiUsage).values({
       organizationId,
@@ -136,6 +136,64 @@ export class AgentService {
     }).returning();
 
     return usage;
+  }
+
+  async deleteAgent(organizationId: string, agentId: string) {
+    await this.requireAgent(organizationId, agentId);
+    // agent_run and ai_usage both carry FKs to agent with no ON DELETE rule:
+    // detach usage rows (keeps billing history) and drop runs with the agent.
+    return this.db.transaction(async (tx) => {
+      await tx.update(aiUsage)
+        .set({ agentId: null })
+        .where(and(eq(aiUsage.organizationId, organizationId), eq(aiUsage.agentId, agentId)));
+      await tx.delete(agentRun)
+        .where(and(eq(agentRun.organizationId, organizationId), eq(agentRun.agentId, agentId)));
+      const [deleted] = await tx.delete(agent)
+        .where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)))
+        .returning();
+      return deleted;
+    });
+  }
+
+  async cancelRun(organizationId: string, agentId: string, runId: string) {
+    await this.requireAgent(organizationId, agentId);
+    const run = await this.db.query.agentRun.findFirst({
+      where: and(
+        eq(agentRun.id, runId),
+        eq(agentRun.organizationId, organizationId),
+        eq(agentRun.agentId, agentId),
+      ),
+    });
+    if (!run) throw new NotFoundException("Agent run not found");
+    if (run.status !== "queued" && run.status !== "running") {
+      throw new BadRequestException("Only queued or running runs can be cancelled");
+    }
+    const [updated] = await this.db.update(agentRun)
+      .set({ status: "cancelled", completedAt: new Date(), updatedAt: new Date() })
+      .where(eq(agentRun.id, runId))
+      .returning();
+    return updated;
+  }
+
+  async deleteProviderConfig(organizationId: string, configId: string) {
+    const [deleted] = await this.db
+      .delete(aiProviderConfig)
+      .where(
+        and(
+          eq(aiProviderConfig.organizationId, organizationId),
+          eq(aiProviderConfig.id, configId),
+        ),
+      )
+      .returning({
+        id: aiProviderConfig.id,
+        organizationId: aiProviderConfig.organizationId,
+        provider: aiProviderConfig.provider,
+        model: aiProviderConfig.model,
+        source: aiProviderConfig.source,
+        isActive: aiProviderConfig.isActive,
+      });
+    if (!deleted) throw new NotFoundException("Provider configuration not found");
+    return deleted;
   }
 
   private buildUpdateValues(dto: UpdateAgentDto) {
@@ -157,8 +215,8 @@ export class AgentService {
       this.requireApiKey(dto.apiKey);
       return;
     }
-    if (dto.source === "teamlyf" && dto.apiKey) {
-      throw new BadRequestException("Teamlyf-managed providers do not accept organization API keys");
+    if (dto.source === "managed" && dto.apiKey) {
+      throw new BadRequestException("Managed providers do not accept organization API keys");
     }
   }
 

@@ -14,6 +14,8 @@ CREATE TABLE "member" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"user_id" uuid NOT NULL,
 	"organization_id" uuid NOT NULL,
+	"first_name" text,
+	"last_name" text,
 	"role" text DEFAULT 'member' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL

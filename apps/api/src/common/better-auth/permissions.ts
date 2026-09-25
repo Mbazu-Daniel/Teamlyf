@@ -6,49 +6,41 @@ import {
   ownerAc,
 } from "better-auth/plugins/organization/access";
 
+/** Full CRUD, shared by every resource. Roles below only narrow what they expose. */
+const crud = ["create", "read", "update", "delete"] as const;
+
+const fullCrud = {
+  pm: crud,
+  chat: crud,
+  docs: crud,
+  notes: crud,
+  hr: crud,
+  billing: crud,
+  agents: crud,
+};
+
 /**
  * Role-level permissions (user subjects only).
  * Instance overrides + agent grants live in `permission_grant`, not here.
  */
-export const statement = {
-  ...defaultStatements,
-  pm: ["create", "read", "update", "delete"],
-  chat: ["create", "read", "update", "delete"],
-  docs: ["create", "read", "update", "delete"],
-  notes: ["create", "read", "update", "delete"],
-  hr: ["create", "read", "update", "delete"],
-  billing: ["create", "read", "update", "delete"],
-  agents: ["create", "read", "update", "delete"],
-} as const;
+const statement = { ...defaultStatements, ...fullCrud } as const;
+
+/** Resources → allowed actions, for the roles permission-catalog endpoint. */
+export const permissionCatalog = statement;
 
 export const ac = createAccessControl(statement);
 
-export const owner = ac.newRole({
-  ...ownerAc.statements,
-  pm: ["create", "read", "update", "delete"],
-  chat: ["create", "read", "update", "delete"],
-  docs: ["create", "read", "update", "delete"],
-  notes: ["create", "read", "update", "delete"],
-  hr: ["create", "read", "update", "delete"],
-  billing: ["create", "read", "update", "delete"],
-  agents: ["create", "read", "update", "delete"],
-});
+export const owner = ac.newRole({ ...ownerAc.statements, ...fullCrud });
 
 export const admin = ac.newRole({
   ...adminAc.statements,
-  pm: ["create", "read", "update", "delete"],
-  chat: ["create", "read", "update", "delete"],
-  docs: ["create", "read", "update", "delete"],
-  notes: ["create", "read", "update", "delete"],
-  hr: ["create", "read", "update", "delete"],
+  ...fullCrud,
   billing: ["create", "read", "update"],
-  agents: ["create", "read", "update", "delete"],
 });
 
 export const member = ac.newRole({
   ...memberAc.statements,
-  pm: ["create", "read", "update", "delete"],
-  chat: ["create", "read", "update", "delete"],
+  ...fullCrud,
   docs: ["create", "read", "update"],
   notes: ["create", "read", "update"],
   hr: ["read"],

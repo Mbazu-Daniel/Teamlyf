@@ -22,10 +22,36 @@ export class NoteController {
 
   @Get()
   @RequirePermission("notes", "read")
-  @ApiOperation({ summary: "List notes" })
+  @ApiOperation({ summary: "Get notes" })
   @ApiQuery({ name: "parentId", required: false })
-  list(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("parentId") parentId?: string) {
+  getNotes(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("parentId") parentId?: string) {
     return this.notes.getNotes(orgId, member.id, parentId);
+  }
+
+  // Literal search routes must stay above ":noteId" so "search" is not
+  // swallowed as a note id.
+  @Get("search")
+  @RequirePermission("notes", "read")
+  @ApiOperation({ summary: "Search notes by title" })
+  @ApiQuery({ name: "q", required: false, description: "Search term" })
+  search(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("q") q = "") {
+    return this.notes.searchNotes(orgId, member.id, q);
+  }
+
+  @Get("by-task/:taskId")
+  @RequirePermission("notes", "read")
+  @ApiOperation({ summary: "Get notes linked to a task" })
+  @ApiParam({ name: "taskId" })
+  byTask(@Param("orgId") orgId: string, @Param("taskId") taskId: string, @CurrentMember() member: SessionMember) {
+    return this.notes.getNotesByTask(orgId, member.id, taskId);
+  }
+
+  @Post(":noteId/duplicate")
+  @RequirePermission("notes", "create")
+  @ApiOperation({ summary: "Duplicate a note" })
+  @ApiParam({ name: "noteId" })
+  duplicate(@Param("orgId") orgId: string, @Param("noteId") noteId: string, @CurrentMember() member: SessionMember) {
+    return this.notes.duplicateNote(orgId, member.id, noteId);
   }
 
   @Get(":noteId")

@@ -17,7 +17,7 @@ import {
   RequirePermission,
 } from "../../rbac";
 import type { SessionMember } from "../../../common/types";
-import { CreateCommentDto, UpdateCommentDto } from "../dto";
+import { CreateCommentDto, UpdateCommentDto } from "./dto";
 import { CommentService } from "./comment.service";
 
 @ApiTags("Comments")
@@ -45,7 +45,7 @@ export class CommentController {
 
   @Get()
   @RequirePermission("pm", "read")
-  @ApiOperation({ summary: "List comments" })
+  @ApiOperation({ summary: "Get comments" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "projectId" })
   @ApiParam({ name: "taskId" })
