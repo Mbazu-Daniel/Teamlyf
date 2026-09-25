@@ -11,6 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
+import { ReorderDto } from "../dto";
 import { CreateLabelDto, UpdateLabelDto } from "./dto";
 import { LabelService } from "./label.service";
 
@@ -41,6 +42,19 @@ export class LabelController {
   @ApiParam({ name: "projectId" })
   getLabels(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {
     return this.labelService.getLabels(orgId, projectId);
+  }
+
+  @Patch("reorder")
+  @RequirePermission("pm", "update", "projectId")
+  @ApiOperation({ summary: "Reorder labels; ids are ranked top-to-bottom" })
+  @ApiParam({ name: "orgId" })
+  @ApiParam({ name: "projectId" })
+  reorderLabels(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Body() body: ReorderDto,
+  ) {
+    return this.labelService.reorderLabels(orgId, projectId, body.ids);
   }
 
   @Patch(":labelId")

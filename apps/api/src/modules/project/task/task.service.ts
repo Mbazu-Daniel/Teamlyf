@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
@@ -10,7 +10,7 @@ import {
   taskAssignee,
   taskLabel,
 } from "@teamlyf/db/project-schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateTaskDto, TaskAssigneeInputDto, UpdateTaskDto } from "./dto";
@@ -26,9 +26,28 @@ export class TaskService {
     await this.access.requireProject(orgId, projectId);
     return this.db.query.task.findMany({
       where: eq(task.projectId, projectId),
-      orderBy: (t, { asc }) => [asc(t.sortOrder)],
+      orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.sequenceId)],
       with: { taskAssignees: true, taskLabels: true },
     });
+  }
+
+  async reorderTasks(orgId: string, projectId: string, taskIds: string[]) {
+    await this.access.requireProject(orgId, projectId);
+
+    const ids = [...new Set(taskIds)];
+    const found = await this.db.query.task.findMany({
+      where: and(eq(task.projectId, projectId), inArray(task.id, ids)),
+      columns: { id: true },
+    });
+    if (found.length !== ids.length) {
+      throw new NotFoundException("Tasks not found in this project");
+    }
+
+    for (const [index, id] of ids.entries()) {
+      await this.db.update(task).set({ sortOrder: (index + 1) * 1000 }).where(eq(task.id, id));
+    }
+
+    return this.getTasks(orgId, projectId);
   }
 
   async getTask(orgId: string, projectId: string, taskId: string) {
@@ -42,13 +61,19 @@ export class TaskService {
   async createTask(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
     await this.access.requireProject(orgId, projectId);
 
-    const [statusRecord, last] = await Promise.all([
+    const [statusRecord, last, lastSorted] = await Promise.all([
       this.db.query.status.findFirst({
         where: and(eq(status.id, dto.statusId), eq(status.projectId, projectId)),
       }),
       this.db.query.task.findFirst({
         where: eq(task.projectId, projectId),
         orderBy: (t, { desc }) => [desc(t.sequenceId)],
+        columns: { sequenceId: true },
+      }),
+      this.db.query.task.findFirst({
+        where: eq(task.projectId, projectId),
+        orderBy: (t, { desc }) => [desc(t.sortOrder)],
+        columns: { sortOrder: true },
       }),
     ]);
     if (!statusRecord) throw new BadRequestException("Invalid status for this project");
@@ -58,21 +83,23 @@ export class TaskService {
       .values({
         projectId,
         statusId: dto.statusId,
-        parentId: dto.parentId ?? null,
         name: dto.name,
-        description: dto.description ?? null,
-        priority: dto.priority ?? "none",
-        sequenceId: (last?.sequenceId ?? 0) + 1,
-        startDate: dto.startDate ? new Date(dto.startDate) : null,
-        targetDate: dto.targetDate ? new Date(dto.targetDate) : null,
-        completedAt: statusRecord.group === "done" ? new Date() : null,
+        completedAt: statusRecord.group === "done" ? new Date() : undefined,
+        startDate: toDate(dto.startDate),
+        targetDate: toDate(dto.targetDate),
+        sequenceId: nextValue(last?.sequenceId),
+        sortOrder: nextValue(lastSorted?.sortOrder),
+        // Left off the statement when absent, so the column keeps its default.
+        parentId: dto.parentId,
+        description: dto.description,
+        priority: dto.priority,
         createdById: memberId,
       })
       .returning();
 
-    await this.updateTaskAssignees(orgId, created.id, dto.assignees ?? []);
-    await this.updateTaskLabels(created.id, dto.labelIds ?? []);
-    await this.updateTaskMilestones(created.id, dto.milestoneIds ?? []);
+    await this.updateTaskAssignees(orgId, created.id, dto.assignees);
+    await this.updateTaskLabels(created.id, dto.labelIds);
+    await this.updateTaskMilestones(created.id, dto.milestoneIds);
     await this.createActivity(created.id, memberId, "created");
 
     return this.db.query.task.findFirst({
@@ -89,38 +116,48 @@ export class TaskService {
     memberId: string,
   ) {
     const existing = await this.access.requireTask(orgId, projectId, taskId);
-
-    const statusRecord = dto.statusId
-      ? await this.db.query.status.findFirst({
-          where: and(eq(status.id, dto.statusId), eq(status.projectId, projectId)),
-        })
-      : null;
-    if (dto.statusId && !statusRecord) {
-      throw new BadRequestException("Invalid status for this project");
-    }
+    const statusRecord = await this.resolveStatus(projectId, dto.statusId);
 
     const [updated] = await this.db
       .update(task)
       .set({
+        completedAt: completedFor(statusRecord?.group, existing.completedAt),
+        startDate: toDate(dto.startDate),
+        targetDate: toDate(dto.targetDate),
         name: dto.name,
         description: dto.description,
         statusId: dto.statusId,
         parentId: dto.parentId,
         priority: dto.priority,
-        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-        targetDate: dto.targetDate ? new Date(dto.targetDate) : undefined,
-        completedAt: statusRecord?.group === "done" ? new Date() : existing.completedAt,
         updatedAt: new Date(),
       })
       .where(and(eq(task.projectId, projectId), eq(task.id, taskId)))
       .returning();
 
-    if (dto.assignees) await this.updateTaskAssignees(orgId, taskId, dto.assignees);
-    if (dto.labelIds) await this.updateTaskLabels(taskId, dto.labelIds);
-    if (dto.milestoneIds) await this.updateTaskMilestones(taskId, dto.milestoneIds);
+    await this.applyRelations(orgId, taskId, dto);
     await this.createFieldChanges(taskId, memberId, existing, dto);
 
     return updated;
+  }
+
+  /** A status change must name a status that belongs to this project. */
+  private async resolveStatus(projectId: string, statusId: string | undefined) {
+    if (!statusId) return null;
+    const record = await this.db.query.status.findFirst({
+      where: and(eq(status.id, statusId), eq(status.projectId, projectId)),
+    });
+    if (!record) throw new BadRequestException("Invalid status for this project");
+    return record;
+  }
+
+  /**
+   * Relations are replaced only when the payload mentions them: an update that
+   * says nothing about labels must not empty the task.
+   */
+  private async applyRelations(orgId: string, taskId: string, dto: UpdateTaskDto) {
+    if (dto.assignees) await this.updateTaskAssignees(orgId, taskId, dto.assignees);
+    if (dto.labelIds) await this.updateTaskLabels(taskId, dto.labelIds);
+    if (dto.milestoneIds) await this.updateTaskMilestones(taskId, dto.milestoneIds);
   }
 
   async deleteTask(orgId: string, projectId: string, taskId: string) {
@@ -136,7 +173,11 @@ export class TaskService {
     });
   }
 
-  private async updateTaskAssignees(orgId: string, taskId: string, assignees: TaskAssigneeInputDto[]) {
+  private async updateTaskAssignees(
+    orgId: string,
+    taskId: string,
+    assignees: TaskAssigneeInputDto[] = [],
+  ) {
     for (const assignee of assignees) {
       if (assignee.kind === "member") {
         const found = await this.db.query.member.findFirst({
@@ -159,13 +200,13 @@ export class TaskService {
     );
   }
 
-  private async updateTaskLabels(taskId: string, labelIds: string[]) {
+  private async updateTaskLabels(taskId: string, labelIds: string[] = []) {
     await this.db.delete(taskLabel).where(eq(taskLabel.taskId, taskId));
     if (!labelIds.length) return;
     await this.db.insert(taskLabel).values(labelIds.map((labelId) => ({ taskId, labelId })));
   }
 
-  private async updateTaskMilestones(taskId: string, milestoneIds: string[]) {
+  private async updateTaskMilestones(taskId: string, milestoneIds: string[] = []) {
     await this.db.delete(milestoneTask).where(eq(milestoneTask.taskId, taskId));
     if (!milestoneIds.length) return;
     await this.db
@@ -205,4 +246,19 @@ export class TaskService {
       await this.db.insert(taskActivity).values(changes);
     }
   }
+}
+
+/** The next value in a 1-based run; an empty project starts at 1. */
+function nextValue(previous: number | null | undefined) {
+  return (previous ?? 0) + 1;
+}
+
+/** ISO date in, Date out. Absent stays absent so drizzle omits the column. */
+function toDate(value: string | undefined) {
+  return value ? new Date(value) : undefined;
+}
+
+/** Entering the done group stamps completion; leaving it keeps what was there. */
+function completedFor(group: string | undefined, previous: Date | null) {
+  return group === "done" ? new Date() : previous;
 }
