@@ -1,33 +1,18 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { IconBuilding, IconLogout, IconMenu2 } from "@tabler/icons-react";
-import { signOut } from "@/lib/api";
-import { useResetSession } from "@/lib/session";
+import { Link, useLocation } from "@tanstack/react-router";
+import { IconBuilding, IconMenu2 } from "@tabler/icons-react";
 import { useOrganization } from "@/lib/organization";
-import { NAV_ITEMS, isNavItemActive } from "@/components/sidebar/nav-items";
+import { getBreadcrumbs } from "./breadcrumbs";
 
 type AppHeaderProps = Readonly<{ onToggle: () => void }>;
 
-/** Breadcrumb from the current path, plus workspace context and sign out. */
+/**
+ * Path-derived breadcrumbs, the workspace chip (back to the picker) and the
+ * sidebar toggle. Sign out lives in the sidebar user menu — one home for it.
+ */
 export function AppHeader({ onToggle }: AppHeaderProps) {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const resetSession = useResetSession();
-  const { organization, reset: resetWorkspace } = useOrganization();
-
-  const matches = NAV_ITEMS.filter((item) => isNavItemActive(pathname, item.to));
-  const crumb = matches[matches.length - 1];
-
-  async function handleSignOut() {
-    try {
-      await signOut();
-    } finally {
-      // Forget both the session and the workspace, or the guard reads a
-      // signed-in user (and their old workspace) from cache on the next visit.
-      resetSession();
-      resetWorkspace();
-      await navigate({ to: "/sign-in" });
-    }
-  }
+  const { organization } = useOrganization();
+  const crumbs = getBreadcrumbs(pathname);
 
   return (
     <header className="app-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border px-3 sm:px-5">
@@ -41,13 +26,29 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
       </button>
 
       <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
-        <p className="truncate text-sm">
-          <span className="text-muted-foreground">Teamlyf</span>
-          <span className="mx-2 text-muted-foreground/60" aria-hidden="true">
-            /
-          </span>
-          <span className="font-bold">{crumb?.label ?? "Home"}</span>
-        </p>
+        <ol className="flex min-w-0 items-center gap-1.5 text-sm">
+          {crumbs.map((crumb, index) => (
+            <li key={crumb.to} className="flex min-w-0 items-center gap-1.5">
+              {index > 0 && (
+                <span className="text-muted-foreground/60" aria-hidden="true">
+                  /
+                </span>
+              )}
+              {index === crumbs.length - 1 ? (
+                <span className="truncate font-bold" aria-current="page">
+                  {crumb.label}
+                </span>
+              ) : (
+                <Link
+                  to={crumb.to}
+                  className="truncate text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {crumb.label}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ol>
       </nav>
 
       {organization && (
@@ -60,18 +61,6 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
           <span className="truncate">{organization.name}</span>
         </Link>
       )}
-
-      <Link
-        to="/sign-in"
-        onClick={(event) => {
-          event.preventDefault();
-          void handleSignOut();
-        }}
-        className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
-      >
-        <IconLogout className="size-4" aria-hidden="true" />
-        <span className="hidden sm:inline">Sign out</span>
-      </Link>
     </header>
   );
 }
