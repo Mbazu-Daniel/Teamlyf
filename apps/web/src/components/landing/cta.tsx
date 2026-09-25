@@ -1,20 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { ActionPill } from "./action-pill";
 
-/** One sentence, one button — the repetition is the call to action. */
 export function Cta() {
   return (
-    <section className="border-t border-border bg-background-900/40 px-4 py-20 sm:py-28">
-      <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-        <h2 className="text-4xl leading-[1.05] tracking-[-0.03em] sm:text-5xl">
-          Bring your team into one workspace.
-        </h2>
-        <p className="mt-5 max-w-[46ch] text-xl text-muted-foreground">
-          Seven modules, one login, one plan. Start with the projects you already have.
-        </p>
-        <ActionPill render={<Link to="/sign-up" />} className="mt-8">
-          Get started
-        </ActionPill>
+    <section className="px-4 pb-20 sm:px-6 sm:pb-28">
+      <div className="landing-cta mx-auto max-w-6xl px-6 py-14 text-center sm:px-10 sm:py-20">
+        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/55">Ready when you are</p>
+        <h2 className="mx-auto mt-4 max-w-2xl text-balance text-4xl font-semibold leading-tight tracking-[-0.035em] text-white sm:text-5xl">Bring the work together.</h2>
+        <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-white/65">Start with projects. Add the rest as your team needs it.</p>
+        <Link to="/sign-up" className="mt-8 inline-flex items-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-[var(--landing-ink)] transition-transform hover:-translate-y-0.5">Create your organization</Link>
       </div>
     </section>
   );
