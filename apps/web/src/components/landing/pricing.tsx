@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { IconCheck } from "@tabler/icons-react";
 
-const plans = [
+type PricingPlan = { readonly name: string; readonly seats: string; readonly perks: readonly string[]; readonly featured?: boolean };
+
+const plans: readonly PricingPlan[] = [
   { name: "Starter", seats: "5 seats", perks: ["1 AI agent", "30-minute calls", "Core workspace modules"] },
   { name: "Growth", seats: "50 seats", perks: ["5 AI agents", "60-minute calls", "Core workspace modules"], featured: true },
   { name: "Scale", seats: "250 seats", perks: ["20 AI agents", "180-minute calls", "Core workspace modules"] },
