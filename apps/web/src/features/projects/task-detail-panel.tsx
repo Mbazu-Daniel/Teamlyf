@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { IconArrowsMaximize, IconArrowsMinimize, IconX, IconGripVertical } from "@tabler/icons-react";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Status } from "@/lib/api";
 import { ErrorMessage, MutedMessage } from "./feedback";
@@ -19,6 +18,7 @@ export type TaskDetailPanelProps = {
 
 export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, onClose }: TaskDetailPanelProps) {
   const [mobile, setMobile] = useState(false);
+
   useEffect(() => {
     const update = () => setMobile(window.innerWidth < 768);
     update();
@@ -30,12 +30,20 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
 
   if (mobile) {
     return (
-      <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
-        <SheetContent side="right" className="w-full p-0 sm:max-w-xl">
-          <SheetTitle className="sr-only">Task Details</SheetTitle>
-          <TaskDetailContent organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} mobile />
-        </SheetContent>
-      </Sheet>
+      <>
+        <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={onClose} />
+        <aside className="fixed inset-y-0 right-0 z-50 flex h-svh w-full flex-col border-l bg-background shadow-2xl">
+          <div className="flex items-center justify-between border-b px-5 py-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task details</span>
+            <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
+              <IconX className="size-4" />
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <TaskDetailContent organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} mobile />
+          </div>
+        </aside>
+      </>
     );
   }
 
@@ -60,11 +68,16 @@ function DesktopTaskPanel(props: TaskDetailPanelProps) {
     };
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", stop);
-    return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", stop); };
+    return () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", stop);
+    };
   }, [maximized]);
 
   useEffect(() => {
-    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") props.onClose(); };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") props.onClose();
+    };
     window.addEventListener("keydown", escape);
     return () => window.removeEventListener("keydown", escape);
   }, [props.onClose]);
@@ -80,7 +93,11 @@ function DesktopTaskPanel(props: TaskDetailPanelProps) {
           <button
             type="button"
             aria-label="Resize task panel"
-            onMouseDown={() => { resizing.current = true; document.body.style.cursor = "col-resize"; document.body.style.userSelect = "none"; }}
+            onMouseDown={() => {
+              resizing.current = true;
+              document.body.style.cursor = "col-resize";
+              document.body.style.userSelect = "none";
+            }}
             className="absolute left-0 top-0 z-10 flex h-full w-2 cursor-col-resize items-center justify-center hover:bg-primary/10"
           >
             <IconGripVertical className="size-3 text-muted-foreground opacity-0 hover:opacity-100" />
