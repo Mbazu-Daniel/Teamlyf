@@ -1,6 +1,10 @@
 import { toApiError, type ApiErrorPayload } from "./errors";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3101";
+const API_VERSION_PATH = "/api/v1";
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, "") ?? "";
+const API_URL = configuredApiUrl.endsWith(API_VERSION_PATH)
+  ? configuredApiUrl
+  : `${configuredApiUrl}${API_VERSION_PATH}`;
 
 type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined>;
