@@ -6,6 +6,7 @@ export const Route = createFileRoute("/$organizationSlug/projects")({ component:
 
 function ProjectsRoute() {
   const { organization } = useOrganization();
+  const { organizationSlug } = Route.useParams();
   const state = useProjects(organization?.id);
 
   if (!organization) {
@@ -17,5 +18,5 @@ function ProjectsRoute() {
     );
   }
 
-  return <ProjectListPage organizationName={organization.name} state={state} />;
+  return <ProjectListPage organizationName={organization.name} organizationSlug={organizationSlug} state={state} />;
 }
