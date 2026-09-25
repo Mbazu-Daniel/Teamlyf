@@ -85,6 +85,24 @@ export class InvitationController {
     return this.invitationById(req, res, body, "cancelInvitation");
   }
 
+  @Post(":invitationId/resend")
+  @ApiOperation({ summary: "Resend an outstanding invitation email" })
+  @ApiParam({ name: "orgId", description: "Organization ID" })
+  @ApiParam({ name: "invitationId", description: "Invitation ID" })
+  @ApiResponse({ status: 200, description: "Invitation resent" })
+  @ApiResponse({ status: 404, description: "Invitation not found" })
+  @ApiResponse({ status: 403, description: "Not allowed to invite" })
+  async resendInvitation(
+    @Param("orgId") orgId: string,
+    @Param("invitationId") invitationId: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    return proxyBetterAuth(req, res, (headers) =>
+      this.invitationService.resendInvitation(orgId, invitationId, headers),
+    );
+  }
+
   @Get("user")
   @ApiOperation({ summary: "Get the invitations the current user has received" })
   @ApiParam({ name: "orgId", description: "Organization ID" })
