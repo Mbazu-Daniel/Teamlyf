@@ -1,18 +1,13 @@
 import type { Icon as TablerIcon } from "@tabler/icons-react";
 import { IconHome, IconLayoutKanban, IconSettings } from "@tabler/icons-react";
-import type { FileRoutesByTo } from "@/routeTree.gen";
 
-/**
- * A nav target is a real, parameterless route: a typo or a link to a route
- * that does not exist yet is a compile error, never a dead link in the UI.
- */
-export type NavRoute = Exclude<keyof FileRoutesByTo, `${string}$${string}`>;
 
 export type NavItem = Readonly<{
   /** Stable identity — React key and active-state matching. */
   id: string;
   label: string;
-  to: NavRoute;
+  /** Route suffix inside the active organization. */
+  to: string;
   icon: TablerIcon;
 }>;
 
@@ -34,14 +29,14 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     label: "Workspace",
     items: [
       // Stand-in for the dashboard (ticket 10): change `to` to "/dashboard".
-      { id: "home", label: "Home", to: "/projects", icon: IconHome },
-      { id: "projects", label: "Projects", to: "/projects", icon: IconLayoutKanban },
+      { id: "home", label: "Home", to: "", icon: IconHome },
+      { id: "projects", label: "Projects", to: "projects", icon: IconLayoutKanban },
     ],
   },
   {
     id: "admin",
     label: "Admin",
-    items: [{ id: "settings", label: "Settings", to: "/settings", icon: IconSettings }],
+    items: [{ id: "settings", label: "Settings", to: "settings", icon: IconSettings }],
   },
 ];
 
@@ -56,8 +51,8 @@ export const NAV_HOME: NavItem = NAV_SECTIONS[0].items[0];
  * prefix match everywhere else so child routes highlight the parent.
  */
 export function isNavItemActive(pathname: string, to: string): boolean {
-  if (to === "/") return pathname === "/";
-  return pathname === to || pathname.startsWith(`${to}/`);
+  if (!to) return pathname.split("/").filter(Boolean).length === 1;
+  return pathname === `/${to}` || pathname.endsWith(`/${to}`) || pathname.includes(`/${to}/`);
 }
 
 /**
