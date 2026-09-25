@@ -94,7 +94,7 @@ export function TaskList({
                   </span>
 
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <IconMilestone className="size-3.5" />
+                    <IconTarget className="size-3.5" />
                     {task.milestoneTasks?.length ?? 0}
                   </span>
                 </div>
