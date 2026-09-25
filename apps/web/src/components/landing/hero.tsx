@@ -9,7 +9,7 @@ export function Hero() {
       <div className="landing-orb landing-orb-two" aria-hidden="true" />
 
       <div className="relative mx-auto max-w-5xl text-center">
-        <div className="landing-reveal inline-flex items-center gap-2 rounded-full border border-[var(--landing-line)] bg-white/70 px-3.5 py-1.5 text-sm font-medium text-[var(--landing-muted)] shadow-sm backdrop-blur-sm">
+        <div className="landing-reveal inline-flex items-center gap-2 rounded-full border border-[var(--landing-line)] bg-[var(--landing-soft)] px-3.5 py-1.5 text-sm font-medium text-[var(--landing-muted)] shadow-sm backdrop-blur-sm">
           <IconSparkles className="size-3.5" aria-hidden="true" />
           One place for the way your team works
         </div>
@@ -25,11 +25,11 @@ export function Hero() {
         <div className="landing-reveal landing-reveal-delay-3 mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link to="/sign-up" className="landing-dark-button inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
             Start building
-            <span className="grid size-6 place-items-center rounded-full bg-white/15">
+            <span className="grid size-6 place-items-center rounded-full bg-[var(--landing-surface)]/15">
               <IconArrowDownRight className="size-3.5" aria-hidden="true" />
             </span>
           </Link>
-          <a href="#product" className="inline-flex items-center rounded-full border border-[var(--landing-line)] bg-white/65 px-6 py-3 text-sm font-semibold text-[var(--landing-ink)] transition-all hover:-translate-y-0.5 hover:bg-white">
+          <a href="#product" className="inline-flex items-center rounded-full border border-[var(--landing-line)] bg-[var(--landing-surface)] px-6 py-3 text-sm font-semibold text-[var(--landing-ink)] transition-all hover:-translate-y-0.5 hover:bg-[var(--landing-soft)]">
             See the workspace
           </a>
         </div>
