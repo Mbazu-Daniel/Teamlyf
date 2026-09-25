@@ -7,6 +7,12 @@ export type Project = {
   identifier: string;
   description: string | null;
   emoji: string | null;
+  code?: string | null;
+  image?: string | null;
+  status?: string | null;
+  members?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
+  leads?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
+  leadIds?: string[];
 };
 
 export type ProjectTask = {
