@@ -11,6 +11,8 @@ export function StatusColumn({
   onMove,
   onSelect,
   onAddTask,
+  onDelete,
+  onDuplicate,
 }: {
   status: Status;
   tasks: ProjectTask[];
@@ -18,6 +20,8 @@ export function StatusColumn({
   onMove: (task: ProjectTask, statusId: string) => void;
   onSelect: (task: ProjectTask) => void;
   onAddTask?: (statusId: string) => void;
+  onDelete?: (task: ProjectTask) => void;
+  onDuplicate?: (task: ProjectTask) => void;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const statusTasks = tasks.filter((task) => task.statusId === status.id);
@@ -79,6 +83,8 @@ export function StatusColumn({
             statuses={statuses}
             onMove={onMove}
             onSelect={onSelect}
+            onDelete={onDelete}
+            onDuplicate={onDuplicate}
           />
         ))}
         {statusTasks.length === 0 && (
@@ -109,12 +115,16 @@ export function KanbanBoard({
   onMove,
   onSelect,
   onAddTask,
+  onDelete,
+  onDuplicate,
 }: {
   statuses: Status[];
   tasks: ProjectTask[];
   onMove: (task: ProjectTask, statusId: string) => void;
   onSelect: (task: ProjectTask) => void;
-  onAddTask?: (statusId: string) => void;\n  onDelete?: (task: ProjectTask) => void;\n  onDuplicate?: (task: ProjectTask) => void;
+  onAddTask?: (statusId: string) => void;
+  onDelete?: (task: ProjectTask) => void;
+  onDuplicate?: (task: ProjectTask) => void;
 }) {
   return (
     <div className="flex min-h-[420px] gap-3 overflow-x-auto pb-2">
@@ -127,6 +137,8 @@ export function KanbanBoard({
           onMove={onMove}
           onSelect={onSelect}
           onAddTask={onAddTask}
+          onDelete={onDelete}
+          onDuplicate={onDuplicate}
         />
       ))}
       {statuses.length === 0 && (
