@@ -12,7 +12,7 @@ function SidebarItem({ label, active }: { label: string; active?: boolean }) {
 function Task({ title, person, done }: { title: string; person: string; done?: boolean }) {
   return (
     <div className="flex items-center gap-3 border-b border-[var(--landing-line)] px-3 py-3 last:border-0">
-      <span className={`grid size-5 shrink-0 place-items-center rounded-full border ${done ? "border-[var(--landing-green)] bg-[var(--landing-green)] text-white" : "border-[var(--landing-line)]"}`}>
+      <span className={`grid size-5 shrink-0 place-items-center rounded-full border ${done ? "border-[var(--landing-green)] bg-[var(--landing-green)] text-[var(--landing-ink)]" : "border-[var(--landing-line)]"}`}>
         {done && <IconCheck className="size-3" aria-hidden="true" />}
       </span>
       <span className={`min-w-0 flex-1 truncate text-xs font-medium ${done ? "text-[var(--landing-muted)] line-through" : "text-[var(--landing-ink)]"}`}>{title}</span>
@@ -34,7 +34,7 @@ export function HeroCards() {
       <div className="grid min-h-[430px] lg:grid-cols-[190px_1fr]">
         <aside className="hidden border-r border-[var(--landing-line)] bg-[var(--landing-sidebar)] p-3 lg:block">
           <div className="mb-5 flex items-center gap-2 px-2">
-            <span className="grid size-7 place-items-center rounded-lg bg-[var(--landing-ink)] text-white"><IconSparkles className="size-3.5" /></span>
+            <span className="grid size-7 place-items-center rounded-lg bg-[var(--landing-ink)] text-[var(--landing-ink)]"><IconSparkles className="size-3.5" /></span>
             <span className="text-xs font-bold text-[var(--landing-ink)]">Teamlyf</span>
           </div>
           <p className="px-2 pb-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--landing-muted)]">Workspace</p>
@@ -48,7 +48,7 @@ export function HeroCards() {
           <SidebarItem label="AI agents" />
         </aside>
 
-        <div className="min-w-0 bg-white/80">
+        <div className="min-w-0 bg-[var(--landing-bg)]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--landing-line)] px-4 py-4 sm:px-6">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--landing-muted)]">Project</p>
@@ -61,7 +61,7 @@ export function HeroCards() {
           </div>
 
           <div className="grid gap-4 p-4 sm:grid-cols-[1fr_220px] sm:p-6">
-            <div className="rounded-2xl border border-[var(--landing-line)] bg-white">
+            <div className="rounded-2xl border border-[var(--landing-line)] bg-[var(--landing-surface)]">
               <div className="flex items-center justify-between border-b border-[var(--landing-line)] px-3 py-3">
                 <span className="text-xs font-semibold text-[var(--landing-ink)]">Tasks</span>
                 <span className="rounded-full bg-[var(--landing-soft)] px-2 py-1 text-[9px] font-medium text-[var(--landing-muted)]">12 open</span>
