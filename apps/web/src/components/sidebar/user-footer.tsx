@@ -38,7 +38,7 @@ type UserFooterProps = Readonly<{ collapsed: boolean }>;
 export function UserFooter({ collapsed }: UserFooterProps) {
   const navigate = useNavigate();
   const resetSession = useResetSession();
-  const { reset: resetWorkspace } = useOrganization();
+  const { organization, reset: resetWorkspace } = useOrganization();
   const user = useCurrentUser();
   const name = accountName(user);
 
@@ -93,7 +93,7 @@ export function UserFooter({ collapsed }: UserFooterProps) {
           <DropdownMenuGroup>
             <DropdownMenuLabel>{user?.email || name}</DropdownMenuLabel>
           </DropdownMenuGroup>
-          <DropdownMenuItem render={<Link to="/settings" />}>
+          <DropdownMenuItem render={<Link to="/$organizationSlug/settings" params={{ organizationSlug: organization?.slug || organization?.id || "" }} />}>
             <IconSettings aria-hidden="true" />
             Settings
           </DropdownMenuItem>
