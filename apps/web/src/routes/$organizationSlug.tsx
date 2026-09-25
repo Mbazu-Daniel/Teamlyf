@@ -12,20 +12,24 @@ function OrganizationLayout() {
   const { organizationSlug } = Route.useParams();
   const { organization, bootstrapped, resolveSlug } = useOrganization();
   const [resolving, setResolving] = useState(true);
+  const [validOrganization, setValidOrganization] = useState(false);
 
   useEffect(() => {
     if (!bootstrapped) return;
     if (organization?.slug === organizationSlug || organization?.id === organizationSlug) {
+      setValidOrganization(true);
       setResolving(false);
       return;
     }
+
+    setValidOrganization(false);
 
     let active = true;
     setResolving(true);
     void resolveSlug(organizationSlug).then((resolved) => {
       if (!active) return;
       setResolving(false);
-      if (!resolved) return;
+      setValidOrganization(Boolean(resolved));
     });
 
     return () => {
@@ -37,7 +41,7 @@ function OrganizationLayout() {
     <SessionGate>
       {!bootstrapped || resolving ? (
         <BootScreen />
-      ) : !organization ? (
+      ) : !organization || !validOrganization ? (
         <Navigate to="/workspaces" />
       ) : (
         <AppShell>
