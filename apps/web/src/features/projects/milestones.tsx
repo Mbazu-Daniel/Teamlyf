@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import type { Milestone, MilestoneStatus, ProjectTask } from "@/lib/api";
 import { IconCalendar, IconCheck, IconFlag, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { MutedMessage } from "./feedback";
@@ -124,6 +124,7 @@ function MilestoneForm({
 function MilestoneCard({
   milestone,
   tasks,
+  statuses,
   onUpdate,
   onDelete,
   onAddTask,
