@@ -111,8 +111,8 @@ describe("WorkspaceSwitcher", () => {
     await openSwitcher(user);
     await user.click(screen.getByRole("menuitem", { name: /Globex/ }));
 
-    expect(localStorage.getItem("teamlyf:organization-id")).toBe(ORG_B.id);
-    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(localStorage.getItem("teamlyf:last-organization-id:user-1")).toBe(ORG_B.id);
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/globex/settings" });
   });
 
   it("opensTheWorkspacePicker_whenCreateWorkspaceChosen", async () => {
