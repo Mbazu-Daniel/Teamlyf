@@ -27,7 +27,7 @@ export class TaskService {
     return this.db.query.task.findMany({
       where: eq(task.projectId, projectId),
       orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.sequenceId)],
-      with: { taskAssignees: true, taskLabels: true },
+      with: { taskAssignees: true, taskLabels: true, milestoneTasks: true },
     });
   }
 
@@ -54,7 +54,7 @@ export class TaskService {
     await this.access.requireTask(orgId, projectId, taskId);
     return this.db.query.task.findFirst({
       where: and(eq(task.projectId, projectId), eq(task.id, taskId)),
-      with: { taskAssignees: true, taskLabels: true },
+      with: { taskAssignees: true, taskLabels: true, milestoneTasks: true },
     });
   }
 
@@ -104,7 +104,7 @@ export class TaskService {
 
     return this.db.query.task.findFirst({
       where: eq(task.id, created.id),
-      with: { taskAssignees: true, taskLabels: true },
+      with: { taskAssignees: true, taskLabels: true, milestoneTasks: true },
     });
   }
 
