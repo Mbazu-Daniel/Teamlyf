@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="landing-page min-h-screen overflow-hidden">
       <Navbar />
       <main>
         <Hero />
