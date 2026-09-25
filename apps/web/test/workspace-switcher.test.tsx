@@ -11,7 +11,7 @@ const ORG_B: Organization = { id: "org-b", name: "Globex", slug: "globex" };
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
-  pathname: "/projects",
+  pathname: "/acme/projects",
   workspaces: [] as Organization[],
   request: vi.fn(),
   getOrganizations: vi.fn(),
@@ -49,7 +49,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   localStorage.setItem("teamlyf:organization-id", ORG_A.id);
-  mocks.pathname = "/projects";
+  mocks.pathname = "/acme/projects";
   mocks.workspaces = [ORG_A, ORG_B];
   mocks.request.mockResolvedValue(ORG_A);
   mocks.getOrganizations.mockResolvedValue(mocks.workspaces);
@@ -90,18 +90,18 @@ describe("WorkspaceSwitcher", () => {
   });
 
   it("returnsToTheSectionRoot_whenSwitchingFromANestedRoute", async () => {
-    mocks.pathname = "/projects/proj-1";
+    mocks.pathname = "/acme/projects/proj-1";
     const user = userEvent.setup();
     renderSwitcher();
 
     await openSwitcher(user);
     await user.click(screen.getByRole("menuitem", { name: /Globex/ }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/projects" });
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/globex/projects" });
   });
 
   it("staysPut_whenTheCurrentRouteStillBelongsToTheNewWorkspace", async () => {
-    mocks.pathname = "/settings";
+    mocks.pathname = "/acme/settings";
     const user = userEvent.setup();
     renderSwitcher();
 
