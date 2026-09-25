@@ -1,23 +1,15 @@
 import { Link } from "@tanstack/react-router";
 
-/** Ft2 · Inline-rule single line — wordmark, links, copyright. Hairline above, no columns. */
 export function Footer() {
   return (
-    <footer className="border-t border-border px-4 py-8">
-      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 text-sm text-muted-foreground sm:flex-row sm:items-center">
-        <Link to="/" className="font-bold text-text-200 transition-colors duration-150 hover:text-foreground">
-          Teamlyf
-        </Link>
-        <nav aria-label="Footer" className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a href="#features" className="transition-colors duration-150 hover:text-foreground">
-            Features
-          </a>
-          <a href="#showcase" className="transition-colors duration-150 hover:text-foreground">
-            Showcase
-          </a>
-          <a href="#pricing" className="transition-colors duration-150 hover:text-foreground">
-            Pricing
-          </a>
+    <footer className="px-4 pb-8 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 border-t border-[var(--landing-line)] pt-6 text-sm text-[var(--landing-muted)] sm:flex-row sm:items-center sm:justify-between">
+        <Link to="/" className="font-semibold text-[var(--landing-ink)]">Teamlyf</Link>
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
+          <a href="#features" className="transition-colors hover:text-[var(--landing-ink)]">Features</a>
+          <a href="#product" className="transition-colors hover:text-[var(--landing-ink)]">Product</a>
+          <a href="#pricing" className="transition-colors hover:text-[var(--landing-ink)]">Pricing</a>
+          <Link to="/sign-in" className="transition-colors hover:text-[var(--landing-ink)]">Log in</Link>
         </nav>
         <p>© 2026 Teamlyf</p>
       </div>
