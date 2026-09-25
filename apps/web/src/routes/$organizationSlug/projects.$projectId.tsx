@@ -9,7 +9,7 @@ export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
 });
 
 function ProjectRoute() {
-  const { projectId } = Route.useParams();
+  const { organizationSlug, projectId } = Route.useParams();
   const { task: selectedTaskId } = Route.useSearch();
   const { organization } = useOrganization();
   const state = useProjectPage(organization?.id, projectId);
@@ -55,6 +55,7 @@ function ProjectRouteContent({
       project={state.project}
       state={state}
       organizationId={organization.id}
+      organizationSlug={organizationSlug}
       selectedTaskId={selectedTaskId}
       onSelectTask={openTask}
       onCloseTask={closeTask}
