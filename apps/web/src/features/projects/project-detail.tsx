@@ -135,7 +135,7 @@ export function ProjectDetailPage({
                 {view === "list" ? (
                   <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={state.deleteTask} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
                 ) : (
-                  <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} />
+                  <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={state.deleteTask} onDuplicate={state.duplicateTask} />
                 )}
               </div>
             </div>
