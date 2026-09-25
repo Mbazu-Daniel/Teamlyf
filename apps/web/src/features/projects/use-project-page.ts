@@ -15,6 +15,7 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
 
   // Without an organization there is nothing to fetch; "" keeps the keys defined.
   const organizationKey = organizationId ?? "";
+  const enabled = Boolean(organizationId);
   const projectsKey = queryKeys.projects(organizationKey);
   const projectsQuery = useQuery({
     queryKey: projectsKey,
