@@ -2,6 +2,14 @@
   --landing-bg: var(--background-950);
   --landing-surface: var(--background-900);
   --landing-surface-2: var(--background-850, var(--background-800));
+  --landing-soft: var(--background-800);
+  --landing-sidebar: var(--background-900);
+  --landing-dot: var(--text-500);
+  --landing-red: var(--secondary-500);
+  --landing-yellow: var(--accent-500);
+  --landing-green: var(--accent-400);
+  --landing-chart: var(--primary-400);
+  --landing-lilac: var(--primary-300);
   --landing-ink: var(--text-50);
   --landing-muted: var(--text-300);
   --landing-line: color-mix(in oklab, var(--primary-500) 18%, var(--background-700));
@@ -75,7 +83,7 @@
 .landing-feature-documents { left: 80%; top: 58%; animation-delay: -3s; }
 .landing-feature-notes { left: 66%; top: 84%; animation-delay: -4s; }
 .landing-feature-people { left: 40%; top: 80%; animation-delay: -2.5s; }
-.landing-feature-calls { left: 29%; top: 55%; animation-delay: -1.5s; }
+.landing-feature-calls { left: 18%; top: 67%; animation-delay: -1.5s; }
 .landing-feature-ai { left: 31%; top: 20%; animation-delay: -3.5s; }
 @keyframes landing-feature-float { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -7px, 0); } }
 
@@ -112,5 +120,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-reveal, .landing-product-shell, .landing-float-slow, .landing-float-slower, .landing-feature-item { animation: none; }
-  .landing-dark-button, .landing-feature-card { transition: none; }
+  .landing-page a, .landing-page button, .landing-dark-button { transition: none !important; }
+  .landing-page a:hover, .landing-page button:hover, .landing-dark-button:hover { transform: none !important; }
 }
