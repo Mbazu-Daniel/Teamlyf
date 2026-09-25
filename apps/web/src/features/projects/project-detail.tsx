@@ -80,7 +80,6 @@ export function ProjectDetailPage({
               {project.description && <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{project.description}</p>}
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full border px-3 py-1.5 text-xs font-medium capitalize">{project.status.replace(/_/g, " ")}</span>
               <span className="rounded-full border px-3 py-1.5 text-xs font-medium">{state.milestones.length} milestones</span>
             </div>
           </div>
