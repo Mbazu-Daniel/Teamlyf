@@ -11,6 +11,7 @@ export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
 function ProjectRoute() {
   const { organizationSlug, projectId } = Route.useParams();
   const { task: selectedTaskId } = Route.useSearch();
+  const organizationSlug = Route.useParams().organizationSlug;
   const { organization } = useOrganization();
   const state = useProjectPage(organization?.id, projectId);
   const navigate = useNavigate({ from: "/$organizationSlug/projects/$projectId" });
