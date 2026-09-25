@@ -46,8 +46,8 @@ export function UserFooter({ collapsed }: UserFooterProps) {
     try {
       await signOut();
     } finally {
-      // Forget both the session and the workspace, or the guard reads a
-      // signed-in user (and their old workspace) from cache on the next visit.
+      // Clear the in-memory workspace only. The persisted workspace is user-scoped
+      // and intentionally survives sign-out so the same user returns to it next time.
       resetSession();
       resetWorkspace();
       await navigate({ to: "/sign-in" });
