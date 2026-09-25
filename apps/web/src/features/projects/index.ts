@@ -12,3 +12,6 @@ export { parseTaskSearch } from "./task-search";
 export { useProjectPage, useProjects } from "./hooks";
 export { TaskComments } from "./task-comments";
 export { TaskActivity } from "./task-activity";
+export { MilestonesSection } from "./milestones";
+export { TaskList } from "./task-list";
+export { KanbanBoard } from "./board";
