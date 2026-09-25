@@ -1,21 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { IconArrowUpRight, IconCheck, IconFolder, IconSparkles } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
-import { useOrganization } from "@/lib/organization";
 import { ErrorMessage, MutedMessage } from "./feedback";
 
 type ProjectsState = ReturnType<typeof import("./hooks").useProjects>;
 
 export function ProjectListPage({
   organizationName,
+  organizationSlug,
   state,
 }: {
   organizationName: string;
+  organizationSlug?: string;
   state: ProjectsState;
 }) {
   const featuredProject = state.projects[0];
-  const { organization } = useOrganization();
-  const organizationSlug = organization?.slug || organization?.id;
 
   return (
     <main className="min-h-full bg-background px-4 py-6 sm:px-6 lg:px-8">
