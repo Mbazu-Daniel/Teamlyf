@@ -1,76 +1,33 @@
 import type { Icon as TablerIcon } from "@tabler/icons-react";
-import {
-  IconFileText,
-  IconLayoutKanban,
-  IconMessages,
-  IconNotes,
-  IconRobot,
-  IconUsers,
-} from "@tabler/icons-react";
-import { SectionHeading } from "./section-heading";
+import { IconFileText, IconLayoutKanban, IconMessage, IconNotes, IconPhone, IconRobot, IconUsers } from "@tabler/icons-react";
 
-type Feature = {
-  title: string;
-  body: string;
-  icon: TablerIcon;
-};
-
-const features: Feature[] = [
-  {
-    title: "Projects",
-    body: "Track tasks, milestones, labels, and statuses from backlog to done.",
-    icon: IconLayoutKanban,
-  },
-  {
-    title: "Chat & Calls",
-    body: "Channels, threads, reactions, and video calls that stay inside your workspace.",
-    icon: IconMessages,
-  },
-  {
-    title: "Documents",
-    body: "Shared docs with versions and per-member permissions.",
-    icon: IconFileText,
-  },
-  { title: "Notes", body: "Quick notes attached to the work they belong to.", icon: IconNotes },
-  {
-    title: "HR",
-    body: "Departments, member profiles, and leave in the same place as the work.",
-    icon: IconUsers,
-  },
-  {
-    title: "Agents",
-    body: "AI agents with tracked usage and per-plan limits. Configure them once for the whole organization.",
-    icon: IconRobot,
-  },
+const features: Array<{ title: string; body: string; icon: TablerIcon; tone: string }> = [
+  { title: "Projects", body: "Tasks, statuses, milestones, labels, comments, and ownership in one view.", icon: IconLayoutKanban, tone: "landing-icon-violet" },
+  { title: "Chat", body: "Channels, threads, reactions, and files stay close to the work they discuss.", icon: IconMessage, tone: "landing-icon-blue" },
+  { title: "Documents", body: "Shared documents and versions with organization-level access controls.", icon: IconFileText, tone: "landing-icon-orange" },
+  { title: "Notes", body: "Keep lightweight knowledge beside projects instead of in another tool.", icon: IconNotes, tone: "landing-icon-yellow" },
+  { title: "People & HR", body: "People, departments, leave, and employee workflows connected to the organization.", icon: IconUsers, tone: "landing-icon-green" },
+  { title: "Calls", body: "Meet the team without leaving the workspace or losing the project context.", icon: IconPhone, tone: "landing-icon-cyan" },
+  { title: "AI agents", body: "Organization-level agents with usage tracking and plan-aware limits.", icon: IconRobot, tone: "landing-icon-pink" },
 ];
 
-function FeatureCard({ title, body, icon: Icon }: Feature) {
-  return (
-    <article className="crisp-card rounded-2xl border bg-card p-5">
-      <div className="flex items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-500/15 text-primary-300">
-          <Icon className="size-5" aria-hidden="true" />
-        </span>
-        <h3 className="text-xl">{title}</h3>
-      </div>
-      <p className="mt-3 text-muted-foreground">{body}</p>
-    </article>
-  );
-}
-
-/** Uniform three-up grid — every module reads at the same weight, icons inline with headings. */
 export function Features() {
   return (
-    <section id="features" className="scroll-mt-24 px-4 py-20 sm:py-28">
+    <section id="features" className="landing-section scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          eyebrow="Our modules"
-          title="One workspace for project management, chat, and AI agents."
-          body="Projects, chat and calls, documents, notes, HR, and agents use one organization. Your team moves between them in one click. You pay for one product."
-        />
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {features.map((feature) => (
-            <FeatureCard key={feature.title} {...feature} />
+        <div className="max-w-2xl">
+          <p className="landing-kicker">Everything connected</p>
+          <h2 className="landing-section-title mt-3">The work is spread out. Your tools don’t have to be.</h2>
+          <p className="landing-section-copy mt-4">Teamlyf brings the daily pieces of a company into one organization so people can move from a task to a conversation, a document, a call, or an AI agent without changing context.</p>
+        </div>
+
+        <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map(({ title, body, icon: Icon, tone }, index) => (
+            <article key={title} className={`landing-feature-card ${index === 0 ? "lg:col-span-2" : ""}`}>
+              <span className={`landing-feature-icon ${tone}`}><Icon className="size-5" aria-hidden="true" /></span>
+              <h3 className="mt-8 text-lg font-semibold tracking-tight text-[var(--landing-ink)]">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[var(--landing-muted)]">{body}</p>
+            </article>
           ))}
         </div>
       </div>
