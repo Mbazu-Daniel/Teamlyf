@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { IconArrowLeft, IconCalendar, IconCheck, IconFlag, IconLayoutKanban, IconList, IconPlus, IconSearch } from "@tabler/icons-react";
 import type { Project, ProjectTask, Status } from "@/lib/api";
@@ -144,7 +144,7 @@ export function ProjectDetailPage({
   );
 }
 
-function Kpi({ label, value, icon }: { label: string; value: string | number; icon?: React.ReactNode }) {
+function Kpi({ label, value, icon }: { label: string; value: string | number; icon?: ReactNode }) {
   return (
     <div className="rounded-xl border bg-background p-3">
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
