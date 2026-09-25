@@ -61,7 +61,7 @@ export function TaskCard({
         )}
         {milestoneCount > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1">
-            <IconMilestone className="size-3" />
+            <IconTarget className="size-3" />
             {milestoneCount}
           </span>
         )}
