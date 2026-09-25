@@ -32,7 +32,7 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link to="/sign-up" className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${plan.featured ? "landing-dark-button" : "border border-[var(--landing-line)] bg-white text-[var(--landing-ink)]"}`}>
+              <Link to="/sign-up" className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${plan.featured ? "landing-dark-button" : "border border-[var(--landing-line)] bg-[var(--landing-surface)] text-[var(--landing-ink)]"}`}>
                 Get started
               </Link>
             </article>
