@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useResetSession } from "./session";
+import { getOrganizations } from "./api";
 
 function credentials(form: FormData): { email: string; password: string } {
   return {
@@ -20,7 +21,7 @@ function credentials(form: FormData): { email: string; password: string } {
 export function usePasswordAuth(
   authenticate: (credentials: { email: string; password: string }) => Promise<unknown>,
   fallbackError: string,
-  destination: "/projects" | "/workspaces" = "/projects",
+  destination: "/projects" | "/workspaces" | null = null,
 ) {
   const navigate = useNavigate();
   const resetSession = useResetSession();
