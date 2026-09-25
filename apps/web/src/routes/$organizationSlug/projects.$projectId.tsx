@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { ProjectTask } from "@/lib/api";
 import { ProjectDetailPage, parseTaskSearch, useProjectPage } from "@/features/projects";
 import { useOrganization } from "@/lib/organization";
+import { slugify } from "@/lib/slug";
 
 export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
   validateSearch: parseTaskSearch,
@@ -13,10 +14,13 @@ function ProjectRoute() {
   const { task: selectedTaskId } = Route.useSearch();
   const { organization } = useOrganization();
   const state = useProjectPage(organization?.id, projectId);
+  const selectedTask = selectedTaskId
+    ? state.tasks.find((task) => task.id === selectedTaskId || slugify(task.name) === selectedTaskId)
+    : undefined;
   const navigate = useNavigate({ from: "/$organizationSlug/projects/$projectId" });
 
   const openTask = (task: ProjectTask) => {
-    void navigate({ search: (prev) => ({ ...prev, task: task.id }) });
+    void navigate({ search: (prev) => ({ ...prev, task: slugify(task.name) }) });
   };
 
   const closeTask = () => {
@@ -28,7 +32,7 @@ function ProjectRoute() {
       organization={organization}
       organizationSlug={organizationSlug}
       state={state}
-      selectedTaskId={selectedTaskId ?? null}
+      selectedTaskId={selectedTask?.id ?? null}
       openTask={openTask}
       closeTask={closeTask}
     />
