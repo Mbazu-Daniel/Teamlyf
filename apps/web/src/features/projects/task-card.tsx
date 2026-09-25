@@ -24,7 +24,10 @@ export function TaskCard({
       >
         {task.name}
       </button>
-      <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">\n        <span className="rounded-full bg-muted px-2 py-0.5 font-medium">{task.priority}</span>\n        {task.targetDate && <span>{new Date(task.targetDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}\n      </div>
+      <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground"> 
+        <span className="rounded-full bg-muted px-2 py-0.5 font-medium">{task.priority}</span>
+        {task.targetDate && <span>{new Date(task.targetDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
+      </div>
       <select
         value={task.statusId}
         onChange={(event) => void onMove(task, event.target.value)}
