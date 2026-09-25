@@ -22,16 +22,13 @@ export function Hero() {
           Projects, chat, documents, notes, HR, calls, and AI agents in one organization. Teamlyf keeps the work, the people, and the context connected.
         </p>
 
-        <div className="landing-reveal landing-reveal-delay-3 mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/sign-up" className="landing-dark-button inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
+        <div className="landing-reveal landing-reveal-delay-3 mt-8 flex justify-center">
+          <Link to="/sign-up" className="landing-dark-button inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold">
             Start building
             <span className="grid size-6 place-items-center rounded-full bg-[var(--landing-surface)]/15">
               <IconArrowDownRight className="size-3.5" aria-hidden="true" />
             </span>
           </Link>
-          <a href="#product" className="inline-flex items-center rounded-full border border-[var(--landing-line)] bg-[var(--landing-surface)] px-6 py-3 text-sm font-semibold text-[var(--landing-ink)] transition-all hover:-translate-y-0.5 hover:bg-[var(--landing-soft)]">
-            See the workspace
-          </a>
         </div>
       </div>
 
