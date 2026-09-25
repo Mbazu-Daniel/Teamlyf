@@ -49,16 +49,25 @@ function SignIn() {
           </p>
         )}
 
-        <Button className="w-full" type="submit" disabled={pending}>
+        <Button className="w-full" size="lg" type="submit" disabled={pending}>
           {pending ? "Signing in..." : "Sign in"}
         </Button>
+
+        <p className="text-center text-sm">
+          <Link
+            to="/forgot-password"
+            className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Forgot your password?
+          </Link>
+        </p>
       </form>
 
       <SocialSignIn />
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         New to Teamlyf?{" "}
-        <Link to="/sign-up" className="font-bold text-foreground">
+        <Link to="/sign-up" className="font-bold text-foreground underline-offset-4 hover:underline">
           Create an account
         </Link>
       </p>
