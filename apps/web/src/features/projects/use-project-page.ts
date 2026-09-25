@@ -3,29 +3,32 @@ import { useState, type FormEvent } from "react";
 import { milestonesApi, projectsApi, statusesApi, type Milestone, type ProjectTask, type Status } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
+import { slugify } from "@/lib/slug";
 
 type CreateTaskInput = { name: string; statusId: string };
 type MoveTaskInput = { taskId: string; statusId: string };
 
-export function useProjectPage(organizationId: string | undefined, projectId: string) {
+export function useProjectPage(organizationId: string | undefined, projectSlug: string) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [statusId, setStatusId] = useState("");
 
   // Without an organization there is nothing to fetch; "" keeps the keys defined.
   const organizationKey = organizationId ?? "";
-  const enabled = Boolean(organizationId);
+  const projectsKey = queryKeys.projects(organizationKey);
+  const projectsQuery = useQuery({
+    queryKey: projectsKey,
+    queryFn: () => projectsApi.getProjects(organizationKey),
+    enabled,
+    retry: false,
+  });
+  const project = projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ?? null;
+  const projectId = project?.id ?? "";
   const projectKey = queryKeys.project(organizationKey, projectId);
   const statusesKey = queryKeys.statuses(organizationKey, projectId);
   const tasksKey = queryKeys.tasks(organizationKey, projectId);
   const milestonesKey = queryKeys.milestones(organizationKey, projectId);
-
-  const projectQuery = useQuery({
-    queryKey: projectKey,
-    queryFn: () => projectsApi.get(organizationKey, projectId),
-    enabled,
-    retry: false,
-  });
+  const projectEnabled = enabled && Boolean(projectId);
 
   const statusesQuery = useQuery({
     queryKey: statusesKey,
@@ -152,12 +155,12 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     getErrorMessage(deleteMilestoneMutation.error, "Unable to update milestones") ??
     getErrorMessage(moveTaskMutation.error, "Unable to update task") ??
     getErrorMessage(
-      projectQuery.error ?? statusesQuery.error ?? tasksQuery.error,
+      projectsQuery.error ?? statusesQuery.error ?? tasksQuery.error,
       "Unable to load project",
     );
 
   return {
-    project: projectQuery.data ?? null,
+    project,
     statuses,
     tasks: tasksQuery.data ?? [],
     milestones: milestonesQuery.data ?? [],
