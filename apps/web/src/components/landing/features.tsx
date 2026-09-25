@@ -1,6 +1,5 @@
 import type { Icon as TablerIcon } from "@tabler/icons-react";
 import {
-  IconCalendarTime,
   IconFileText,
   IconLayoutKanban,
   IconMessages,
@@ -8,13 +7,12 @@ import {
   IconRobot,
   IconUsers,
 } from "@tabler/icons-react";
-import { cn } from "@/lib/utils";
+import { SectionHeading } from "./section-heading";
 
 type Feature = {
   title: string;
   body: string;
   icon: TablerIcon;
-  span?: string;
 };
 
 const features: Feature[] = [
@@ -22,11 +20,10 @@ const features: Feature[] = [
     title: "Projects",
     body: "Track tasks, milestones, labels, and statuses from backlog to done.",
     icon: IconLayoutKanban,
-    span: "sm:col-span-2",
   },
   {
-    title: "Chat",
-    body: "Channels, threads, and reactions that stay inside your workspace.",
+    title: "Chat & Calls",
+    body: "Channels, threads, reactions, and video calls that stay inside your workspace.",
     icon: IconMessages,
   },
   {
@@ -44,38 +41,34 @@ const features: Feature[] = [
     title: "Agents",
     body: "AI agents with tracked usage and per-plan limits. Configure them once for the whole organization.",
     icon: IconRobot,
-    span: "sm:col-span-2",
   },
-  { title: "Calls", body: "Video calls with per-plan durations.", icon: IconCalendarTime },
 ];
 
-function FeatureCard({ title, body, icon: Icon, span }: Feature) {
+function FeatureCard({ title, body, icon: Icon }: Feature) {
   return (
-    <article className={cn("rounded-2xl border bg-card p-5", span)}>
-      <div className="flex items-center gap-2">
-        <Icon className="size-5 shrink-0 text-primary-300" aria-hidden="true" />
+    <article className="crisp-card rounded-2xl border bg-card p-5">
+      <div className="flex items-center gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-500/15 text-primary-300">
+          <Icon className="size-5" aria-hidden="true" />
+        </span>
         <h3 className="text-xl">{title}</h3>
       </div>
-      <p className="mt-2 text-muted-foreground">{body}</p>
+      <p className="mt-3 text-muted-foreground">{body}</p>
     </article>
   );
 }
 
-/** Irregular bento — varied spans, icons inline with headings, never icon-above-heading. */
+/** Uniform three-up grid — every module reads at the same weight, icons inline with headings. */
 export function Features() {
   return (
-    <section id="features" className="scroll-mt-24 px-4 py-24">
+    <section id="features" className="scroll-mt-24 px-4 py-20 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <div className="max-w-2xl">
-          <h2 className="text-3xl sm:text-4xl">
-            One workspace for project management, chat, and AI agents.
-          </h2>
-          <p className="mt-4 text-xl text-muted-foreground">
-            Projects, chat, documents, notes, HR, calls, and agents use one organization. Your team
-            moves between them in one click. You pay for one product.
-          </p>
-        </div>
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <SectionHeading
+          eyebrow="Our modules"
+          title="One workspace for project management, chat, and AI agents."
+          body="Projects, chat and calls, documents, notes, HR, and agents use one organization. Your team moves between them in one click. You pay for one product."
+        />
+        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
           {features.map((feature) => (
             <FeatureCard key={feature.title} {...feature} />
           ))}
