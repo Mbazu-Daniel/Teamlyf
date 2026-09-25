@@ -38,7 +38,7 @@ export function SocialSignIn() {
     try {
       const result = await signInSocial({
         provider: "google",
-        callbackURL: `${window.location.origin}/projects`,
+        callbackURL: `${window.location.origin}/workspaces`,
       });
       if (result?.url) {
         window.location.assign(result.url);
