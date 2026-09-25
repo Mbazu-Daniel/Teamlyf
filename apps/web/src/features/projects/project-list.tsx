@@ -77,7 +77,7 @@ export function ProjectListPage({
                   <span
                     key={index}
                     className="flex-1 rounded-t bg-primary/60"
-                    style={{ height: \`\${height}%\` }}
+                    style={{ height: `${height}%` }}
                   />
                 ))}
               </div>
@@ -196,7 +196,7 @@ function ProjectCards({ projects, organizationSlug }: { projects: Project[]; org
             <span className="block truncate text-sm font-medium">{project.name}</span>
             <span className="mt-0.5 block text-[10px] font-medium text-muted-foreground">
               {project.identifier}
-              {project.description ? \` · \${project.description}\` : ""}
+              {project.description ? ` · ${project.description}` : ""}
             </span>
           </span>
           <IconArrowUpRight className="size-4 text-muted-foreground transition group-hover:text-foreground" />
