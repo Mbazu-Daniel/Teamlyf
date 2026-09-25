@@ -1,4 +1,4 @@
-import { IconCalendar, IconChevronDown, IconFlag, IconMilestone } from "@tabler/icons-react";
+import { IconCalendar, IconChevronDown, IconFlag, IconTarget } from "@tabler/icons-react";
 import type { ProjectTask, Status } from "@/lib/api";
 import { MutedMessage } from "./feedback";
 
