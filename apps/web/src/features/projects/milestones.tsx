@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from "react";
 import type { Milestone, MilestoneStatus, ProjectTask } from "@/lib/api";
-import { IconCalendar, IconCheck, IconFlag, IconPencil, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
+import { IconCalendar, IconCheck, IconFlag, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { MutedMessage } from "./feedback";
 
 type MilestoneInput = {
@@ -17,6 +17,7 @@ export function MilestonesSection({
   milestones,
   tasks,
   loading,
+  statuses,
   createMilestone,
   updateMilestone,
   deleteMilestone,
@@ -26,6 +27,7 @@ export function MilestonesSection({
   milestones: Milestone[];
   tasks: ProjectTask[];
   loading: boolean;
+  statuses: Array<{ id: string; group: string }>;
   createMilestone: (input: MilestoneInput) => void;
   updateMilestone: (input: MilestoneInput & { milestoneId: string }) => void;
   deleteMilestone: (id: string) => void;
@@ -64,6 +66,7 @@ export function MilestonesSection({
             key={milestone.id}
             milestone={milestone}
             tasks={tasks}
+            statuses={statuses}
             onUpdate={updateMilestone}
             onDelete={() => deleteMilestone(milestone.id)}
             onAddTask={addTaskToMilestone}
@@ -128,6 +131,7 @@ function MilestoneCard({
 }: {
   milestone: Milestone;
   tasks: ProjectTask[];
+  statuses: Array<{ id: string; group: string }>;
   onUpdate: (input: MilestoneInput & { milestoneId: string }) => void;
   onDelete: () => void;
   onAddTask: (input: { milestoneId: string; taskId: string }) => void;
@@ -137,7 +141,10 @@ function MilestoneCard({
   const [taskPickerOpen, setTaskPickerOpen] = useState(false);
   const taskIds = new Set((milestone.milestoneTasks ?? []).map((item) => item.taskId));
   const linkedTasks = tasks.filter((task) => taskIds.has(task.id));
-  const completed = linkedTasks.filter((task) => task.statusId && task.statusId === task.statusId && false).length;
+  const completed = linkedTasks.filter((task) => {
+    const status = statuses.find((item) => item.id === task.statusId);
+    return status?.group === "done";
+  }).length;
   const progress = linkedTasks.length ? Math.round((completed / linkedTasks.length) * 100) : 0;
 
   return (
