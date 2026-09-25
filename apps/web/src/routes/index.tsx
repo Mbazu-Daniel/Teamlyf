@@ -1,3 +1,5 @@
+import "../landing.css";
+
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/landing/navbar";
 import { Hero } from "@/components/landing/hero";
