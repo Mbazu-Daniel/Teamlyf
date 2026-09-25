@@ -1,7 +1,7 @@
 import { client } from "./client";
 import { projectPath } from "./paths";
 
-type MilestoneStatus =
+export type MilestoneStatus =
   | "backlog"
   | "planned"
   | "in-progress"
@@ -9,7 +9,7 @@ type MilestoneStatus =
   | "completed"
   | "cancelled";
 
-type Milestone = {
+export type Milestone = {
   id: string;
   projectId: string;
   name: string;
@@ -20,7 +20,7 @@ type Milestone = {
   createdById: string;
 };
 
-type MilestoneTask = {
+export type MilestoneTask = {
   id: string;
   milestoneId: string;
   taskId: string;
