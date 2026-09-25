@@ -67,6 +67,17 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
   });
 
+  const updateMilestoneMutation = useMutation({
+    mutationFn: (input: { milestoneId: string; name?: string; description?: string; status?: import("@/lib/api").MilestoneStatus; startDate?: string; targetDate?: string }) =>
+      milestonesApi.updateMilestone(organizationKey, projectId, input.milestoneId, input),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) =>
+        (current ?? []).map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
+      );
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
+  });
+
   const deleteMilestoneMutation = useMutation({
     mutationFn: (milestoneId: string) => milestonesApi.deleteMilestone(organizationKey, projectId, milestoneId),
     onMutate: async (milestoneId) => {
@@ -119,6 +130,7 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
   const error =
     getErrorMessage(createTaskMutation.error, "Unable to create task") ??
     getErrorMessage(createMilestoneMutation.error, "Unable to create milestone") ??
+    getErrorMessage(updateMilestoneMutation.error, "Unable to update milestone") ??
     getErrorMessage(deleteMilestoneMutation.error, "Unable to update milestones") ??
     getErrorMessage(moveTaskMutation.error, "Unable to update task") ??
     getErrorMessage(
@@ -141,6 +153,7 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     createTask,
     moveTask,
     createMilestone: createMilestoneMutation.mutate,
+    updateMilestone: updateMilestoneMutation.mutate,
     deleteMilestone: deleteMilestoneMutation.mutate,
   };
 }
