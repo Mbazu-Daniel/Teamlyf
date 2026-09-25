@@ -1,88 +1,42 @@
 import { Link } from "@tanstack/react-router";
 import { IconCheck } from "@tabler/icons-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { ActionPill } from "./action-pill";
-import { SectionHeading } from "./section-heading";
 
-/**
- * Real entitlements from apps/api/src/modules/billing/plan-entitlements.ts.
- * Price stays "Price on request" until real numbers exist. Never invent metrics (slop gate 46).
- */
-const plans = [
-  {
-    name: "Starter",
-    seats: "5 seats",
-    perks: ["1 AI agent", "30-minute calls", "All six modules"],
-    recommended: false,
-  },
-  {
-    name: "Growth",
-    seats: "50 seats",
-    perks: ["5 AI agents", "60-minute calls", "All six modules"],
-    recommended: true,
-  },
-  {
-    name: "Scale",
-    seats: "250 seats",
-    perks: ["20 AI agents", "180-minute calls", "All six modules"],
-    recommended: false,
-  },
+type PricingPlan = { readonly name: string; readonly seats: string; readonly perks: readonly string[]; readonly featured?: boolean };
+
+const plans: readonly PricingPlan[] = [
+  { name: "Starter", seats: "5 seats", perks: ["1 AI agent", "30-minute calls", "Core workspace modules"] },
+  { name: "Growth", seats: "50 seats", perks: ["5 AI agents", "60-minute calls", "Core workspace modules"], featured: true },
+  { name: "Scale", seats: "250 seats", perks: ["20 AI agents", "180-minute calls", "Core workspace modules"] },
 ] as const;
 
-/** Pricing-card lift is motion primitive 3 of 3 — via the shared `.crisp-card`. */
 export function Pricing() {
   return (
-    <section id="pricing" className="scroll-mt-24 px-4 py-20 sm:py-28">
+    <section id="pricing" className="landing-section scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          eyebrow="Our pricing"
-          title="Simple, transparent pricing."
-          body="Choose by team size. Every plan includes the whole workspace."
-        />
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="landing-kicker">Simple pricing</p>
+          <h2 className="landing-section-title mt-3">One product. Pick the size that fits.</h2>
+          <p className="landing-section-copy mt-4">Every plan keeps the workspace together. Pricing is available on request while plans are being finalized.</p>
+        </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-3">
+        <div className="mt-12 grid gap-3 lg:grid-cols-3">
           {plans.map((plan) => (
-            <article
-              key={plan.name}
-              className={cn(
-                "crisp-card flex flex-col rounded-2xl border bg-card p-6",
-                plan.recommended && "border-primary-500/60",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <h3 className="text-xl">{plan.name}</h3>
-                {plan.recommended && <Badge variant="primary">Recommended</Badge>}
-              </div>
-
-              <p className="mt-4 text-xl font-bold text-text-200">Price on request</p>
-              <p className="mt-1 font-bold">{plan.seats}</p>
-
-              <ul className="mt-5 flex flex-col gap-2.5 text-muted-foreground">
+            <article key={plan.name} className={`landing-price-card ${plan.featured ? "landing-price-featured" : ""}`}>
+              {plan.featured && <span className="landing-price-badge">Growth</span>}
+              <p className="text-sm font-semibold text-[var(--landing-muted)]">{plan.name}</p>
+              <p className="mt-4 text-2xl font-semibold tracking-tight text-[var(--landing-ink)]">Price on request</p>
+              <p className="mt-1 text-sm font-medium text-[var(--landing-ink)]">{plan.seats}</p>
+              <ul className="mt-7 space-y-3">
                 {plan.perks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <IconCheck
-                      className="mt-0.5 size-4 shrink-0 text-accent-400"
-                      aria-hidden="true"
-                    />
+                  <li key={perk} className="flex items-start gap-2.5 text-sm text-[var(--landing-muted)]">
+                    <IconCheck className="mt-0.5 size-4 shrink-0 text-[var(--landing-green)]" aria-hidden="true" />
                     {perk}
                   </li>
                 ))}
               </ul>
-
-              {plan.recommended ? (
-                <ActionPill
-                  render={<Link to="/sign-up" />}
-                  className="mt-7 w-full justify-between pl-6"
-                >
-                  Choose {plan.name}
-                </ActionPill>
-              ) : (
-                <Button render={<Link to="/sign-up" />} variant="outline" className="mt-7 w-full">
-                  Choose {plan.name}
-                </Button>
-              )}
+              <Link to="/sign-up" className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${plan.featured ? "landing-dark-button" : "border border-[var(--landing-line)] bg-[var(--landing-surface)] text-[var(--landing-ink)]"}`}>
+                Get started
+              </Link>
             </article>
           ))}
         </div>

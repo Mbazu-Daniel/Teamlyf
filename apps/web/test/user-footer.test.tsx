@@ -52,7 +52,7 @@ function renderFooter() {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
-  localStorage.setItem("teamlyf:organization-id", ORG.id);
+  localStorage.setItem("teamlyf:last-organization-id:user-1", ORG.id);
   mocks.request.mockResolvedValue(ORG);
   mocks.getOrganizations.mockResolvedValue([ORG]);
   mocks.getSession.mockResolvedValue({
@@ -76,7 +76,7 @@ describe("UserFooter", () => {
     await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }));
 
     const settings = await screen.findByRole("menuitem", { name: "Settings" });
-    expect(settings).toHaveAttribute("href", "/settings");
+    expect(settings).toHaveAttribute("href", "/$organizationSlug/settings");
     expect(screen.getByRole("menuitem", { name: "Log out" })).toBeInTheDocument();
   });
 
@@ -89,6 +89,6 @@ describe("UserFooter", () => {
 
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/sign-in" }));
     expect(mocks.signOut).toHaveBeenCalledTimes(1);
-    expect(localStorage.getItem("teamlyf:organization-id")).toBeNull();
+    expect(localStorage.getItem("teamlyf:last-organization-id:user-1")).toBe(ORG.id);
   });
 });

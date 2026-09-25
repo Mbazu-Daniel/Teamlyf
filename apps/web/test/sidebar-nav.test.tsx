@@ -22,18 +22,18 @@ describe("nav data", () => {
   it("keepsEveryEntryInsideTheApp_neverOnTheMarketingRoot", () => {
     expect(NAV_ITEMS.map((item) => item.to)).not.toContain("/");
     // Stands in for the dashboard until ticket 10 lands one.
-    expect(NAV_HOME.to).toBe("/projects");
+    expect(NAV_HOME.to).toBe("");
   });
 });
 
 describe("active matching", () => {
   it("accentsProjects_whenOnProjectsRoute_homeSharesTheRouteAsAStandIn", () => {
-    expect(findActiveNavItem("/projects")?.id).toBe("projects");
+    expect(findActiveNavItem("/acme/projects")?.id).toBe("projects");
   });
 
   it("accentsTheSection_whenOnAChildRoute", () => {
-    expect(findActiveNavItem("/projects/proj-1")?.id).toBe("projects");
-    expect(findActiveNavItem("/settings/access")?.id).toBe("settings");
+    expect(findActiveNavItem("/acme/projects/proj-1")?.id).toBe("projects");
+    expect(findActiveNavItem("/acme/settings/access")?.id).toBe("settings");
   });
 
   it("accentsNothing_whenOnARouteWithNoEntry", () => {
@@ -42,7 +42,7 @@ describe("active matching", () => {
   });
 
   it("matchesRootRoutesExactly_soAForwardSlashEntryNeverLightsUpEverywhere", () => {
-    expect(isNavItemActive("/", "/")).toBe(true);
-    expect(isNavItemActive("/projects", "/")).toBe(false);
+    expect(isNavItemActive("/acme", "/acme")).toBe(true);
+    expect(isNavItemActive("/acme/projects", "/acme")).toBe(false);
   });
 });

@@ -1,0 +1,42 @@
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { IconBuilding, IconCreditCard, IconLock, IconShield } from "@tabler/icons-react";
+
+export const Route = createFileRoute("/$organizationSlug/settings")({ component: SettingsLayout });
+
+const items = [
+  { to: "/$organizationSlug/settings/organization", label: "Organization", icon: IconBuilding },
+  { to: "/$organizationSlug/settings/access", label: "Access", icon: IconLock },
+  { to: "/$organizationSlug/settings/security", label: "Security", icon: IconShield },
+  { to: "/$organizationSlug/settings/billing", label: "Billing", icon: IconCreditCard },
+] as const;
+
+function SettingsLayout() {
+  const { organizationSlug } = Route.useParams();
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <header>
+        <h1 className="text-3xl font-semibold">Settings</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Manage your organization, access, security and billing.</p>
+      </header>
+      <div className="mt-8 grid gap-8 md:grid-cols-[220px_1fr]">
+        <nav className="space-y-1">
+          {items.map(({ to, label, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              params={{ organizationSlug }}
+              activeProps={{ className: "bg-muted font-medium" }}
+              inactiveProps={{ className: "text-muted-foreground hover:bg-muted/60" }}
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm"
+            >
+              <Icon className="size-4" />
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <section className="min-w-0"><Outlet /></section>
+      </div>
+    </div>
+  );
+}

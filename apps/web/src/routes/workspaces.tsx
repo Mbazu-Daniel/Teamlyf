@@ -172,7 +172,7 @@ function WorkspaceTile({ workspace }: Readonly<{ workspace: Organization }>) {
 
   function choose() {
     selectOrganization(workspace);
-    void navigate({ to: "/projects" });
+    void navigate({ to: "/$organizationSlug/projects", params: { organizationSlug: workspace.slug || workspace.id } });
   }
 
   return (
@@ -249,7 +249,7 @@ function CreateWorkspaceForm({
 
         selectOrganization(created);
         toast.success(`${created.name} is ready.`);
-        await navigate({ to: "/projects" });
+        await navigate({ to: "/$organizationSlug/projects", params: { organizationSlug: created.slug || created.id } });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Could not create the workspace.");
       }

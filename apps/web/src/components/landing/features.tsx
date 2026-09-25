@@ -2,76 +2,53 @@ import type { Icon as TablerIcon } from "@tabler/icons-react";
 import {
   IconFileText,
   IconLayoutKanban,
-  IconMessages,
+  IconMessage,
   IconNotes,
+  IconPhone,
   IconRobot,
   IconUsers,
 } from "@tabler/icons-react";
-import { SectionHeading } from "./section-heading";
 
-type Feature = {
+const features: Array<{
   title: string;
-  body: string;
   icon: TablerIcon;
-};
-
-const features: Feature[] = [
-  {
-    title: "Projects",
-    body: "Track tasks, milestones, labels, and statuses from backlog to done.",
-    icon: IconLayoutKanban,
-  },
-  {
-    title: "Chat & Calls",
-    body: "Channels, threads, reactions, and video calls that stay inside your workspace.",
-    icon: IconMessages,
-  },
-  {
-    title: "Documents",
-    body: "Shared docs with versions and per-member permissions.",
-    icon: IconFileText,
-  },
-  { title: "Notes", body: "Quick notes attached to the work they belong to.", icon: IconNotes },
-  {
-    title: "HR",
-    body: "Departments, member profiles, and leave in the same place as the work.",
-    icon: IconUsers,
-  },
-  {
-    title: "Agents",
-    body: "AI agents with tracked usage and per-plan limits. Configure them once for the whole organization.",
-    icon: IconRobot,
-  },
+  tone: string;
+  position: string;
+}> = [
+  { title: "Projects", icon: IconLayoutKanban, tone: "landing-icon-violet", position: "landing-feature-projects" },
+  { title: "Chat", icon: IconMessage, tone: "landing-icon-blue", position: "landing-feature-chat" },
+  { title: "Documents", icon: IconFileText, tone: "landing-icon-magenta", position: "landing-feature-documents" },
+  { title: "Notes", icon: IconNotes, tone: "landing-icon-lime", position: "landing-feature-notes" },
+  { title: "People & HR", icon: IconUsers, tone: "landing-icon-violet", position: "landing-feature-people" },
+  { title: "Calls", icon: IconPhone, tone: "landing-icon-blue", position: "landing-feature-calls" },
+  { title: "AI agents", icon: IconRobot, tone: "landing-icon-magenta", position: "landing-feature-ai" },
 ];
 
-function FeatureCard({ title, body, icon: Icon }: Feature) {
-  return (
-    <article className="crisp-card rounded-2xl border bg-card p-5">
-      <div className="flex items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-500/15 text-primary-300">
-          <Icon className="size-5" aria-hidden="true" />
-        </span>
-        <h3 className="text-xl">{title}</h3>
-      </div>
-      <p className="mt-3 text-muted-foreground">{body}</p>
-    </article>
-  );
-}
-
-/** Uniform three-up grid — every module reads at the same weight, icons inline with headings. */
 export function Features() {
   return (
-    <section id="features" className="scroll-mt-24 px-4 py-20 sm:py-28">
+    <section id="features" className="landing-section scroll-mt-24 px-4 py-20 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          eyebrow="Our modules"
-          title="One workspace for project management, chat, and AI agents."
-          body="Projects, chat and calls, documents, notes, HR, and agents use one organization. Your team moves between them in one click. You pay for one product."
-        />
-        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {features.map((feature) => (
-            <FeatureCard key={feature.title} {...feature} />
-          ))}
+        <div className="landing-feature-stage">
+          <div className="landing-feature-copy">
+            <p className="landing-kicker">Everything connected</p>
+            <h2 className="landing-section-title mt-3 max-w-xl">One place for the work that moves your company.</h2>
+            <p className="landing-section-copy mt-4 max-w-lg">Projects, conversations, knowledge, people, calls, and AI stay connected inside the same organization.</p>
+          </div>
+
+          <div className="landing-feature-orbit" aria-label="Teamlyf features">
+            {features.map(({ title, icon: Icon, tone, position }) => (
+              <div key={title} className={`landing-feature-item ${position}`}>
+                <span className={`landing-feature-icon ${tone}`}>
+                  <Icon className="size-5" aria-hidden="true" />
+                </span>
+                <span>{title}</span>
+              </div>
+            ))}
+            <div className="landing-feature-core">
+              <span className="landing-feature-core-mark">T</span>
+              <span>Teamlyf</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>

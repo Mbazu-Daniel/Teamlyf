@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NAV_HOME, findActiveNavItem } from "./nav-items";
+
 import { cn } from "@/lib/utils";
 
 function workspaceInitial(name: string) {
@@ -24,8 +24,8 @@ type WorkspaceSwitcherProps = Readonly<{ collapsed: boolean }>;
 
 /**
  * Shows the active workspace and lists the member's other workspaces.
- * Picking one persists it under `teamlyf:organization-id` (the key
- * OrganizationProvider restores from) and reloads the new workspace's data.
+ * Picking one persists it for the signed-in user, and OrganizationProvider restores
+ * it on the next login without forcing the workspace picker again.
  */
 export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
   const navigate = useNavigate();
@@ -51,7 +51,9 @@ export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.organizations });
     // A nested route (project detail) belongs to the old workspace — land on
     // the section root instead, and stay put when the current route still fits.
-    const target = findActiveNavItem(pathname)?.to ?? NAV_HOME.to;
+    const segments = pathname.split("/").filter(Boolean);
+    const section = segments[1] ?? "";
+    const target = section ? `/${next.slug || next.id}/${section}` : `/${next.slug || next.id}`;
     if (target !== pathname) void navigate({ to: target });
   }
 

@@ -1,7 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { client, getOrganizations, type Organization } from "./api";
+import { useSession } from "./session";
 
-const ORG_STORAGE_KEY = "teamlyf:organization-id";
+const ORG_STORAGE_PREFIX = "teamlyf:last-organization-id:";
+
+function organizationStorageKey(userId: string) {
+  return ORG_STORAGE_PREFIX + userId;
+}
 
 type OrganizationContextValue = {
   organization: Organization | null;
@@ -11,8 +16,7 @@ type OrganizationContextValue = {
   selectOrganization: (organization: Organization) => void;
   refreshOrganizations: () => Promise<Organization[]>;
   resolveSlug: (slug: string) => Promise<Organization | null>;
-  /** Forget the workspace in memory and on disk. Called on sign out so a
-   * different account never inherits the previous one's workspace. */
+  /** Forget the workspace in memory without deleting the user's saved workspace. */
   reset: () => void;
 };
 
@@ -26,27 +30,49 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [bootstrapped, setBootstrapped] = useState(false);
+  const { data: session, isPending: sessionPending } = useSession();
+  const userId = session?.user?.id;
 
   useEffect(() => {
-    const savedId = localStorage.getItem(ORG_STORAGE_KEY);
-    if (!savedId) {
+    if (sessionPending) {
+      setBootstrapped(false);
+      return;
+    }
+
+    if (!userId) {
+      setOrganization(null);
+      setOrganizations([]);
       setBootstrapped(true);
       return;
     }
+
+    const savedId = localStorage.getItem(organizationStorageKey(userId));
+    if (!savedId) {
+      setOrganization(null);
+      setBootstrapped(true);
+      return;
+    }
+
     let active = true;
+    setBootstrapped(false);
+
     client
-      .request<Organization>(`/organization/${savedId}`)
+      .request<Organization>("/organization/" + savedId)
       .then((saved) => {
-        if (active) setOrganization(saved);
+        if (!active) return;
+        setOrganization(saved);
       })
-      .catch(() => localStorage.removeItem(ORG_STORAGE_KEY))
+      .catch(() => {
+        if (active) localStorage.removeItem(organizationStorageKey(userId));
+      })
       .finally(() => {
         if (active) setBootstrapped(true);
       });
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [sessionPending, userId]);
 
   const value = useMemo<OrganizationContextValue>(
     () => ({
@@ -54,11 +80,13 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       organizations,
       bootstrapped,
       selectOrganization: (next) => {
-        localStorage.setItem(ORG_STORAGE_KEY, next.id);
+        if (userId) localStorage.setItem(organizationStorageKey(userId), next.id);
         setOrganization(next);
         setOrganizations((current) => {
           const exists = current.some((item) => item.id === next.id);
-          return exists ? current.map((item) => (item.id === next.id ? next : item)) : [next, ...current];
+          return exists
+            ? current.map((item) => (item.id === next.id ? next : item))
+            : [next, ...current];
         });
       },
       refreshOrganizations: async () => {
@@ -71,18 +99,17 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         setOrganizations(next);
         const match = next.find((item) => organizationSlug(item) === slug || item.id === slug) ?? null;
         if (match) {
-          localStorage.setItem(ORG_STORAGE_KEY, match.id);
+          if (userId) localStorage.setItem(organizationStorageKey(userId), match.id);
           setOrganization(match);
         }
         return match;
       },
       reset: () => {
-        localStorage.removeItem(ORG_STORAGE_KEY);
         setOrganization(null);
         setOrganizations([]);
       },
     }),
-    [organization, organizations, bootstrapped],
+    [organization, organizations, bootstrapped, userId],
   );
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
@@ -93,4 +120,3 @@ export function useOrganization() {
   if (!context) throw new Error("useOrganization must be used inside OrganizationProvider");
   return context;
 }
-

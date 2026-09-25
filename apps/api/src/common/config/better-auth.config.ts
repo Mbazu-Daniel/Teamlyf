@@ -31,6 +31,12 @@ export function createAuth(options: CreateAuthOptions) {
     secret: options.secret,
     baseURL: options.baseURL,
     trustedOrigins: options.webOrigin.split(",").map((origin) => origin.trim()).filter(Boolean),
+    session: {
+      // Keep active users signed in for 30 days and extend the session daily.
+      // Better Auth refreshes the server-side session cookie through normal session requests.
+      expiresIn: 60 * 60 * 24 * 30,
+      updateAge: 60 * 60 * 24,
+    },
     advanced: {
       database: {
         generateId,
