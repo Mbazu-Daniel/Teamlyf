@@ -62,7 +62,7 @@ export function ProjectListPage({
 
             <div className="p-4 sm:p-5">
               {state.error && <ErrorMessage message={state.error} />}
-              <ProjectListContent state={state} />
+              <ProjectListContent state={state} organizationSlug={organizationSlug} />
             </div>
           </section>
 
