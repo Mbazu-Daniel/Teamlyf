@@ -26,6 +26,7 @@ function ProjectRoute() {
   return (
     <ProjectRouteContent
       organization={organization}
+      organizationSlug={organizationSlug}
       state={state}
       selectedTaskId={selectedTaskId ?? null}
       openTask={openTask}
