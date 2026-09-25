@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NAV_HOME, findActiveNavItem } from "./nav-items";
+
 import { cn } from "@/lib/utils";
 
 function workspaceInitial(name: string) {
@@ -51,7 +51,9 @@ export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.organizations });
     // A nested route (project detail) belongs to the old workspace — land on
     // the section root instead, and stay put when the current route still fits.
-    const target = findActiveNavItem(pathname)?.to ?? NAV_HOME.to;
+    const segments = pathname.split("/").filter(Boolean);
+    const section = segments[1] ?? "";
+    const target = section ? `/${next.slug || next.id}/${section}` : `/${next.slug || next.id}`;
     if (target !== pathname) void navigate({ to: target });
   }
 
