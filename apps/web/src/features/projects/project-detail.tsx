@@ -38,7 +38,8 @@ export function ProjectDetailPage({
   onSelectTask,
   onCloseTask,
 }: ProjectDetailPageProps) {
-  const [view, setView] = useState<"kanban" | "list">("kanban");
+  const [section, setSection] = useState<"tasks" | "milestones">("tasks");
+  const [view, setView] = useState<"kanban" | "list">("list");
   const [search, setSearch] = useState("");
 
   const filteredTasks = useMemo(() => {
@@ -64,122 +65,96 @@ export function ProjectDetailPage({
     .filter((time) => !Number.isNaN(time))
     .sort((a, b) => a - b)[0];
 
-  const setTaskStatus = (statusId: string) => state.setStatusId(statusId);
-
   return (
-    <main className="min-h-full bg-background px-3 py-4 sm:px-5 lg:px-7">
-      <div className="mx-auto max-w-[1440px] space-y-3">
-        <div className="flex items-center gap-2">
-          <Link
-            to="/$organizationSlug/projects"
-            params={{ organizationSlug }}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
-          >
-            <IconArrowLeft className="size-3.5" />
-            Projects
-          </Link>
-          <span className="text-xs text-muted-foreground">/</span>
-          <span className="truncate text-xs font-medium text-foreground">{project.name}</span>
-        </div>
-
-        <section className="rounded-xl border bg-card shadow-sm">
-          <div className="flex flex-col gap-4 border-b px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <main className="min-h-full bg-background">
+      <div className="mx-auto max-w-[1500px]">
+        <header className="border-b bg-card px-4 py-4 sm:px-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary">
-                  {project.emoji ?? "P"}
+              <Link
+                to="/$organizationSlug/projects"
+                params={{ organizationSlug }}
+                className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+              >
+                <IconArrowLeft className="size-3.5" /> Projects
+              </Link>
+              <div className="mt-3 flex items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg border bg-background text-sm font-semibold text-primary">
+                  {project.emoji ?? project.name.charAt(0).toUpperCase()}
                 </span>
-                {project.identifier}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="truncate text-xl font-semibold tracking-tight">{project.name}</h1>
+                    <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{project.identifier}</span>
+                  </div>
+                  {project.description && <p className="mt-1 max-w-3xl truncate text-xs text-muted-foreground">{project.description}</p>}
+                </div>
               </div>
-              <h1 className="mt-2 truncate text-xl font-semibold tracking-tight sm:text-2xl">{project.name}</h1>
-              {project.description && (
-                <p className="mt-1 max-w-3xl truncate text-sm text-muted-foreground">{project.description}</p>
-              )}
             </div>
 
-            <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center">
+            <div className="flex items-center gap-2">
               <Kpi label="Tasks" value={state.tasks.length} />
               <Kpi label="Done" value={completedTasks} />
               <Kpi label="Milestones" value={state.milestones.length} />
-              <Kpi
-                label="Next target"
-                value={nextDue ? new Date(nextDue).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"}
-                icon={<IconCalendar className="size-3" />}
-              />
+              <Kpi label="Next target" value={nextDue ? new Date(nextDue).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "—"} />
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-lg bg-muted p-0.5">
-                <ViewButton active={view === "kanban"} onClick={() => setView("kanban")} icon={<IconLayoutKanban className="size-3.5" />}>
-                  Board
-                </ViewButton>
-                <ViewButton active={view === "list"} onClick={() => setView("list")} icon={<IconList className="size-3.5" />}>
-                  List
-                </ViewButton>
+          <nav className="mt-5 flex items-center gap-1 border-b" aria-label="Project sections">
+            <SectionButton active={section === "tasks"} onClick={() => setSection("tasks")} icon={<IconCheck className="size-3.5" />}>
+              Tasks
+              <Count>{state.tasks.length}</Count>
+            </SectionButton>
+            <SectionButton active={section === "milestones"} onClick={() => setSection("milestones")} icon={<IconFlag className="size-3.5" />}>
+              Milestones
+              <Count>{state.milestones.length}</Count>
+            </SectionButton>
+          </nav>
+        </header>
+
+        {state.error && <div className="px-4 pt-4 sm:px-6"><ErrorMessage message={state.error} /></div>}
+
+        {section === "tasks" ? (
+          <section className="px-3 py-4 sm:px-5">
+            <div className="rounded-xl border bg-card shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-lg bg-muted p-0.5">
+                    <ViewButton active={view === "list"} onClick={() => setView("list")} icon={<IconList className="size-3.5" />}>List</ViewButton>
+                    <ViewButton active={view === "kanban"} onClick={() => setView("kanban")} icon={<IconLayoutKanban className="size-3.5" />}>Board</ViewButton>
+                  </div>
+                  <label className="relative w-52">
+                    <IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search tasks" className="h-8 w-full rounded-lg border bg-background pl-8 pr-3 text-xs outline-none focus:border-primary" />
+                  </label>
+                </div>
+                <TaskForm {...state} />
               </div>
 
-              <label className="relative w-full max-w-sm sm:w-64">
-                <IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search tasks..."
-                  className="h-8 w-full rounded-lg border bg-background pl-8 pr-3 text-xs outline-none transition focus:border-primary"
-                />
-              </label>
+              <div className="p-3 sm:p-4">
+                {view === "list" ? (
+                  <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} />
+                ) : (
+                  <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} />
+                )}
+              </div>
             </div>
-
-            <TaskForm
-              {...state}
-              setStatusId={setTaskStatus}
+          </section>
+        ) : (
+          <section className="px-3 py-4 sm:px-5">
+            <MilestonesSection
+              milestones={state.milestones}
+              tasks={state.tasks}
+              loading={state.milestonesLoading}
+              statuses={state.statuses}
+              createMilestone={state.createMilestone}
+              updateMilestone={state.updateMilestone}
+              deleteMilestone={state.deleteMilestone}
+              addTaskToMilestone={state.addTaskToMilestone}
+              removeTaskFromMilestone={state.removeTaskFromMilestone}
             />
-          </div>
-        </section>
-
-        {state.error && <ErrorMessage message={state.error} />}
-
-        <MilestonesSection
-          milestones={state.milestones}
-          tasks={state.tasks}
-          loading={state.milestonesLoading}
-          statuses={state.statuses}
-          createMilestone={state.createMilestone}
-          updateMilestone={state.updateMilestone}
-          deleteMilestone={state.deleteMilestone}
-          addTaskToMilestone={state.addTaskToMilestone}
-          removeTaskFromMilestone={state.removeTaskFromMilestone}
-        />
-
-        <section className="rounded-xl border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Project work</p>
-              <h2 className="mt-1 text-sm font-semibold">{filteredTasks.length} visible tasks</h2>
-            </div>
-            {view === "kanban" && <p className="hidden text-[10px] text-muted-foreground sm:block">Drag a task between columns to change status</p>}
-          </div>
-
-          <div className="p-3 sm:p-4">
-            {view === "kanban" ? (
-              <KanbanBoard
-                statuses={state.statuses}
-                tasks={filteredTasks}
-                onMove={state.moveTask}
-                onSelect={onSelectTask}
-                onAddTask={setTaskStatus}
-              />
-            ) : (
-              <TaskList
-                tasks={filteredTasks}
-                statuses={state.statuses}
-                onMove={state.moveTask}
-                onSelect={onSelectTask}
-              />
-            )}
-          </div>
-        </section>
+          </section>
+        )}
       </div>
 
       <TaskDetailPanel
@@ -193,15 +168,35 @@ export function ProjectDetailPage({
   );
 }
 
-function Kpi({ label, value, icon }: { label: string; value: string | number; icon?: ReactNode }) {
+function Kpi({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="min-w-[78px] rounded-lg border bg-background px-2.5 py-2">
-      <div className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        {icon}
-        {label}
-      </div>
-      <p className="mt-1 text-sm font-semibold tracking-tight">{value}</p>
+    <div className="hidden min-w-[72px] rounded-lg border bg-background px-2.5 py-1.5 sm:block">
+      <p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-xs font-semibold">{value}</p>
     </div>
+  );
+}
+
+function Count({ children }: { children: ReactNode }) {
+  return <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold">{children}</span>;
+}
+
+function SectionButton({
+  active,
+  onClick,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <button type="button" onClick={onClick} className={`inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-semibold transition ${active ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+      {icon}
+      {children}
+    </button>
   );
 }
 
@@ -217,11 +212,7 @@ function ViewButton({
   children: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-semibold transition ${active ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-    >
+    <button type="button" onClick={onClick} className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-semibold transition ${active ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
       {icon}
       {children}
     </button>
@@ -242,20 +233,13 @@ function TaskForm({
   }
 
   return (
-    <form onSubmit={submit} className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row lg:max-w-xl">
-      <input
-        value={name}
-        onChange={(event) => setName(event.target.value)}
-        placeholder="Add a task..."
-        className="min-w-0 flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-        required
-      />
-      <select value={statusId} onChange={(event) => setStatusId(event.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm" required>
+    <form onSubmit={submit} className="flex min-w-[280px] flex-1 gap-2 sm:max-w-md">
+      <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Add a task..." className="min-w-0 flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:border-primary" required />
+      <select value={statusId} onChange={(event) => setStatusId(event.target.value)} className="max-w-32 rounded-lg border bg-background px-3 py-2 text-sm" required>
         {statuses.map((status: Status) => <option key={status.id} value={status.id}>{status.name}</option>)}
       </select>
-      <button disabled={loading || !statusId} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
-        <IconPlus className="size-3.5" />
-        {loading ? "Adding..." : "Add task"}
+      <button disabled={loading || !statusId} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+        <IconPlus className="size-3.5" /> {loading ? "Adding..." : "Add"}
       </button>
     </form>
   );
