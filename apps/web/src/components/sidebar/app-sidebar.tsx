@@ -70,9 +70,9 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         <div className="px-1">
           <Brand collapsed={collapsed} />
         </div>
-        {!collapsed && organization && (
+        {organization && (
           <div className="mt-3">
-            <WorkspaceSwitcher collapsed={false} />
+            <WorkspaceSwitcher collapsed={collapsed} />
           </div>
         )}
       </div>
