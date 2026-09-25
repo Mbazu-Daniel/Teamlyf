@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
@@ -10,7 +10,7 @@ import {
   taskAssignee,
   taskLabel,
 } from "@teamlyf/db/project-schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateTaskDto, TaskAssigneeInputDto, UpdateTaskDto } from "./dto";
@@ -26,9 +26,28 @@ export class TaskService {
     await this.access.requireProject(orgId, projectId);
     return this.db.query.task.findMany({
       where: eq(task.projectId, projectId),
-      orderBy: (t, { asc }) => [asc(t.sortOrder)],
+      orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.sequenceId)],
       with: { taskAssignees: true, taskLabels: true },
     });
+  }
+
+  async reorderTasks(orgId: string, projectId: string, taskIds: string[]) {
+    await this.access.requireProject(orgId, projectId);
+
+    const ids = [...new Set(taskIds)];
+    const found = await this.db.query.task.findMany({
+      where: and(eq(task.projectId, projectId), inArray(task.id, ids)),
+      columns: { id: true },
+    });
+    if (found.length !== ids.length) {
+      throw new NotFoundException("Tasks not found in this project");
+    }
+
+    for (const [index, id] of ids.entries()) {
+      await this.db.update(task).set({ sortOrder: (index + 1) * 1000 }).where(eq(task.id, id));
+    }
+
+    return this.getTasks(orgId, projectId);
   }
 
   async getTask(orgId: string, projectId: string, taskId: string) {
@@ -42,13 +61,17 @@ export class TaskService {
   async createTask(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
     await this.access.requireProject(orgId, projectId);
 
-    const [statusRecord, last] = await Promise.all([
+    const [statusRecord, last, lastSorted] = await Promise.all([
       this.db.query.status.findFirst({
         where: and(eq(status.id, dto.statusId), eq(status.projectId, projectId)),
       }),
       this.db.query.task.findFirst({
         where: eq(task.projectId, projectId),
         orderBy: (t, { desc }) => [desc(t.sequenceId)],
+      }),
+      this.db.query.task.findFirst({
+        where: eq(task.projectId, projectId),
+        orderBy: (t, { desc }) => [desc(t.sortOrder)],
       }),
     ]);
     if (!statusRecord) throw new BadRequestException("Invalid status for this project");
@@ -63,6 +86,7 @@ export class TaskService {
         description: dto.description ?? null,
         priority: dto.priority ?? "none",
         sequenceId: (last?.sequenceId ?? 0) + 1,
+        sortOrder: (lastSorted?.sortOrder ?? 0) + 1,
         startDate: dto.startDate ? new Date(dto.startDate) : null,
         targetDate: dto.targetDate ? new Date(dto.targetDate) : null,
         completedAt: statusRecord.group === "done" ? new Date() : null,

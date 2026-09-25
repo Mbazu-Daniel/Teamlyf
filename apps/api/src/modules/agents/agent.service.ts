@@ -138,6 +138,64 @@ export class AgentService {
     return usage;
   }
 
+  async deleteAgent(organizationId: string, agentId: string) {
+    await this.requireAgent(organizationId, agentId);
+    // agent_run and ai_usage both carry FKs to agent with no ON DELETE rule:
+    // detach usage rows (keeps billing history) and drop runs with the agent.
+    return this.db.transaction(async (tx) => {
+      await tx.update(aiUsage)
+        .set({ agentId: null })
+        .where(and(eq(aiUsage.organizationId, organizationId), eq(aiUsage.agentId, agentId)));
+      await tx.delete(agentRun)
+        .where(and(eq(agentRun.organizationId, organizationId), eq(agentRun.agentId, agentId)));
+      const [deleted] = await tx.delete(agent)
+        .where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)))
+        .returning();
+      return deleted;
+    });
+  }
+
+  async cancelRun(organizationId: string, agentId: string, runId: string) {
+    await this.requireAgent(organizationId, agentId);
+    const run = await this.db.query.agentRun.findFirst({
+      where: and(
+        eq(agentRun.id, runId),
+        eq(agentRun.organizationId, organizationId),
+        eq(agentRun.agentId, agentId),
+      ),
+    });
+    if (!run) throw new NotFoundException("Agent run not found");
+    if (run.status !== "queued" && run.status !== "running") {
+      throw new BadRequestException("Only queued or running runs can be cancelled");
+    }
+    const [updated] = await this.db.update(agentRun)
+      .set({ status: "cancelled", completedAt: new Date(), updatedAt: new Date() })
+      .where(eq(agentRun.id, runId))
+      .returning();
+    return updated;
+  }
+
+  async deleteProviderConfig(organizationId: string, configId: string) {
+    const [deleted] = await this.db
+      .delete(aiProviderConfig)
+      .where(
+        and(
+          eq(aiProviderConfig.organizationId, organizationId),
+          eq(aiProviderConfig.id, configId),
+        ),
+      )
+      .returning({
+        id: aiProviderConfig.id,
+        organizationId: aiProviderConfig.organizationId,
+        provider: aiProviderConfig.provider,
+        model: aiProviderConfig.model,
+        source: aiProviderConfig.source,
+        isActive: aiProviderConfig.isActive,
+      });
+    if (!deleted) throw new NotFoundException("Provider configuration not found");
+    return deleted;
+  }
+
   private buildUpdateValues(dto: UpdateAgentDto) {
     const values: Record<string, unknown> = { updatedAt: new Date() };
     const fields = [

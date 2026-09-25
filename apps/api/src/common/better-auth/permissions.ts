@@ -25,6 +25,9 @@ const fullCrud = {
  */
 const statement = { ...defaultStatements, ...fullCrud } as const;
 
+/** Resources → allowed actions, for the roles permission-catalog endpoint. */
+export const permissionCatalog = statement;
+
 export const ac = createAccessControl(statement);
 
 export const owner = ac.newRole({ ...ownerAc.statements, ...fullCrud });

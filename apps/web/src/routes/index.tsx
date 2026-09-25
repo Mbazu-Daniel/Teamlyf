@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/landing/navbar";
 import { Hero } from "@/components/landing/hero";
-import { ModuleStrip } from "@/components/landing/module-strip";
 import { Features } from "@/components/landing/features";
 import { Showcase } from "@/components/landing/showcase";
 import { Pricing } from "@/components/landing/pricing";
@@ -16,7 +15,6 @@ function Home() {
       <Navbar />
       <main>
         <Hero />
-        <ModuleStrip />
         <Features />
         <Showcase />
         <Pricing />

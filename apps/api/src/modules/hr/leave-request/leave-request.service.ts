@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { leaveRequest } from "@teamlyf/db";
 import { and, desc, eq } from "drizzle-orm";
@@ -56,6 +56,25 @@ export class LeaveRequestService {
     const [updated] = await this.db
       .update(leaveRequest)
       .set({ status: dto.status, reviewedById: reviewerId, reviewedAt: new Date() })
+      .where(and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId)))
+      .returning();
+    return updated;
+  }
+
+  async cancelLeaveRequest(orgId: string, memberId: string, requestId: string) {
+    const request = await this.db.query.leaveRequest.findFirst({
+      where: and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId)),
+    });
+    if (!request) throw new NotFoundException("Leave request not found");
+    if (request.memberId !== memberId) {
+      throw new ForbiddenException("Only the requester can cancel their own leave request");
+    }
+    if (request.status === "cancelled") {
+      throw new BadRequestException("Leave request is already cancelled");
+    }
+    const [updated] = await this.db
+      .update(leaveRequest)
+      .set({ status: "cancelled" })
       .where(and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId)))
       .returning();
     return updated;

@@ -1,6 +1,9 @@
 import { IconUsers } from "@tabler/icons-react";
 import type { FormEventHandler } from "react";
 import type { OrganizationMember } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { OrganizationForm } from "./hooks";
 
 type OrganizationSettingsState = ReturnType<typeof import("./hooks").useOrganizationSettings>;
@@ -28,7 +31,7 @@ function MemberListState({ loadingMembers, members, busyMember, onRoleChange, on
 }
 
 function MemberInviteForm({ email, role, busy, onEmailChange, onRoleChange, onInvite }: { email: string; role: string; busy: boolean; onEmailChange: (value: string) => void; onRoleChange: (value: string) => void; onInvite: FormEventHandler }) {
-  return <form onSubmit={onInvite} className="mt-5 flex flex-col gap-2 sm:flex-row"><input value={email} onChange={(event) => onEmailChange(event.target.value)} type="email" placeholder="member@example.com" required className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm" /><select value={role} onChange={(event) => onRoleChange(event.target.value)} className="rounded-md border bg-background px-3 py-2 text-sm"><option value="member">Member</option><option value="admin">Admin</option></select><button disabled={busy} className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">{busy ? "Inviting..." : "Invite"}</button></form>;
+  return <form onSubmit={onInvite} className="mt-5 flex flex-col gap-2 sm:flex-row"><input value={email} onChange={(event) => onEmailChange(event.target.value)} type="email" placeholder="member@example.com" required className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm" /><Select value={role} items={{ member: "Member", admin: "Admin" }} onValueChange={onRoleChange}><SelectTrigger aria-label="Role to invite" className="w-auto"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="member">Member</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent></Select><button disabled={busy} className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">{busy ? "Inviting..." : "Invite"}</button></form>;
 }
 
 function MemberList({ members, busyMember, onRoleChange, onRemove }: { members: OrganizationMember[]; busyMember: string | null; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
@@ -52,10 +55,10 @@ function MemberIdentity({ member }: { member: OrganizationMember }) {
 }
 
 function MemberActions({ member, busy, onRoleChange, onRemove }: { member: OrganizationMember; busy: boolean; onRoleChange: (memberId: string, role: string) => void; onRemove: (memberId: string) => void }) {
-  return <div className="flex items-center gap-2"><select value={member.role} disabled={busy} onChange={(event) => onRoleChange(member.id, event.target.value)} className="rounded-md border bg-background px-2 py-1.5 text-sm"><option value="member">Member</option><option value="admin">Admin</option><option value="owner">Owner</option></select><RemoveMemberButton member={member} busy={busy} onRemove={onRemove} /></div>;
+  return <div className="flex items-center gap-2"><Select value={member.role} items={{ member: "Member", admin: "Admin", owner: "Owner" }} onValueChange={(role) => onRoleChange(member.id, role)}><SelectTrigger aria-label={`Role for ${memberDisplayName(member)}`} size="sm" className="w-auto" disabled={busy}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="member">Member</SelectItem><SelectItem value="admin">Admin</SelectItem><SelectItem value="owner">Owner</SelectItem></SelectContent></Select><RemoveMemberButton member={member} busy={busy} onRemove={onRemove} /></div>;
 }
 
 function RemoveMemberButton({ member, busy, onRemove }: { member: OrganizationMember; busy: boolean; onRemove: (memberId: string) => void }) {
   if (member.role === "owner") return null;
-  return <button disabled={busy} onClick={() => onRemove(member.id)} className="rounded-md border px-3 py-1.5 text-sm text-destructive disabled:opacity-50">{busy ? "Saving..." : "Remove"}</button>;
+  return <ConfirmDialog title="Remove this member?" description={`${memberDisplayName(member)} will lose access to this workspace.`} confirmLabel="Remove" cancelLabel="Keep member" destructive onConfirm={() => onRemove(member.id)} trigger={<Button variant="destructive" size="sm" disabled={busy}>{busy ? "Saving..." : "Remove"}</Button>} />;
 }

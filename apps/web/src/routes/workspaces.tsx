@@ -4,11 +4,12 @@ import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-quer
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconPlus, IconRocket, IconUsers } from "@tabler/icons-react";
-import { createOrganization, getOrganizations, type Organization } from "@/lib/api";
+import { IconLogout, IconPlus, IconUsers } from "@tabler/icons-react";
+import { createOrganization, getOrganizations, signOut, type Organization } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
-import { SessionGate } from "@/lib/session";
+import { SessionGate, useResetSession } from "@/lib/session";
 import { useOrganization } from "@/lib/organization";
+import { Brand } from "@/components/ui/brand";
 
 export const Route = createFileRoute("/workspaces")({
   component: () => (
@@ -107,6 +108,9 @@ function WorkspaceBody({
 
 function WorkspacesPage() {
   const [creating, setCreating] = useState(false);
+  const navigate = useNavigate();
+  const resetSession = useResetSession();
+  const { reset: resetWorkspace } = useOrganization();
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: queryKeys.organizations,
     queryFn: getOrganizations,
@@ -116,20 +120,32 @@ function WorkspacesPage() {
   const workspaces = data ?? [];
   const showCreate = creating || workspaces.length === 0;
 
+  async function handleSignOut() {
+    try {
+      await signOut();
+    } finally {
+      resetSession();
+      resetWorkspace();
+      await navigate({ to: "/sign-in" });
+    }
+  }
+
   return (
     <div className="min-h-svh bg-background px-4 py-12 text-foreground">
       <div className="mx-auto w-full max-w-2xl">
-        <a
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-bold tracking-tight text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <span className="grid size-6 place-items-center rounded-md bg-primary text-primary-foreground">
-            <IconRocket className="size-3.5" aria-hidden="true" />
-          </span>
-          Teamlyf
-        </a>
+        <header className="flex items-center justify-between gap-4">
+          <Brand />
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <IconLogout className="size-4" aria-hidden="true" />
+            <span>Sign out</span>
+          </button>
+        </header>
 
-        <h1 className="mt-6 text-3xl font-bold tracking-tight">
+        <h1 className="mt-8 text-3xl font-bold tracking-tight">
           {workspaceHeading(workspaces.length, showCreate)}
         </h1>
         <p className="mt-2 max-w-prose text-muted-foreground">

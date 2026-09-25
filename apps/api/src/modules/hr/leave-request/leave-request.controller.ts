@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import type { SessionMember } from "../../../common/types";
@@ -41,5 +41,17 @@ export class LeaveRequestController {
     @Body() body: UpdateLeaveRequestDto,
   ) {
     return this.leaveRequests.updateLeaveRequestStatus(orgId, member.id, requestId, body);
+  }
+
+  // Requester-only cancel is enforced in the service, so no route-level
+  // hr permission here (the creator may only hold hr:read).
+  @Delete(":requestId")
+  @ApiOperation({ summary: "Cancel your own leave request" })
+  cancelLeaveRequest(
+    @Param("orgId") orgId: string,
+    @Param("requestId") requestId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.leaveRequests.cancelLeaveRequest(orgId, member.id, requestId);
   }
 }

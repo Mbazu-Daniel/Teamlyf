@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { status } from "@teamlyf/db/project-schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateStatusDto, UpdateStatusDto } from "./dto";
@@ -20,6 +20,25 @@ export class StatusService {
       where: eq(status.projectId, projectId),
       orderBy: (s, { asc }) => [asc(s.sequence)],
     });
+  }
+
+  async reorderStatuses(orgId: string, projectId: string, statusIds: string[]) {
+    await this.access.requireProject(orgId, projectId);
+
+    const ids = [...new Set(statusIds)];
+    const found = await this.db.query.status.findMany({
+      where: and(eq(status.projectId, projectId), inArray(status.id, ids)),
+      columns: { id: true },
+    });
+    if (found.length !== ids.length) {
+      throw new NotFoundException("Statuses not found in this project");
+    }
+
+    for (const [index, id] of ids.entries()) {
+      await this.db.update(status).set({ sequence: (index + 1) * 1000 }).where(eq(status.id, id));
+    }
+
+    return this.getStatuses(orgId, projectId);
   }
 
   async createStatus(orgId: string, projectId: string, dto: CreateStatusDto) {

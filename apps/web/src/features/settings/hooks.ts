@@ -80,7 +80,8 @@ export function useOrganizationSettings(organization: Organization | null, selec
   }
 
   async function removeMember(memberId: string) {
-    if (!organization || !window.confirm("Remove this member from the organization?")) return;
+    // The UI confirms first (ConfirmDialog in components.tsx); this only guards a missing workspace.
+    if (!organization) return;
     const organizationId = organization.id;
     await runAction(
       () => settingsApi.removeMember(organizationId, memberId),

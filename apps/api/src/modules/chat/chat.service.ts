@@ -2,7 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { chatSchema, organizationSchema } from "@teamlyf/db";
-import { and, eq, inArray, isNull, lt } from "drizzle-orm";
+import { and, eq, ilike, inArray, isNull, lt } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreateChannelDto, CreateMessageDto } from "./chat.dto";
 import { requireOrganizationMember } from "../../common/organization-member";
@@ -57,6 +57,66 @@ export class ChatService {
     await this.requireChannel(organizationId, channelId);
     await this.db.delete(channelMember).where(and(eq(channelMember.channelId, channelId), eq(channelMember.memberId, memberId)));
     return { channelId, memberId, joined: false };
+  }
+
+  async getChannel(organizationId: string, channelId: string, memberId: string) {
+    return this.requireAccess(organizationId, channelId, memberId);
+  }
+
+  async deleteChannel(organizationId: string, channelId: string, memberId: string) {
+    // Messages, memberships and reactions cascade from the channel FK.
+    await this.requireAccess(organizationId, channelId, memberId);
+    const [deleted] = await this.db
+      .delete(channel)
+      .where(and(eq(channel.id, channelId), eq(channel.organizationId, organizationId)))
+      .returning();
+    if (!deleted) throw new NotFoundException("Channel not found");
+    return deleted;
+  }
+
+  async listMembers(organizationId: string, channelId: string, memberId: string) {
+    await this.requireAccess(organizationId, channelId, memberId);
+    return this.channelRoster(channelId);
+  }
+
+  async addMembers(organizationId: string, channelId: string, memberId: string, memberIds: string[]) {
+    await this.requireAccess(organizationId, channelId, memberId);
+    const unique = [...new Set(memberIds)];
+    await this.requireMembers(organizationId, unique);
+    await this.db.insert(channelMember)
+      .values(unique.map((id) => ({ channelId, memberId: id })))
+      .onConflictDoNothing();
+    return this.channelRoster(channelId);
+  }
+
+  async markRead(organizationId: string, channelId: string, memberId: string) {
+    await this.requireAccess(organizationId, channelId, memberId);
+    const membership = await this.db.query.channelMember.findFirst({
+      where: and(eq(channelMember.channelId, channelId), eq(channelMember.memberId, memberId)),
+    });
+    if (!membership) throw new ForbiddenException("Join the channel to mark it read");
+    const [updated] = await this.db
+      .update(channelMember)
+      .set({ lastReadAt: new Date() })
+      .where(and(eq(channelMember.channelId, channelId), eq(channelMember.memberId, memberId)))
+      .returning();
+    return updated;
+  }
+
+  private async channelRoster(channelId: string) {
+    const memberships = await this.db.query.channelMember.findMany({
+      where: eq(channelMember.channelId, channelId),
+      orderBy: (table, { asc }) => [asc(table.joinedAt)],
+    });
+    if (!memberships.length) return [];
+    const memberRows = await this.db.query.member.findMany({
+      where: inArray(member.id, memberships.map((row) => row.memberId)),
+      columns: { id: true, firstName: true, lastName: true, role: true },
+    });
+    const byId = new Map(memberRows.map((row) => [row.id, row]));
+    return memberships
+      .map((row) => ({ ...row, member: byId.get(row.memberId) ?? null }))
+      .filter((row) => row.member !== null);
   }
 
   async history(organizationId: string, channelId: string, memberId: string) {
@@ -156,6 +216,73 @@ export class ChatService {
     });
 
     return existing ?? { messageId, memberId, emoji };
+  }
+
+  async removeReaction(organizationId: string, channelId: string, messageId: string, memberId: string, emoji: string) {
+    await this.requireAccess(organizationId, channelId, memberId);
+    await this.requireChannelMessage(channelId, messageId);
+    const [deleted] = await this.db
+      .delete(messageReaction)
+      .where(
+        and(
+          eq(messageReaction.messageId, messageId),
+          eq(messageReaction.memberId, memberId),
+          eq(messageReaction.emoji, emoji),
+        ),
+      )
+      .returning();
+    if (!deleted) throw new NotFoundException("Reaction not found");
+    return deleted;
+  }
+
+  async editMessage(organizationId: string, channelId: string, messageId: string, memberId: string, content: string) {
+    await this.requireAccess(organizationId, channelId, memberId);
+    const target = await this.requireOwnMessage(channelId, messageId, memberId);
+    const [updated] = await this.db
+      .update(message)
+      .set({ content, updatedAt: new Date() })
+      .where(eq(message.id, target.id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMessage(organizationId: string, channelId: string, messageId: string, memberId: string) {
+    // Reactions and thread replies cascade from the message FK.
+    await this.requireAccess(organizationId, channelId, memberId);
+    const target = await this.requireOwnMessage(channelId, messageId, memberId);
+    const [deleted] = await this.db
+      .delete(message)
+      .where(eq(message.id, target.id))
+      .returning();
+    return deleted;
+  }
+
+  async searchMessages(organizationId: string, channelId: string, memberId: string, q: string) {
+    await this.requireAccess(organizationId, channelId, memberId);
+    const pattern = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
+    const rows = await this.db.query.message.findMany({
+      where: and(eq(message.channelId, channelId), ilike(message.content, pattern)),
+      orderBy: (table, { desc }) => [desc(table.createdAt)],
+      limit: 50,
+    });
+    return this.withReactions(rows);
+  }
+
+  private async requireChannelMessage(channelId: string, messageId: string) {
+    const target = await this.db.query.message.findFirst({
+      where: and(eq(message.id, messageId), eq(message.channelId, channelId)),
+    });
+    if (!target) throw new NotFoundException("Message not found");
+    return target;
+  }
+
+  /** Messages are only editable/deletable by their sender. */
+  private async requireOwnMessage(channelId: string, messageId: string, memberId: string) {
+    const target = await this.requireChannelMessage(channelId, messageId);
+    if (target.senderKind !== "member" || target.senderId !== memberId) {
+      throw new ForbiddenException("You can only modify your own messages");
+    }
+    return target;
   }
 
   private async requireAccess(organizationId: string, channelId: string, memberId: string) {

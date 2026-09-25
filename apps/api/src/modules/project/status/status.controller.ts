@@ -11,6 +11,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
+import { ReorderDto } from "../dto";
 import { CreateStatusDto, UpdateStatusDto } from "./dto";
 import { StatusService } from "./status.service";
 
@@ -41,6 +42,19 @@ export class StatusController {
   @ApiParam({ name: "projectId" })
   getStatuses(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {
     return this.statusService.getStatuses(orgId, projectId);
+  }
+
+  @Patch("reorder")
+  @RequirePermission("pm", "update", "projectId")
+  @ApiOperation({ summary: "Reorder statuses; ids are ranked top-to-bottom" })
+  @ApiParam({ name: "orgId" })
+  @ApiParam({ name: "projectId" })
+  reorderStatuses(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Body() body: ReorderDto,
+  ) {
+    return this.statusService.reorderStatuses(orgId, projectId, body.ids);
   }
 
   @Patch(":statusId")

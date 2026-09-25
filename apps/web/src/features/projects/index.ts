@@ -1,2 +1,13 @@
-export { ProjectDetailPage, ProjectListPage } from "./components";
+export { ProjectDetailPage } from "./project-detail";
+export { ProjectListPage } from "./project-list";
+export { StatusColumn } from "./board";
+export { TaskCard } from "./task-card";
+export { TaskDetailPanel, type TaskDetailPanelProps } from "./task-detail-panel";
+export { useTaskDetail } from "./use-task-detail";
+export { parseTaskSearch, type TaskSearch } from "./task-search";
+export { ErrorMessage, MutedMessage } from "./feedback";
 export { useProjectPage, useProjects } from "./hooks";
+export { TaskComments } from "./task-comments";
+export { TaskActivity } from "./task-activity";
+export { useTaskComments } from "./use-task-comments";
+export { useTaskActivity } from "./use-task-activity";

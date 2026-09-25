@@ -15,7 +15,7 @@ export type ApiErrorPayload = {
   details?: unknown;
 };
 
-class ApiError extends Error {
+export class ApiError extends Error {
   readonly code: ApiErrorCode;
   readonly status: number;
   readonly details: unknown;

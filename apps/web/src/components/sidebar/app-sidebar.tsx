@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { IconChevronLeft, IconChevronRight, IconRocket } from "@tabler/icons-react";
-import { NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { NAV_SECTIONS, isNavItemActive, type NavItem } from "./nav-items";
+import { Brand } from "@/components/ui/brand";
 import { cn } from "@/lib/utils";
 
 type AppSidebarProps = Readonly<{ collapsed: boolean; onToggle: () => void }>;
@@ -52,11 +53,6 @@ function CollapseToggle({ collapsed, onToggle }: Readonly<{ collapsed: boolean; 
   );
 }
 
-/** First item of a group starts that group's heading. */
-function isGroupStart(index: number) {
-  return index === 0 || NAV_ITEMS[index - 1].group !== NAV_ITEMS[index].group;
-}
-
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { pathname } = useLocation();
 
@@ -68,29 +64,23 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       )}
     >
       <div className="flex h-14 items-center border-b border-border px-4">
-        <Link to="/" className="flex min-w-0 items-center gap-2 font-bold tracking-tight">
-          <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <IconRocket className="size-4" />
-          </span>
-          {!collapsed && <span className="truncate">Teamlyf</span>}
-        </Link>
+        <Brand collapsed={collapsed} />
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3" aria-label="Primary">
-        {NAV_ITEMS.map((item, index) => {
-          const showHeading = isGroupStart(index) && !collapsed;
-
-          return (
-            <div key={item.to}>
-              {showHeading && <p className={GROUP_HEADING}>{item.group}</p>}
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.id}>
+            {!collapsed && <p className={GROUP_HEADING}>{section.label}</p>}
+            {section.items.map((item) => (
               <NavItemLink
+                key={item.id}
                 item={item}
                 active={isNavItemActive(pathname, item.to)}
                 collapsed={collapsed}
               />
-            </div>
-          );
-        })}
+            ))}
+          </div>
+        ))}
       </nav>
 
       <CollapseToggle collapsed={collapsed} onToggle={onToggle} />

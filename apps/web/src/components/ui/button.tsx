@@ -9,10 +9,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-lg shadow-primary-500/25 hover:bg-primary-700",
+          "bg-primary text-primary-foreground shadow-lg shadow-primary-500/25 hover:bg-primary-600",
+        accent:
+          "bg-accent text-accent-foreground font-bold shadow-lg shadow-accent-500/30 hover:bg-accent-300 focus-visible:ring-accent/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklab,var(--secondary)_88%,var(--foreground))]",
         outline: "border-border bg-transparent text-foreground hover:bg-muted",
+        ink: "bg-text-50 text-background-950 shadow-lg shadow-black/40 hover:bg-text-100",
         ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
         destructive:
           "bg-destructive/15 text-destructive hover:bg-destructive/25 focus-visible:ring-destructive/40",

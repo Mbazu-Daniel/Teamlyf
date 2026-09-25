@@ -1,8 +1,10 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { member } from "@teamlyf/db";
 import type { Database } from "@teamlyf/db";
+import { user } from "@teamlyf/db/schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
+import { requireOrganizationMemberOrNotFound } from "../../common/organization-member";
 import { AuthService } from "../auth/auth.service";
 import type {
   GetActiveMemberRoleQueryDto,
@@ -73,6 +75,32 @@ export class MemberService {
       .set({ firstName: body.firstName, lastName: body.lastName, updatedAt: new Date() })
       .where(and(eq(member.id, memberId), eq(member.organizationId, orgId)))
       .returning({ id: member.id, firstName: member.firstName, lastName: member.lastName });
+
+    if (!updated) {
+      throw new NotFoundException("Member not found");
+    }
+
+    return updated;
+  }
+
+  /** Member detail: the membership row plus the linked auth account. */
+  async getMember(orgId: string, memberId: string) {
+    const memberRow = await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
+    const userRow = memberRow.userId
+      ? await this.db.query.user.findFirst({
+          where: eq(user.id, memberRow.userId),
+          columns: { id: true, email: true, name: true, image: true },
+        })
+      : null;
+    return { ...memberRow, user: userRow ?? null };
+  }
+
+  async updateMember(orgId: string, memberId: string, body: UpdateMemberProfileDto) {
+    const [updated] = await this.db
+      .update(member)
+      .set({ firstName: body.firstName, lastName: body.lastName, updatedAt: new Date() })
+      .where(and(eq(member.id, memberId), eq(member.organizationId, orgId)))
+      .returning();
 
     if (!updated) {
       throw new NotFoundException("Member not found");

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { label } from "@teamlyf/db/project-schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateLabelDto, UpdateLabelDto } from "./dto";
@@ -20,6 +20,25 @@ export class LabelService {
       where: eq(label.projectId, projectId),
       orderBy: (l, { asc }) => [asc(l.sequence)],
     });
+  }
+
+  async reorderLabels(orgId: string, projectId: string, labelIds: string[]) {
+    await this.access.requireProject(orgId, projectId);
+
+    const ids = [...new Set(labelIds)];
+    const found = await this.db.query.label.findMany({
+      where: and(eq(label.projectId, projectId), inArray(label.id, ids)),
+      columns: { id: true },
+    });
+    if (found.length !== ids.length) {
+      throw new NotFoundException("Labels not found in this project");
+    }
+
+    for (const [index, id] of ids.entries()) {
+      await this.db.update(label).set({ sequence: (index + 1) * 1000 }).where(eq(label.id, id));
+    }
+
+    return this.getLabels(orgId, projectId);
   }
 
   async createLabel(orgId: string, projectId: string, dto: CreateLabelDto) {

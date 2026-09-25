@@ -1,14 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Hallmark · pre-emit critique: P5 H4 E5 S4 R5 V5
- * genre: modern-minimal · macrostructure: Workbench · theme: custom dark
- *   (user-supplied token names; brand violet #7c3aed / magenta #bc23d7 / lime #85d209 at 500)
- * nav: N5 Floating pill · footer: Ft2 Inline rule single line
- * enrichment: E3-style product mockups, tier-A CSS art (no real screenshots yet)
- * motion: stagger reveal · CTA hover lift · pricing card lift (3 primitives, reduced-motion guarded)
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5
+ * genre: modern-minimal · macrostructure: Layered Hero -> Workbench
+ * theme: custom dark — tokens unchanged (brand violet #7c3aed / magenta #bc23d7 / lime #85d209 at 500)
+ * nav: app-topbar bar (full-width frosted chrome, same surface as the signed-in header) · footer: Ft2 Inline rule single line
+ * studied: yes · DNA-source: image (user reference) — centred hero over a floating card
+ *   collage, eyebrow-opened sections, ink pill with an embedded circular arrow badge
+ * enrichment: tier-A CSS art (no real screenshots yet) — hero collage + showcase mocks
+ * motion: stagger reveal (page load) · auth-panel motion · ink-pill hover lift · crisp-card lift
+ *   (4 primitives, reduced-motion guarded)
+ * honesty: no fabricated logos, metrics, prices, or integrations — the feature grid lists the
+ *   seven modules that actually ship, and every link resolves to a real route
  * inferred at the design gate ("go ahead"): audience = teams/SaaS buyers · use = drive sign-ups · tone = dark modern-minimal
- * note: Workbench sticky-bottom CTA swapped for an end-of-page CTA strip (YAGNI on scroll JS)
  */
 
 @custom-variant dark (&:is(.dark *));
@@ -122,6 +126,7 @@
   --text-3xl: 2.369rem;
   --text-4xl: 3.158rem;
   --text-5xl: 4.21rem;
+  --text-6xl: 5.611rem;
 
   /* user fontFamily — Mirza */
   --font-sans: "Mirza", system-ui, sans-serif;
@@ -276,6 +281,36 @@
     border: 1px dashed var(--border);
     background: color-mix(in oklab, var(--background-900) 60%, transparent);
   }
+
+  /*
+   * Landing aurora — the page's one decorative layer. Brand hues only, masked
+   * to nothing at the bottom so it reads as light on the page, never as a band.
+   */
+  .aurora {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 44rem;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        40% 52% at 50% 4%,
+        color-mix(in oklab, var(--primary-500) 30%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        34% 44% at 20% 26%,
+        color-mix(in oklab, var(--secondary-500) 18%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(
+        32% 40% at 80% 22%,
+        color-mix(in oklab, var(--accent-500) 12%, transparent),
+        transparent 74%
+      );
+    mask-image: linear-gradient(to bottom, black 40%, transparent 94%);
+    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 94%);
+  }
 }
 
 /* one orchestrated entrance — page load only */
@@ -293,6 +328,96 @@
   transform: translateY(8px);
 }
 
+/*
+ * Auth panel motion — the only moving parts on the auth screens. The briefcase
+ * drifts, its glow breathes, and the promise line under it hands over to the
+ * next one; all three run on long slow cycles so the form beside them stays the
+ * calmest thing on the page. `translate`/`scale`/`opacity` only, and the
+ * reduced-motion guard below stops them instead of shortening them.
+ */
+.auth-float {
+  animation: auth-float 7s ease-in-out infinite alternate;
+}
+@keyframes auth-float {
+  to {
+    translate: 0 -10px;
+  }
+}
+
+.auth-aura {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24rem;
+  height: 24rem;
+  translate: -50% -55%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--primary-500) 30%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: auth-aura 9s ease-in-out infinite alternate;
+}
+@keyframes auth-aura {
+  from {
+    opacity: 0.45;
+    scale: 0.95;
+  }
+  to {
+    opacity: 1;
+    scale: 1.06;
+  }
+}
+
+/*
+ * One promise line at a time. All three share a single grid cell, so the panel
+ * never reflows as they swap; each holds for ~3.5s and hands over with a short
+ * fade and a 6px rise. The line is visible by default and only the animation
+ * hides it, so reduced-motion readers and engines without animations get one
+ * sentence rather than a blank panel.
+ */
+.auth-rotator {
+  display: grid;
+}
+.auth-line {
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: auth-line 12s ease-in-out infinite;
+}
+.auth-line:first-child {
+  opacity: 1;
+}
+.auth-line:nth-child(2) {
+  animation-delay: -8s;
+}
+.auth-line:nth-child(3) {
+  animation-delay: -4s;
+}
+@keyframes auth-line {
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  2% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  31% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  33.33% {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -304,6 +429,12 @@
   .reveal {
     opacity: 1;
     transform: none;
+    animation: none;
+  }
+  /* Long-cycle ambience: hold the base frame instead of a 150ms twitch. */
+  .auth-float,
+  .auth-aura,
+  .auth-line {
     animation: none;
   }
 }
