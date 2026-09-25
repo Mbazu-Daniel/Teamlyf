@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
@@ -58,5 +58,25 @@ export class DocumentController {
   @RequirePermission("docs", "update", "documentId")
   permission(@Param("orgId") orgId: string, @Param("documentId") documentId: string, @CurrentMember() member: SessionMember, @Body() body: SetDocumentPermissionDto) {
     return this.documents.setPermission(orgId, documentId, member.id, body);
+  }
+
+  @Get(":documentId/permissions")
+  @RequirePermission("docs", "read", "documentId")
+  @ApiOperation({ summary: "List a document's permissions" })
+  listPermissions(@Param("orgId") orgId: string, @Param("documentId") documentId: string, @CurrentMember() member: SessionMember) {
+    return this.documents.getPermissions(orgId, documentId, member.id);
+  }
+
+  @Delete(":documentId/permissions/:subjectKind/:subjectId")
+  @RequirePermission("docs", "update", "documentId")
+  @ApiOperation({ summary: "Revoke a document permission" })
+  removePermission(
+    @Param("orgId") orgId: string,
+    @Param("documentId") documentId: string,
+    @Param("subjectKind") subjectKind: string,
+    @Param("subjectId") subjectId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.documents.deletePermission(orgId, documentId, member.id, subjectKind, subjectId);
   }
 }

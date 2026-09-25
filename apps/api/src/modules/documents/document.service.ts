@@ -132,6 +132,35 @@ export class DocumentService {
     return created;
   }
 
+  async getPermissions(organizationId: string, documentId: string, memberId: string) {
+    await this.requireReadable(organizationId, documentId, memberId);
+    return this.db.query.documentPermission.findMany({
+      where: eq(documentPermission.documentId, documentId),
+    });
+  }
+
+  async deletePermission(
+    organizationId: string,
+    documentId: string,
+    memberId: string,
+    subjectKind: string,
+    subjectId: string,
+  ) {
+    await this.requireWritable(organizationId, documentId, memberId);
+    const [deleted] = await this.db
+      .delete(documentPermission)
+      .where(
+        and(
+          eq(documentPermission.documentId, documentId),
+          eq(documentPermission.subjectKind, subjectKind),
+          eq(documentPermission.subjectId, subjectId),
+        ),
+      )
+      .returning();
+    if (!deleted) throw new NotFoundException("Document permission not found");
+    return deleted;
+  }
+
   private async createVersion(documentId: string, memberId: string, title: string, content: string | null) {
     const versions = await this.db.query.documentVersion.findMany({ where: eq(documentVersion.documentId, documentId) });
     await this.db.insert(documentVersion).values({
