@@ -1,21 +1,13 @@
-import {
-  type AgentEvent,
-  type AgentModel,
-  type AgentPermissionDecision,
-  type AgentPermissionRequest,
-  type AgentRuntimeState,
-  type AgentToolExecutor,
-  type AgentToolResult,
-  agentEventTypes,
-} from "./index";
-import { agentToolDefinitions } from "./tool-definitions";
+import { agentEventTypes, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentToolCall, type AgentToolResult } from "./contracts";
+import type { AgentModel, AgentRuntimeState, AgentToolExecutor } from "./runtime";
+import { agentToolDefinitions, type AgentToolDefinition } from "./tool-definitions";
 
 export type AgentLoopOptions = {
   state: AgentRuntimeState;
   model: AgentModel;
   executor: AgentToolExecutor;
   emit: (event: AgentEvent) => Promise<void> | void;
-  tools?: readonly import("./tool-definitions").AgentToolDefinition[];
+  tools?: readonly AgentToolDefinition[];
   checkpoint?: (
     state: AgentRuntimeState,
     reason: AgentRuntimeState["checkpoints"][number]["reason"],
@@ -31,26 +23,68 @@ type PendingPermission = {
 export class AgentLoop {
   private sequence: number;
   private readonly pendingPermissions = new Map<string, PendingPermission>();
-  private readonly alwaysAllowedTools = new Set<string>();
+  private readonly alwaysAllowedTools: Set<string>;
+  private readonly recoveredPermissionDecisions = new Map<string, AgentPermissionDecision>();
 
   constructor(private readonly options: AgentLoopOptions) {
     this.sequence = options.initialSequence ?? 0;
+    this.alwaysAllowedTools = new Set(options.state.allowedTools);
   }
 
   async run(initialMessage: string): Promise<void> {
     this.options.state.messages.push({ role: "user", content: initialMessage });
     await this.checkpoint("message");
     await this.emit("session_started", { message: initialMessage });
+    await this.runLoop();
+  }
+
+  async resume(): Promise<void> {
+    if (this.options.state.pendingPermission) {
+      const request = this.options.state.pendingPermission;
+      const decision = this.recoveredPermissionDecisions.get(request.id);
+      if (!decision) {
+        await this.emit("permission_requested", { request, permissionId: request.id });
+        return;
+      }
+      this.recoveredPermissionDecisions.delete(request.id);
+      await this.applyPermissionDecision(request, decision);
+      const call: AgentToolCall = {
+        id: request.id,
+        name: request.tool,
+        arguments: request.metadata,
+      };
+      const result: AgentToolResult =
+        decision === "reject"
+          ? {
+              toolCallId: call.id,
+              name: call.name,
+              ok: false,
+              output: null,
+              error: "Permission denied by the user.",
+            }
+          : await this.options.executor.execute(this.options.state.session, call);
+      await this.emit("tool_result", { result });
+      this.options.state.messages.push({
+        role: "tool",
+        toolCallId: call.id,
+        name: call.name,
+        content: JSON.stringify(result),
+      });
+      await this.checkpoint("tool");
+    }
+    await this.runLoop();
+  }
+
+  private async runLoop(): Promise<void> {
+    const tools = this.options.tools ?? agentToolDefinitions;
+    const definitions = new Map(tools.map((definition) => [definition.name, definition]));
 
     while (!this.options.state.interrupted) {
       let toolUsed = false;
       let assistantText = "";
-      const toolCalls = [];
+      const toolCalls: AgentToolCall[] = [];
 
-      for await (const chunk of this.options.model.stream(
-        this.options.state.messages,
-        this.options.tools ?? agentToolDefinitions,
-      )) {
+      for await (const chunk of this.options.model.stream(this.options.state.messages, tools)) {
         if (chunk.type === "text" && chunk.text) {
           assistantText += chunk.text;
           await this.emit("assistant_message", { text: chunk.text });
@@ -70,8 +104,27 @@ export class AgentLoop {
       for (const call of toolCalls) {
         this.options.state.messages.push({ role: "assistant_tool_call", toolCall: call });
 
-        const definition = agentToolDefinitions.find((item) => item.name === call.name);
-        if (definition?.requiresPermission && !this.alwaysAllowedTools.has(call.name)) {
+        const definition = definitions.get(call.name);
+        if (!definition) {
+          const result: AgentToolResult = {
+            toolCallId: call.id,
+            name: call.name,
+            ok: false,
+            output: null,
+            error: `Tool '${call.name}' is not available in this agent context.`,
+          };
+          await this.emit("tool_result", { result });
+          this.options.state.messages.push({
+            role: "tool",
+            toolCallId: call.id,
+            name: call.name,
+            content: JSON.stringify(result),
+          });
+          await this.checkpoint("tool");
+          continue;
+        }
+
+        if (definition.requiresPermission && !this.alwaysAllowedTools.has(call.name)) {
           const request: AgentPermissionRequest = {
             id: call.id,
             tool: call.name,
@@ -82,15 +135,10 @@ export class AgentLoop {
 
           this.options.state.pendingPermission = request;
           await this.emit("permission_requested", { request, permissionId: request.id });
+          await this.checkpoint("tool");
 
           const decision = await this.waitForPermission(request);
-          this.options.state.pendingPermission = undefined;
-
-          await this.emit("permission_resolved", {
-            permissionId: request.id,
-            decision,
-            tool: call.name,
-          });
+          await this.applyPermissionDecision(request, decision);
 
           if (decision === "reject") {
             const result: AgentToolResult = {
@@ -110,8 +158,6 @@ export class AgentLoop {
             await this.checkpoint("tool");
             continue;
           }
-
-          if (decision === "always") this.alwaysAllowedTools.add(call.name);
         }
 
         const result = await this.options.executor.execute(this.options.state.session, call);
@@ -137,9 +183,35 @@ export class AgentLoop {
 
   resolvePermission(requestId: string, decision: AgentPermissionDecision): void {
     const pending = this.pendingPermissions.get(requestId);
-    if (!pending) throw new Error(`No pending permission request found for ${requestId}`);
-    this.pendingPermissions.delete(requestId);
-    pending.resolve(decision);
+    if (pending) {
+      this.pendingPermissions.delete(requestId);
+      pending.resolve(decision);
+      return;
+    }
+    if (this.options.state.pendingPermission?.id === requestId) {
+      this.recoveredPermissionDecisions.set(requestId, decision);
+      return;
+    }
+    throw new Error(`No pending permission request found for ${requestId}`);
+  }
+
+  private async applyPermissionDecision(
+    request: AgentPermissionRequest,
+    decision: AgentPermissionDecision,
+  ): Promise<void> {
+    this.options.state.pendingPermission = undefined;
+    await this.emit("permission_resolved", {
+      permissionId: request.id,
+      decision,
+      tool: request.tool,
+    });
+    if (decision === "always") {
+      this.alwaysAllowedTools.add(request.tool);
+      this.options.state.allowedTools = [...this.alwaysAllowedTools].filter(
+        (tool): tool is import("./contracts").AgentToolName =>
+          agentToolNames.includes(tool as import("./contracts").AgentToolName),
+      );
+    }
   }
 
   private waitForPermission(request: AgentPermissionRequest): Promise<AgentPermissionDecision> {
@@ -161,6 +233,7 @@ export class AgentLoop {
         messages: this.options.state.messages,
         interrupted: this.options.state.interrupted,
         pendingPermission: this.options.state.pendingPermission,
+        allowedTools: this.options.state.allowedTools,
       },
       createdAt: new Date(),
     };

@@ -1,13 +1,6 @@
 import { AgentLoop } from "./agent-loop";
-import type {
-  AgentEvent,
-  AgentModel,
-  AgentPermissionDecision,
-  AgentRuntimeState,
-  AgentSession,
-  AgentToolExecutor,
-} from "./contracts";
-import type { AgentRuntime, AgentRuntimeEventSink } from "./runtime";
+import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentSession } from "./contracts";
+import type { AgentModel, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
 
@@ -39,6 +32,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       session,
       messages: [],
       checkpoints: [],
+      allowedTools: [],
       interrupted: false,
     };
 
@@ -72,10 +66,11 @@ export class InMemoryAgentRuntime implements AgentRuntime {
           session,
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
-          pendingPermission: undefined,
+          pendingPermission: isPendingPermission(checkpoint.state.pendingPermission) ? checkpoint.state.pendingPermission : undefined,
+          allowedTools: isAllowedTools(checkpoint.state.allowedTools),
           interrupted: false,
         }
-      : { session, messages: [], checkpoints: [], interrupted: false };
+      : { session, messages: [], checkpoints: [], allowedTools: [], interrupted: false };
 
     const emit = async (event: AgentEvent): Promise<void> => {
       await this.store?.appendEvent(event);
@@ -135,4 +130,17 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     if (!entry) throw new Error(`Agent runtime not found for run ${runId}`);
     return entry;
   }
+}
+
+function isAllowedTools(value: unknown): AgentRuntimeState["allowedTools"] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (tool): tool is AgentRuntimeState["allowedTools"][number] =>
+      typeof tool === "string" && agentToolNames.includes(tool as AgentRuntimeState["allowedTools"][number]),
+  );
+}
+
+function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
+  const parsed = agentPermissionSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
