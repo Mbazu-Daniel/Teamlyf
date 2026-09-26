@@ -10,7 +10,8 @@ import {
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
-import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
+import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
+import type { SessionMember } from "../../common/types";
 import { CreateProjectDto, UpdateProjectDto } from "./dto";
 import { ProjectService } from "./project.service";
 
@@ -25,8 +26,12 @@ export class ProjectController {
   @RequirePermission("pm", "create")
   @ApiOperation({ summary: "Create a project" })
   @ApiParam({ name: "orgId" })
-  createProject(@Param("orgId") orgId: string, @Body() body: CreateProjectDto) {
-    return this.projectService.createProject(orgId, body);
+  createProject(
+    @Param("orgId") orgId: string,
+    @CurrentMember() current: SessionMember,
+    @Body() body: CreateProjectDto,
+  ) {
+    return this.projectService.createProject(orgId, body, current.id);
   }
 
   @Get()
