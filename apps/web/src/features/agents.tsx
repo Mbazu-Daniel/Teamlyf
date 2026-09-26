@@ -92,23 +92,41 @@ export function AgentsPage() {
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {agents.map((agent) => (
-              <article key={agent.id} className="rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><IconRobot className="size-4" /></div>
-                    <div className="min-w-0"><h2 className="truncate text-sm font-semibold">{agent.name}</h2><p className="text-[11px] text-muted-foreground">{agent.enabled ? "Enabled" : "Disabled"}</p></div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button type="button" title={agent.enabled ? "Disable agent" : "Enable agent"} onClick={() => updateMutation.mutate({ id: agent.id, enabled: !agent.enabled })} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">{agent.enabled ? <IconPlayerPause className="size-3.5" /> : <IconPlayerPlay className="size-3.5" />}</button>
-                    <button type="button" title="Delete agent" onClick={() => deleteMutation.mutate(agent.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><IconTrash className="size-3.5" /></button>
-                  </div>
-                </div>
-                <p className="mt-4 min-h-10 text-xs leading-5 text-muted-foreground">{agent.description || "No description provided."}</p>
-              </article>
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                onToggle={(enabled) => updateMutation.mutate({ id: agent.id, enabled })}
+                onDelete={() => deleteMutation.mutate(agent.id)}
+              />
             ))}
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+
+type AgentCardProps = {
+  agent: Agent;
+  onToggle: (enabled: boolean) => void;
+  onDelete: () => void;
+};
+
+function AgentCard({ agent, onToggle, onDelete }: AgentCardProps) {
+  return (
+    <article className="rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><IconRobot className="size-4" /></div>
+          <div className="min-w-0"><h2 className="truncate text-sm font-semibold">{agent.name}</h2><p className="text-[11px] text-muted-foreground">{agent.enabled ? "Enabled" : "Disabled"}</p></div>
+        </div>
+        <div className="flex items-center gap-1">
+          <button type="button" title={agent.enabled ? "Disable agent" : "Enable agent"} onClick={() => onToggle(!agent.enabled)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">{agent.enabled ? <IconPlayerPause className="size-3.5" /> : <IconPlayerPlay className="size-3.5" />}</button>
+          <button type="button" title="Delete agent" onClick={onDelete} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><IconTrash className="size-3.5" /></button>
+        </div>
+      </div>
+      <p className="mt-4 min-h-10 text-xs leading-5 text-muted-foreground">{agent.description || "No description provided."}</p>
+    </article>
   );
 }
