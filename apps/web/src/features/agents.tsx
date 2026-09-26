@@ -4,7 +4,6 @@ import { IconPlus, IconRobot, IconTrash, IconPlayerPause, IconPlayerPlay } from 
 import { agentsApi, type Agent } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 import { getErrorMessage } from "@/lib/error-message";
-import { queryKeys } from "@/lib/queryKeys";
 
 export function AgentsPage() {
   const { organization } = useOrganization();
