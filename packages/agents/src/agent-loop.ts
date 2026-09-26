@@ -15,6 +15,7 @@ export type AgentLoopOptions = {
   model: AgentModel;
   executor: AgentToolExecutor;
   emit: (event: AgentEvent) => Promise<void> | void;
+  checkpoint?: (state: AgentRuntimeState, reason: AgentRuntimeState["checkpoints"][number]["reason"]) => Promise<void>;
 };
 
 type PendingPermission = {
@@ -31,6 +32,7 @@ export class AgentLoop {
 
   async run(initialMessage: string): Promise<void> {
     this.options.state.messages.push({ role: "user", content: initialMessage });
+    await this.checkpoint("message");
     await this.emit("session_started", { message: initialMessage });
 
     while (!this.options.state.interrupted) {
@@ -106,10 +108,12 @@ export class AgentLoop {
           role: "assistant",
           content: JSON.stringify({ toolCall: call, result }),
         });
+        await this.checkpoint("tool");
       }
 
       if (assistantText) {
         this.options.state.messages.push({ role: "assistant", content: assistantText });
+        await this.checkpoint("message");
       }
 
       if (!toolUsed) {
@@ -135,6 +139,24 @@ export class AgentLoop {
     return new Promise((resolve) => {
       this.pendingPermissions.set(request.id, { request, resolve });
     });
+  }
+
+  private async checkpoint(reason: AgentRuntimeState["checkpoints"][number]["reason"]): Promise<void> {
+    const checkpoint = {
+      id: crypto.randomUUID(),
+      sessionId: this.options.state.session.id,
+      sequence: this.options.state.checkpoints.length,
+      reason,
+      state: {
+        messages: this.options.state.messages,
+        interrupted: this.options.state.interrupted,
+        pendingPermission: this.options.state.pendingPermission,
+      },
+      createdAt: new Date(),
+    };
+    this.options.state.checkpoints.push(checkpoint);
+    await this.options.checkpoint?.(this.options.state, reason);
+    await this.emit("checkpoint_created", { checkpointId: checkpoint.id, sequence: checkpoint.sequence, reason });
   }
 
   private async emit(type: AgentEvent["type"], payload: Record<string, unknown>): Promise<void> {
