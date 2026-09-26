@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { IconLayoutGrid, IconList, IconPlus, IconArrowLeft, IconSettings, IconSearch } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
