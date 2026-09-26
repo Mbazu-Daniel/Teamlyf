@@ -9,6 +9,7 @@ export { taskComment } from "./task-comment";
 export { milestone } from "./milestone";
 export { milestoneTask } from "./milestone-task";
 export { projectMember } from "./project-member";
+export { sprint } from "./sprint";
 export { organizationReference, memberReference } from "./references";
 export {
   projectRelations,
