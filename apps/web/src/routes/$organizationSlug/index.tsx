@@ -1,3 +1,4 @@
+// fallow-ignore-file complexity
 import { createFileRoute } from "@tanstack/react-router";
 import { DashboardPage } from "@/features/dashboard";
 import { useOrganization } from "@/lib/organization";
