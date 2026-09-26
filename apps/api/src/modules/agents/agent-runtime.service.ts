@@ -21,6 +21,7 @@ import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import { AgentEventHub } from "./agent-event.hub";
 import { AgentSystemToolsService } from "./agent-system-tools.service";
+import { AgentGithubToolsService } from "./agent-github-tools.service";
 
 @Injectable()
 export class AgentRuntimeService {
@@ -30,6 +31,7 @@ export class AgentRuntimeService {
     @Inject(DATABASE) private readonly db: Database,
     @Inject(API_ENV) private readonly env: ApiEnv,
     private readonly systemTools: AgentSystemToolsService,
+    private readonly githubTools: AgentGithubToolsService,
     private readonly events: AgentEventHub,
   ) {}
 
@@ -113,7 +115,7 @@ export class AgentRuntimeService {
       commandRunner: new LocalWorkspaceCommandRunner(),
       getWorkspace: (current) => current.workspace,
     });
-    const registry = new AgentToolRegistry(this.systemTools.registrations());
+    const registry = new AgentToolRegistry([...this.systemTools.registrations(), ...this.githubTools.registrations()]);
 
     for (const name of [
       "read_file","write_file","edit_file","apply_patch","list_directory","search_files",
