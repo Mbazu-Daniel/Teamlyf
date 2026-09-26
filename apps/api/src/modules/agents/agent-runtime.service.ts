@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { createDecipheriv, createHash, randomUUID } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { AgentSessionRepository, agentEvent, agentRun, aiProviderConfig } from "@teamlyf/db";
+import { AgentSessionRepository, agentRun, aiProviderConfig } from "@teamlyf/db";
 import {
   AgentToolRegistry,
   InMemoryAgentRuntime,
@@ -100,7 +100,7 @@ export class AgentRuntimeService {
     const session = await this.createSession(run, input);
     const provider = await this.resolveProvider(organizationId);
     const repository = new AgentSessionRepository(this.db);
-    const store = new AgentRuntimeStoreAdapter(repository, session.id, session.organizationId);
+    const store = new AgentRuntimeStoreAdapter(repository, session.organizationId);
     const workspaceExecutor = new WorkspaceToolExecutor({
       commandRunner: new LocalWorkspaceCommandRunner(),
       getWorkspace: (current) => current.workspace,
