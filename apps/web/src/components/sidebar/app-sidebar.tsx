@@ -31,6 +31,9 @@ function NavItemLink({
 }: Readonly<{ item: NavItem; active: boolean; href: string; collapsed: boolean }>) {
   const Icon = item.icon;
   const label = collapsed ? undefined : item.label;
+  const { pathname, searchStr } = useLocation();
+  const { organization } = useOrganization();
+  const organizationSlug = organization?.slug || organization?.id || "";
 
   if (item.available === false) {
     return (
@@ -54,9 +57,6 @@ function NavItemLink({
       {active && item.children && !collapsed && (
         <div className="mb-1 ml-3 border-l border-background-700 pl-2">
           {item.children.map((child) => {
-            const { pathname, searchStr } = useLocation();
-            const { organization } = useOrganization();
-            const organizationSlug = organization?.slug || organization?.id || "";
             const childActive = pathname.endsWith("/tasks") &&
               new URLSearchParams(searchStr).get("view") === child.to.split("=")[1];
             const ChildIcon = child.icon;
