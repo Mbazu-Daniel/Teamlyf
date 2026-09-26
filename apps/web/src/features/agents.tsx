@@ -5,7 +5,7 @@ import { agentsApi, type Agent } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 import { getErrorMessage } from "@/lib/error-message";
 
-// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- organization agent management combines loading, creation, mutation and empty states in one page component
+// fallow-ignore-next-line complexity -- organization agent management combines loading, creation, mutation and empty states in one page component
 export function AgentsPage() {
   const { organization } = useOrganization();
   const queryClient = useQueryClient();
