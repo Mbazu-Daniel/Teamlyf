@@ -82,14 +82,21 @@ function AssigneePicker({
   });
 
   const assignedAgentIds = task.taskAssignees.flatMap((row) => row.kind === "agent" && row.agentId ? [row.agentId] : []);
-  const runQueries = assignedAgentIds.map((agentId) => useQuery({
-    queryKey: ["agent-runs", organizationId, agentId],
-    queryFn: () => agentsApi.runs(organizationId, agentId),
-    enabled: Boolean(organizationId && agentId),
+  const { data: agentRuns = [] } = useQuery({
+    queryKey: ["agent-runs", organizationId, [...assignedAgentIds].sort()],
+    queryFn: async () => {
+      const runs = await Promise.all(assignedAgentIds.map((agentId) => agentsApi.runs(organizationId, agentId)));
+      return runs.flat();
+    },
+    enabled: Boolean(organizationId && assignedAgentIds.length),
     refetchInterval: 5000,
     retry: false,
-  }));
-  const activeRuns = runQueries.flatMap((query) => query.data ?? []).filter((run) => run.status === "queued" || run.status === "running");
+  });
+  const activeRuns = agentRuns.filter((run) => {
+    if (run.status !== "queued" && run.status !== "running") return false;
+    const input = run.input;
+    return typeof input === "object" && input !== null && "taskId" in input && input.taskId === task.id;
+  });
 
   const assignedMembers = new Set(
     task.taskAssignees.flatMap((row) => row.kind === "member" && row.memberId ? [row.memberId] : []),
