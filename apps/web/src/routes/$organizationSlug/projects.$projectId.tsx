@@ -9,6 +9,7 @@ export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
   component: ProjectRoute,
 });
 
+// fallow-ignore-next-line complexity -- route component coordinates project selection, URL state and project-page composition
 function ProjectRoute() {
   const { organizationSlug, projectId } = Route.useParams();
   const { task: selectedTaskId } = Route.useSearch();
