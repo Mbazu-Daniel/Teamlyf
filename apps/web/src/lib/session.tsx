@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { Navigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getSession } from "./api";
-import { useEffect } from "react";
 import { queryKeys } from "./queryKeys";
 
 /** Single session read shared by every guard and by ownership checks (task comments), cached for a minute. */
