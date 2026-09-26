@@ -141,6 +141,7 @@ export class AgentLoop {
     if (!agentEventTypes.includes(type)) return;
     await this.options.emit({
       id: crypto.randomUUID(),
+      sessionId: this.options.state.session.id,
       runId: this.options.state.session.runId,
       type,
       sequence: this.sequence++,
