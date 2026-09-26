@@ -21,3 +21,4 @@ export {
   milestoneRelations,
   milestoneTaskRelations,
 } from "./relations";
+export { projectRepository } from "./project-repository";
