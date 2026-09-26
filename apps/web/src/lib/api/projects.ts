@@ -4,6 +4,8 @@ import { projectPath, taskPath } from "./paths";
 export type Project = {
   id: string;
   name: string;
+  createdAt?: string;
+  updatedAt?: string;
   identifier: string;
   description: string | null;
   emoji: string | null;
