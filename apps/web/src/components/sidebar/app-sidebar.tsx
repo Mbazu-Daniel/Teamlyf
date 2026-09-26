@@ -23,7 +23,7 @@ function navLinkClass(active: boolean, collapsed: boolean, available: boolean) {
   );
 }
 
-// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- navigation link handles availability, active state and nested navigation in one reusable primitive
+// fallow-ignore-next-line complexity -- navigation link handles availability, active state and nested navigation in one reusable primitive
 function NavItemLink({
   item,
   active,
@@ -81,7 +81,7 @@ function NavItemLink({
   );
 }
 
-// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- sidebar composition intentionally owns all primary navigation sections and responsive state
+// fallow-ignore-next-line complexity -- sidebar composition intentionally owns all primary navigation sections and responsive state
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { pathname } = useLocation();
   const { organization } = useOrganization();
