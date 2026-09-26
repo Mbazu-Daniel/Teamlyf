@@ -1,13 +1,13 @@
 import { agentEventTypes, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentToolCall, type AgentToolResult } from "./contracts";
 import type { AgentModel, AgentRuntimeState, AgentToolExecutor } from "./runtime";
-import { agentToolDefinitions } from "./tool-definitions";
+import { agentToolDefinitions, type AgentToolDefinition } from "./tool-definitions";
 
 export type AgentLoopOptions = {
   state: AgentRuntimeState;
   model: AgentModel;
   executor: AgentToolExecutor;
   emit: (event: AgentEvent) => Promise<void> | void;
-  tools?: readonly import("./tool-definitions").AgentToolDefinition[];
+  tools?: readonly AgentToolDefinition[];
   checkpoint?: (
     state: AgentRuntimeState,
     reason: AgentRuntimeState["checkpoints"][number]["reason"],
@@ -23,11 +23,12 @@ type PendingPermission = {
 export class AgentLoop {
   private sequence: number;
   private readonly pendingPermissions = new Map<string, PendingPermission>();
-  private readonly alwaysAllowedTools = new Set<string>();
+  private readonly alwaysAllowedTools: Set<string>;
   private readonly recoveredPermissionDecisions = new Map<string, AgentPermissionDecision>();
 
   constructor(private readonly options: AgentLoopOptions) {
     this.sequence = options.initialSequence ?? 0;
+    this.alwaysAllowedTools = new Set(options.state.allowedTools);
   }
 
   async run(initialMessage: string): Promise<void> {
@@ -75,15 +76,15 @@ export class AgentLoop {
   }
 
   private async runLoop(): Promise<void> {
+    const tools = this.options.tools ?? agentToolDefinitions;
+    const definitions = new Map(tools.map((definition) => [definition.name, definition]));
+
     while (!this.options.state.interrupted) {
       let toolUsed = false;
       let assistantText = "";
-      const toolCalls = [];
+      const toolCalls: AgentToolCall[] = [];
 
-      for await (const chunk of this.options.model.stream(
-        this.options.state.messages,
-        this.options.tools ?? agentToolDefinitions,
-      )) {
+      for await (const chunk of this.options.model.stream(this.options.state.messages, tools)) {
         if (chunk.type === "text" && chunk.text) {
           assistantText += chunk.text;
           await this.emit("assistant_message", { text: chunk.text });
@@ -103,8 +104,27 @@ export class AgentLoop {
       for (const call of toolCalls) {
         this.options.state.messages.push({ role: "assistant_tool_call", toolCall: call });
 
-        const definition = agentToolDefinitions.find((item) => item.name === call.name);
-        if (definition?.requiresPermission && !this.alwaysAllowedTools.has(call.name)) {
+        const definition = definitions.get(call.name);
+        if (!definition) {
+          const result: AgentToolResult = {
+            toolCallId: call.id,
+            name: call.name,
+            ok: false,
+            output: null,
+            error: `Tool '${call.name}' is not available in this agent context.`,
+          };
+          await this.emit("tool_result", { result });
+          this.options.state.messages.push({
+            role: "tool",
+            toolCallId: call.id,
+            name: call.name,
+            content: JSON.stringify(result),
+          });
+          await this.checkpoint("tool");
+          continue;
+        }
+
+        if (definition.requiresPermission && !this.alwaysAllowedTools.has(call.name)) {
           const request: AgentPermissionRequest = {
             id: call.id,
             tool: call.name,
@@ -138,7 +158,6 @@ export class AgentLoop {
             await this.checkpoint("tool");
             continue;
           }
-
         }
 
         const result = await this.options.executor.execute(this.options.state.session, call);
@@ -186,7 +205,13 @@ export class AgentLoop {
       decision,
       tool: request.tool,
     });
-    if (decision === "always") this.alwaysAllowedTools.add(request.tool);
+    if (decision === "always") {
+      this.alwaysAllowedTools.add(request.tool);
+      this.options.state.allowedTools = [...this.alwaysAllowedTools].filter(
+        (tool): tool is import("./contracts").AgentToolName =>
+          import("./contracts").agentToolNames.includes(tool as import("./contracts").AgentToolName),
+      );
+    }
   }
 
   private waitForPermission(request: AgentPermissionRequest): Promise<AgentPermissionDecision> {
@@ -208,6 +233,7 @@ export class AgentLoop {
         messages: this.options.state.messages,
         interrupted: this.options.state.interrupted,
         pendingPermission: this.options.state.pendingPermission,
+        allowedTools: this.options.state.allowedTools,
       },
       createdAt: new Date(),
     };
