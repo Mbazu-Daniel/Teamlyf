@@ -28,7 +28,7 @@ export function StatusColumn({
 
   if (collapsed) {
     return (
-      <section className="flex h-full min-h-[420px] w-14 shrink-0 flex-col rounded-2xl border bg-muted/20">
+      <section className="flex h-full min-h-0 w-14 shrink-0 flex-col rounded-2xl border bg-muted/20">
         <button
           type="button"
           onClick={() => setCollapsed(false)}
