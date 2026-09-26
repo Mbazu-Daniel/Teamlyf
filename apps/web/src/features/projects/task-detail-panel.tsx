@@ -128,7 +128,7 @@ function TaskDetailContent({
   taskId,
   statuses,
   mobile,
-}: TaskDetailPanelProps & { mobile?: boolean }) {
+}: Omit<TaskDetailPanelProps, "taskId"> & { taskId: string; mobile?: boolean }) {
   const detail = useTaskDetail(organizationId, projectId, taskId);
   const task = detail.task;
 
@@ -147,7 +147,7 @@ function TaskDetailContent({
           {detail.saveError && <ErrorMessage message={detail.saveError} />}
           <TaskDetailsForm detail={detail} />
           <TaskProperties organizationId={organizationId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
-          <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId!} />
+          <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId} />
           <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId!} />
           {detail.saving && <MutedMessage message="Saving your change..." />}
         </>
