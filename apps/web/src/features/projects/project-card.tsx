@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { IconDots, IconExternalLink, IconLink, IconPencil, IconPlus, IconStar, IconTrash, IconUsers } from "@tabler/icons-react";
+import { IconDots, IconPlus, IconStar, IconUsers } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
-import { slugify } from "@/lib/slug";
 
 const SHINY_PRESETS = [
   "from-purple-500 via-indigo-400 to-blue-600",
