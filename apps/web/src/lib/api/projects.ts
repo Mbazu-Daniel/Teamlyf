@@ -32,6 +32,7 @@ export type ProjectTask = {
   milestoneTasks?: Array<{ id: string; milestoneId: string; taskId: string }>;
 };
 
+// fallow-ignore-next-line unused-export
 export type ProjectMember = {
   id: string;
   projectId: string;
