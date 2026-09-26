@@ -11,7 +11,9 @@ export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
 
 // fallow-ignore-next-line complexity -- route component coordinates project selection, URL state and project-page composition
 function ProjectRoute() {
-  const { organizationSlug, projectId } = Route.useParams();
+  const params = Route.useParams();
+  const projectId = params.projectId;
+  const organizationSlug = params.organizationSlug;
   const { task: selectedTaskId } = Route.useSearch();
   const { organization } = useOrganization();
   const state = useProjectPage(organization?.id, projectId);
@@ -55,8 +57,22 @@ function ProjectRouteContent({
   openTask: (task: ProjectTask) => void;
   closeTask: () => void;
 }) {
-  if (!organization) return <main className="mx-auto max-w-6xl px-6 py-12"><h1 className="text-2xl font-semibold">Project</h1><p className="mt-2 text-muted-foreground">Select an organization first.</p></main>;
-  if (!state.project) return <main className="mx-auto max-w-6xl px-6 py-12"><p className="text-sm text-muted-foreground">{state.error ?? "Loading project..."}</p></main>;
+  if (!organization) {
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <h1 className="text-2xl font-semibold">Project</h1>
+        <p className="mt-2 text-muted-foreground">Select an organization first.</p>
+      </main>
+    );
+  }
+
+  if (!state.project) {
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <p className="text-sm text-muted-foreground">{state.error ?? "Loading project..."}</p>
+      </main>
+    );
+  }
 
   return (
     <ProjectDetailPage
