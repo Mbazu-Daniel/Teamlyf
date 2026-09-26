@@ -24,12 +24,6 @@ export function ProjectCard({
   const members = project.members ?? [];
   const leads = project.leads ?? [];
 
-  async function copyLink(event: React.MouseEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    await navigator.clipboard.writeText(window.location.origin + `/${organizationSlug}/projects/${project.identifier}`);
-  }
-
   return (
     <div className="group flex min-h-[255px] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_14px_36px_-30px_rgba(15,23,42,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_44px_-30px_rgba(15,23,42,0.34)] dark:border-white/10 dark:bg-card/95 dark:hover:border-white/20">
       <Link
