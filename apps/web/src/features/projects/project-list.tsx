@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  IconArrowLeft,
   IconCheck,
   IconFilter,
   IconLayoutGrid,
   IconList,
   IconPlus,
   IconSearch,
-  IconSettings,
 } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -166,22 +164,6 @@ export function ProjectListPage({
                   </select>
                 </div>
 
-                <Link
-                  to="/$organizationSlug"
-                  params={{ organizationSlug }}
-                  className="hidden h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium hover:bg-muted sm:inline-flex"
-                >
-                  <IconArrowLeft className="size-3.5" />
-                  Home
-                </Link>
-                <Link
-                  to="/$organizationSlug/settings"
-                  params={{ organizationSlug }}
-                  className="hidden h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium hover:bg-muted sm:inline-flex"
-                >
-                  <IconSettings className="size-3.5" />
-                  Settings
-                </Link>
                 <button
                   type="button"
                   onClick={() => setShowCreateProject((value) => !value)}
