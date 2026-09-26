@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
+import { agent } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import {
   milestoneTask,
