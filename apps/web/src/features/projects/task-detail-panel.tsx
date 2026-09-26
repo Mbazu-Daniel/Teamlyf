@@ -122,6 +122,7 @@ function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId
   );
 }
 
+// fallow-ignore-next-line complexity -- task detail composes the complete editable task surface
 function TaskDetailContent({
   organizationId,
   projectId,
