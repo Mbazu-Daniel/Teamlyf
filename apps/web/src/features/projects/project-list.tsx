@@ -95,7 +95,7 @@ export function ProjectListPage({
             <h1 className="text-lg font-semibold tracking-tight">Projects</h1>
             <p className="mt-0.5 text-xs text-muted-foreground">Projects in this organization</p>
           </div>
-          <section className="rounded-xl border border-border bg-card/95 p-3 shadow-sm">
+          <section className="border-b border-border/60 pb-3">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="flex shrink-0 items-center rounded-lg bg-secondary p-1">
@@ -182,7 +182,7 @@ export function ProjectListPage({
 
           {state.error && <ErrorMessage message={state.error} />}
 
-          <section className="rounded-xl border border-border bg-card/95 p-3 shadow-sm md:p-4">
+          <section>
             {state.projectsLoading ? (
               <div className="flex min-h-[420px] items-center justify-center">
                 <MutedMessage message="Fetching projects…" />
@@ -222,7 +222,7 @@ export function ProjectListPage({
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <div className="min-w-[720px] divide-y rounded-xl border bg-background">
+                <div className="min-w-[720px] divide-y rounded-lg border border-border/60 bg-background">
                   <div className="grid grid-cols-[minmax(0,1.6fr)_140px_minmax(0,1fr)] gap-3 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     <span>Name</span>
                     <span>Status</span>
@@ -254,7 +254,7 @@ export function ProjectListPage({
           </section>
 
           {showCreateProject && (
-            <section className="rounded-xl border border-border bg-card p-4 shadow-sm">
+            <section className="border-t border-border/60 pt-4">
               <h2 className="text-sm font-bold">Create project</h2>
               <p className="mt-1 text-xs text-muted-foreground">Create a project to start managing tasks and milestones.</p>
               <form onSubmit={state.createProject} className="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_auto]">
