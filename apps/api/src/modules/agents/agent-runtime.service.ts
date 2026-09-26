@@ -51,10 +51,10 @@ export class AgentRuntimeService {
     }).where(and(eq(agentRun.id, runId), eq(agentRun.organizationId, organizationId)));
 
     try {
-      await runtime.sendMessage(runId, message);
+      const status = await runtime.sendMessage(runId, message);
       await this.db.update(agentRun).set({
-        status: "completed",
-        completedAt: new Date(),
+        status,
+        completedAt: status === "completed" ? new Date() : undefined,
         updatedAt: new Date(),
       }).where(and(eq(agentRun.id, runId), eq(agentRun.organizationId, organizationId)));
     } catch (error) {
