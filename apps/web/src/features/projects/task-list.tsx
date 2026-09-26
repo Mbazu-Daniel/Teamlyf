@@ -33,7 +33,6 @@ export function TaskList({ tasks, statuses, onMove, onSelect, onDelete, onDuplic
               <span className="ml-auto"><IconChevronDown className={`size-4 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`} /></span>
               {onAddTask && <button type="button" aria-label="Add task" onClick={(event) => { event.stopPropagation(); onAddTask(status.id); }} className="rounded-md p-1 hover:bg-accent"><IconPlus className="size-4 text-muted-foreground" /></button>}
             </div>
-            /* fallow-ignore-next-line code-duplication -- task actions intentionally mirror the card menu for interaction parity */
             {open && (group.length ? group.map((task) => (
               <div key={task.id} onClick={() => onSelect(task)} className="flex cursor-pointer items-center justify-between border-b border-border/30 px-6 py-3 transition-colors hover:bg-accent/50">
                 <div className="flex min-w-0 flex-1 items-center gap-4">
