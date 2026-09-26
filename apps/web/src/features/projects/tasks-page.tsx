@@ -10,9 +10,11 @@ import { KanbanBoard } from "@/features/projects/board";
 import { TaskDetailPanel } from "@/features/projects/task-detail-panel";
 import { useDeleteTask } from "@/features/projects/use-delete-task";
 
+type TasksPageProps = { organizationSlug: string };
+
 // Tasks are a project resource. The route only acts as a compatibility entry point and redirects into project context.
 // fallow-ignore-next-line complexity -- task workspace coordinates several independent project mutations and views
-export function TasksPage() {
+export function TasksPage({ organizationSlug }: TasksPageProps) {
   const { organization } = useOrganization();
   const { searchStr } = useLocation();
   const navigate = useNavigate({ from: "/$organizationSlug/tasks" });
@@ -26,7 +28,6 @@ export function TasksPage() {
 
   const view = new URLSearchParams(searchStr).get("view") === "list" ? "list" : "board";
   const organizationId = organization?.id;
-  const organizationSlug = organization?.slug;
 
   const projectsQuery = useQuery({
     queryKey: queryKeys.projects(organizationId ?? ""),
@@ -38,7 +39,7 @@ export function TasksPage() {
   const projects = projectsQuery.data ?? [];
 
   useEffect(() => {
-    if (!organizationSlug || projectsQuery.isLoading) return;
+    if (projectsQuery.isLoading) return;
     const project = projects[0];
     if (project) {
       const slug = project.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -51,71 +52,33 @@ export function TasksPage() {
   const projectId = selectedProjectId || projects[0]?.id || "";
   const selectedProject = projects.find((item) => item.id === projectId);
 
-  const resourceQueries = useQueries({
-    queries: projects.map((project) => ({
-      queryKey: queryKeys.tasks(organizationId ?? "", project.id),
-      queryFn: () => projectsApi.getTasks(organizationId!, project.id),
-      enabled: Boolean(organizationId),
-      retry: false,
-    })),
-  });
-
-  const statusQueries = useQueries({
-    queries: projects.map((project) => ({
-      queryKey: queryKeys.statuses(organizationId ?? "", project.id),
-      queryFn: () => statusesApi.getStatuses(organizationId!, project.id),
-      enabled: Boolean(organizationId),
-      retry: false,
-    })),
-  });
+  const resourceQueries = useQueries({ queries: projects.map((project) => ({ queryKey: queryKeys.tasks(organizationId ?? "", project.id), queryFn: () => projectsApi.getTasks(organizationId!, project.id), enabled: Boolean(organizationId), retry: false })) });
+  const statusQueries = useQueries({ queries: projects.map((project) => ({ queryKey: queryKeys.statuses(organizationId ?? "", project.id), queryFn: () => statusesApi.getStatuses(organizationId!, project.id), enabled: Boolean(organizationId), retry: false })) });
 
   const tasks = useMemo(() => {
     const index = projects.findIndex((project) => project.id === projectId);
     return index >= 0 ? (resourceQueries[index]?.data ?? []) : [];
   }, [projectId, projects, resourceQueries]);
-
   const statuses = useMemo(() => {
     const index = projects.findIndex((project) => project.id === projectId);
     return index >= 0 ? (statusQueries[index]?.data ?? []) : [];
   }, [projectId, projects, statusQueries]);
-
   const filteredTasks = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return tasks;
     return tasks.filter((task) => [task.name, task.description ?? "", String(task.sequenceId), task.priority].join(" ").toLowerCase().includes(query));
   }, [search, tasks]);
-
   const tasksKey = queryKeys.tasks(organizationId ?? "", projectId);
 
-  const createTaskMutation = useMutation({
-    mutationFn: () => projectsApi.createTask(organizationId!, projectId, { name: taskName.trim(), statusId: taskStatusId || statuses[0]?.id || "" }),
-    onSuccess: (task) => {
-      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]);
-      setTaskName("");
-      setCreating(false);
-    },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
-  });
-
+  const createTaskMutation = useMutation({ mutationFn: () => projectsApi.createTask(organizationId!, projectId, { name: taskName.trim(), statusId: taskStatusId || statuses[0]?.id || "" }), onSuccess: (task) => { queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]); setTaskName(""); setCreating(false); }, onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }) });
   const moveTaskMutation = useMutation({
     mutationFn: ({ taskId, statusId }: { taskId: string; statusId: string }) => projectsApi.moveTask(organizationId!, projectId, taskId, statusId),
-    onMutate: async ({ taskId, statusId }) => {
-      await queryClient.cancelQueries({ queryKey: tasksKey });
-      const previous = queryClient.getQueryData<ProjectTask[]>(tasksKey);
-      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => (current ?? []).map((task) => task.id === taskId ? { ...task, statusId } : task));
-      return { previous };
-    },
+    onMutate: async ({ taskId, statusId }) => { await queryClient.cancelQueries({ queryKey: tasksKey }); const previous = queryClient.getQueryData<ProjectTask[]>(tasksKey); queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => (current ?? []).map((task) => task.id === taskId ? { ...task, statusId } : task)); return { previous }; },
     onError: (_error, _variables, context) => { if (context?.previous) queryClient.setQueryData(tasksKey, context.previous); },
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   });
-
   const deleteTaskMutation = useDeleteTask(organizationId, projectId);
-  const duplicateTaskMutation = useMutation({
-    mutationFn: (task: ProjectTask) => projectsApi.createTask(organizationId!, projectId, { name: task.name + " (copy)", statusId: task.statusId }),
-    onSuccess: (task) => queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
-  });
-
+  const duplicateTaskMutation = useMutation({ mutationFn: (task: ProjectTask) => projectsApi.createTask(organizationId!, projectId, { name: task.name + " (copy)", statusId: task.statusId }), onSuccess: (task) => queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]), onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }) });
   function openCreate() { setTaskStatusId(statuses[0]?.id ?? ""); setCreating(true); }
   function createTask() { if (!organizationId || !projectId || !taskName.trim() || !(taskStatusId || statuses[0]?.id)) return; createTaskMutation.mutate(); }
 
