@@ -23,6 +23,7 @@ function navLinkClass(active: boolean, collapsed: boolean, available: boolean) {
   );
 }
 
+// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- navigation link handles availability, active state and nested navigation in one reusable primitive
 function NavItemLink({
   item,
   active,
