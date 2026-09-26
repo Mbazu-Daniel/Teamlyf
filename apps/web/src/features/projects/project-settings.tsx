@@ -14,7 +14,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
-import { projectsApi, statusesApi } from "@/lib/api";
+import { projectMembersApi, projectsApi, settingsApi, statusesApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
 
@@ -86,7 +86,7 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
             {tab === "general" && <GeneralSettings organizationId={organizationId} organizationSlug={organizationSlug} project={project} />}
-            {tab === "members" && <MembersSettings project={project} />}
+            {tab === "members" && <MembersSettings project={project} organizationId={organizationId} />}
             {tab === "states" && <WorkflowSettings organizationId={organizationId} projectId={project.id} />}
           </div>
         </div>
@@ -166,36 +166,121 @@ function GeneralSettings({ organizationId, organizationSlug, project }: { organi
   );
 }
 
-function MembersSettings({ project }: { project: Project }) {
-  const members = project.members ?? [];
-  const leads = project.leads ?? [];
+function MembersSettings({
+  project,
+  organizationId,
+}: {
+  project: Project;
+  organizationId: string;
+}) {
+  const queryClient = useQueryClient();
+  const [selectedMemberId, setSelectedMemberId] = useState("");
+  const membersQuery = useQuery({
+    queryKey: queryKeys.members(organizationId),
+    queryFn: () => settingsApi.members(organizationId),
+  });
+  const projectMembersQuery = useQuery({
+    queryKey: [...queryKeys.project(organizationId, project.id), "members"],
+    queryFn: () => projectMembersApi.get(organizationId, project.id),
+  });
+
+  const add = useMutation({
+    mutationFn: () => projectMembersApi.add(organizationId, project.id, [selectedMemberId]),
+    onSuccess: () => {
+      setSelectedMemberId("");
+      void queryClient.invalidateQueries({
+        queryKey: [...queryKeys.project(organizationId, project.id), "members"],
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.project(organizationId, project.id) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projects(organizationId) });
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: (memberId: string) => projectMembersApi.remove(organizationId, project.id, memberId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [...queryKeys.project(organizationId, project.id), "members"],
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.project(organizationId, project.id) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projects(organizationId) });
+    },
+  });
+
+  const projectMembers = projectMembersQuery.data ?? [];
+  const assignedIds = new Set(projectMembers.map((item) => item.memberId));
+  const availableMembers = (membersQuery.data?.members ?? []).filter((item) => !assignedIds.has(item.id));
 
   return (
     <section className="max-w-3xl space-y-5">
       <div>
         <h2 className="text-base font-semibold">Members</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          People currently returned by the project API. Project membership mutations are kept disabled until the organization member mapping is exposed by the current API.
+          Add or remove organization members from this project. Project membership follows the project-member model used by the original Teamlyf server.
         </p>
       </div>
+
       <div className="rounded-xl border bg-card">
-        {members.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">No project members returned.</div>
+        {projectMembersQuery.isPending ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Loading members…</div>
+        ) : projectMembers.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">No project members yet.</div>
         ) : (
-          members.map((member) => (
-            <div key={member.id} className="flex items-center justify-between border-b last:border-b-0 px-4 py-3">
-              <div className="flex items-center gap-3">
-                <div className="grid size-9 place-items-center rounded-full bg-muted text-xs font-semibold">
-                  {((member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "")).toUpperCase() || "M"}
+          projectMembers.map((item) => {
+            const name = [item.member.firstName, item.member.lastName].filter(Boolean).join(" ") || item.member.user?.name || "Team member";
+            return (
+              <div key={item.id} className="flex items-center justify-between border-b px-4 py-3 last:border-b-0">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="grid size-9 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold">
+                    {name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{name}</p>
+                    <p className="text-xs text-muted-foreground">{item.role === "admin" ? "Project lead" : "Member"}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{member.firstName ?? ""} {member.lastName ?? ""}</p>
-                  <p className="text-xs text-muted-foreground">{leads.some((lead) => lead.id === member.id) ? "Project lead" : "Member"}</p>
-                </div>
+                <button
+                  type="button"
+                  disabled={remove.isPending}
+                  onClick={() => void remove.mutateAsync(item.memberId)}
+                  className="rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                >
+                  Remove
+                </button>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
+      </div>
+
+      <div className="rounded-xl border bg-card p-4">
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold">Add member</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Only members of this organization can be assigned to the project.</p>
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={selectedMemberId}
+            onChange={(event) => setSelectedMemberId(event.target.value)}
+            className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary"
+          >
+            <option value="">Select a member</option>
+            {availableMembers.map((member) => {
+              const name = member.user?.name || member.user?.email || member.id;
+              return <option key={member.id} value={member.id}>{name}</option>;
+            })}
+          </select>
+          <button
+            type="button"
+            disabled={!selectedMemberId || add.isPending}
+            onClick={() => void add.mutateAsync()}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {add.isPending ? "Adding…" : "Add"}
+          </button>
+        </div>
+        {add.error && <p className="mt-2 text-xs text-destructive">Unable to add this member.</p>}
+        {remove.error && <p className="mt-2 text-xs text-destructive">Unable to remove this member.</p>}
       </div>
     </section>
   );
