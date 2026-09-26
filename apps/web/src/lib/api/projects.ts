@@ -30,6 +30,14 @@ export type ProjectTask = {
   milestoneTasks?: Array<{ id: string; milestoneId: string; taskId: string }>;
 };
 
+export type ProjectMember = {
+  id: string;
+  projectId: string;
+  memberId: string;
+  role: string;
+  member: { id: string; firstName?: string | null; lastName?: string | null; user?: { name?: string | null; email?: string | null } | null };
+};
+
 export type TaskPriority = "urgent" | "high" | "medium" | "low" | "none";
 export type TaskAssigneeInput = { kind: "member" | "agent"; id: string };
 
@@ -44,6 +52,24 @@ export type UpdateTaskInput = {
   assignees?: TaskAssigneeInput[];
   labelIds?: string[];
   milestoneIds?: string[];
+};
+
+export const projectMembersApi = {
+  get(organizationId: string, projectId: string) {
+    return client.request<ProjectMember[]>(`${projectPath(organizationId, projectId)}/members`);
+  },
+  add(organizationId: string, projectId: string, memberIds: string[]) {
+    return client.request<ProjectMember[]>(`${projectPath(organizationId, projectId)}/members`, {
+      method: "POST",
+      body: JSON.stringify({ memberIds }),
+    });
+  },
+  remove(organizationId: string, projectId: string, memberId: string) {
+    return client.request<{ success: boolean }>(
+      `${projectPath(organizationId, projectId)}/members/${memberId}`,
+      { method: "DELETE" },
+    );
+  },
 };
 
 export const projectsApi = {
