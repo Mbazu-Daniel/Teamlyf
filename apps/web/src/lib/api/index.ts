@@ -11,3 +11,4 @@ export * from "./labels";
 export * from "./milestones";
 export * from "./comments";
 export * from "./task-activity";
+export * from "./notes";
