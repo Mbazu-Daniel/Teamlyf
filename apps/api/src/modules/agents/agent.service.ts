@@ -79,6 +79,7 @@ export class AgentService {
     }
   }
 
+  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- agent execution coordinates validation, provider resolution and terminal run state transitions
   private async executeRun(runId: string) {
     try {
       const run = await this.db.query.agentRun.findFirst({ where: eq(agentRun.id, runId) });
