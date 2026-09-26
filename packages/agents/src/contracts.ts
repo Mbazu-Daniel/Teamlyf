@@ -4,7 +4,7 @@ export const agentToolNames = [
   "read_file","write_file","edit_file","list_directory","search_files","execute_command",
   "git_status","git_diff","git_create_branch","git_checkout","git_commit","git_push",
   "github_create_pull_request","github_get_pull_request",
-  "ask_user","apply_patch","web_search",
+  "ask_user","apply_patch","web_search","load_skill",
   "get_project","list_tasks","update_task",
   "search_documents","read_document","create_document",
   "search_notes","read_note","update_note",
