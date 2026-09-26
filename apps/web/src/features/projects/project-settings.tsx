@@ -99,7 +99,6 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
 function GeneralSettings({ organizationId, organizationSlug, project }: { organizationId: string; organizationSlug: string; project: Project }) {
   const queryClient = useQueryClient();
   const [name, setName] = useState(project.name);
-  const [identifier, setIdentifier] = useState(project.identifier);
   const [description, setDescription] = useState(project.description ?? "");
   const [emoji, setEmoji] = useState(project.emoji ?? "");
   const [saved, setSaved] = useState(false);
@@ -134,7 +133,7 @@ function GeneralSettings({ organizationId, organizationSlug, project }: { organi
           </label>
           <label className="space-y-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Code</span>
-            <input value={identifier} readOnly className="h-9 w-full rounded-md border bg-muted px-3 text-sm font-semibold uppercase text-muted-foreground outline-none" />
+            <input value={project.identifier} readOnly className="h-9 w-full rounded-md border bg-muted px-3 text-sm font-semibold uppercase text-muted-foreground outline-none" />
           </label>
         </div>
 
