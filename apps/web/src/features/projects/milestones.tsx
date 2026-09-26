@@ -121,8 +121,8 @@ function MilestoneForm({
   );
 }
 
-// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- milestone card owns its edit, task-link and progress interactions
-// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- milestone card owns editing, task linking and progress interactions
+// fallow-ignore-next-line complexity -- milestone card owns its edit, task-link and progress interactions
+// fallow-ignore-next-line complexity -- milestone card owns editing, task linking and progress interactions
 function MilestoneCard({
   milestone,
   tasks,
