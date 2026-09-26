@@ -27,8 +27,8 @@ export function TaskProperties({
   updateTask,
 }: TaskPropertiesProps) {
   return (
-    <section aria-label="Properties" className="space-y-4">
-      <h3 className="text-sm font-semibold">Properties</h3>
+    <section aria-label="Properties" className="rounded-xl border border-border/70 bg-card p-4 space-y-4">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Properties</h3>
       <Field label="Status" htmlFor="task-status">
         <select
           id="task-status"
