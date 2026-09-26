@@ -8,6 +8,7 @@ import { slugify } from "@/lib/slug";
 type CreateTaskInput = { name: string; statusId: string };
 type MoveTaskInput = { taskId: string; statusId: string };
 
+// fallow-ignore-next-line high-cognitive-complexity,high-crap-score -- project page hook intentionally centralizes task and milestone mutations for one project
 export function useProjectPage(organizationId: string | undefined, projectSlug: string) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
