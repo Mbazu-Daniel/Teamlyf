@@ -26,6 +26,7 @@ export const agentToolDefinitions: readonly AgentToolDefinition[] = [
   { name:"github_create_pull_request", description:"Open a pull request for the completed work.", parameters:{type:"object",properties:{title:s,body:s},required:["title","body"]}, requiresPermission:true },
   { name:"github_get_pull_request", description:"Inspect an existing pull request.", parameters:{type:"object",properties:{number:s},required:["number"]}, requiresPermission:false },
   { name:"ask_user", description:"Ask the user for information needed to continue.", parameters:{type:"object",properties:{question:s},required:["question"]}, requiresPermission:false },
+  { name:"load_skill", description:"Load the full instructions for a workspace skill. Use a listed skill when its description matches the current task.", parameters:{type:"object",properties:{name:s},required:["name"]}, requiresPermission:false },
   { name:"web_search", description:"Search the web for external documentation or information.", parameters:{type:"object",properties:{query:s},required:["query"]}, requiresPermission:false },
 
   { name:"get_project", description:"Read a project in the current organization.", parameters:{type:"object",properties:{projectId:s},required:["projectId"]}, requiresPermission:false },
