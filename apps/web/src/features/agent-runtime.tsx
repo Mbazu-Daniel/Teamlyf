@@ -79,9 +79,17 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
       if (next.type === "run_interrupted") setRuntimeStatus("interrupted");
       if (next.type === "run_failed") setRuntimeStatus("failed");
     };
-    source.onmessage = onEvent;
-    source.onerror = () => undefined;
-    return () => source.close();
+    const eventTypes = [
+      "session_started","assistant_message","assistant_thinking","tool_call","tool_result",
+      "permission_requested","permission_resolved","question_requested","question_resolved",
+      "command_started","command_output","command_completed","file_changed","git_changed",
+      "checkpoint_created","run_interrupted","run_failed","run_completed",
+    ];
+    for (const type of eventTypes) source.addEventListener(type, onEvent as EventListener);
+    return () => {
+      for (const type of eventTypes) source.removeEventListener(type, onEvent as EventListener);
+      source.close();
+    };
   }, [organizationId, runId]);
 
   const createRunMutation = useMutation({
