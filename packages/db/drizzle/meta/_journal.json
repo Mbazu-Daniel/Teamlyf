@@ -13,7 +13,9 @@
     {"idx": 8, "version": "7", "when": 1789758000000, "tag": "0008_organization_agents", "breakpoints": true},
     {"idx": 9, "version": "7", "when": 1789761600000, "tag": "0009_organization_chat", "breakpoints": true},
     {"idx": 10, "version": "7", "when": 1790220000000, "tag": "0010_plan_entitlement_agent_limit", "breakpoints": true},
-    {"idx": 11, "version": "7", "when": 1790223600000, "tag": "0011_project_status_integrity", "breakpoints": true}
+    {"idx": 11, "version": "7", "when": 1790223600000, "tag": "0011_project_status_integrity", "breakpoints": true},
+    {"idx": 12, "version": "7", "when": 1790400000000, "tag": "0012_note_task_channel_read", "breakpoints": true},
+    {"idx": 13, "version": "7", "when": 1790403600000, "tag": "0013_project_members", "breakpoints": true}
     {"idx": 10, "version": "7", "when": 1790220000000, "tag": "0010_plan_entitlement_agent_limit", "breakpoints": true},
     {"idx": 11, "version": "7", "when": 1790223600000, "tag": "0011_project_status_integrity", "breakpoints": true},
     {"idx": 12, "version": "7", "when": 1790400000000, "tag": "0012_note_task_channel_read", "breakpoints": true}
