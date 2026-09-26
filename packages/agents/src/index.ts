@@ -11,3 +11,4 @@ export * from "./workspace-tool-executor";
 export * from "./sandbox";
 export * from "./docker-sandbox";
 export * from "./openai-chat-model";
+export * from "./context-tools";
