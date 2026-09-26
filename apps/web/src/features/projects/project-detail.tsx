@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  IconFlag,
   IconLayoutKanban,
   IconList,
   IconPlus,
@@ -9,8 +8,7 @@ import {
   IconSettings,
   IconLink,
 } from "@tabler/icons-react";
-import type { Project, ProjectTask, Status } from "@/lib/api";
-import { ErrorMessage } from "./feedback";
+import type { Project, ProjectTask } from "@/lib/api";
 import { KanbanBoard } from "./board";
 import { MilestonesSection } from "./milestones";
 import { TaskDetailPanel } from "./task-detail-panel";
@@ -122,6 +120,3 @@ export function ProjectDetailPage({
   );
 }
 
-function Kpi({ label, value }: { label: string; value: string | number }) {
-  return <div className="hidden min-w-[72px] rounded-lg border bg-background px-2.5 py-1.5 sm:block"><p className="text-[9px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">{label}</p><p className="mt-0.5 text-xs font-semibold">{value}</p></div>;
-}
