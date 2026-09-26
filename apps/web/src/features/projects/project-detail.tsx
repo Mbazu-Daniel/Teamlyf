@@ -9,6 +9,8 @@ import {
   IconList,
   IconPlus,
   IconSearch,
+  IconSettings,
+  IconLink,
 } from "@tabler/icons-react";
 import type { Project, ProjectTask, Status } from "@/lib/api";
 import { ErrorMessage } from "./feedback";
