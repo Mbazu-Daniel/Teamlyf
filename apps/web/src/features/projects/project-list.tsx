@@ -77,8 +77,9 @@ export function ProjectListPage({
         case "name-desc":
           return b.name.localeCompare(a.name);
         case "created-desc":
+          return (Date.parse(b.createdAt ?? "") || 0) - (Date.parse(a.createdAt ?? "") || 0);
         case "updated-desc":
-          return b.identifier.localeCompare(a.identifier);
+          return (Date.parse(b.updatedAt ?? b.createdAt ?? "") || 0) - (Date.parse(a.updatedAt ?? a.createdAt ?? "") || 0);
         default:
           return a.name.localeCompare(b.name);
       }
