@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { IconDots, IconPlus, IconStar, IconUsers } from "@tabler/icons-react";
+import { IconPlus, IconStar, IconUsers } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
 
 const SHINY_PRESETS = [
@@ -49,22 +49,9 @@ export function ProjectCard({
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/10 opacity-60 transition-opacity group-hover:opacity-80" />
 
           <div className="absolute left-3 right-3 top-3 z-20 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              className="flex size-8 items-center justify-center rounded-full text-white/80 transition hover:bg-black/20 hover:text-yellow-400"
-              aria-label="Star project"
-            >
+            <span className="flex size-8 items-center justify-center rounded-full text-white/80" aria-hidden="true">
               <IconStar className="size-4 fill-current" />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              className="flex size-8 items-center justify-center rounded-full bg-black/10 text-white backdrop-blur-md transition hover:bg-black/30"
-              aria-label="Project actions"
-            >
-              <IconDots className="size-4" />
-            </button>
+            </span>
           </div>
 
           <div className="absolute -bottom-5 left-5 z-20 flex size-12 items-center justify-center rounded-xl border-2 border-background bg-background text-base font-bold shadow-lg">
