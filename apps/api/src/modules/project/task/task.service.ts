@@ -59,6 +59,7 @@ export class TaskService {
     });
   }
 
+  // fallow-ignore-next-line complexity -- task creation coordinates status, ordering, relations and activity in one transaction flow
   async createTask(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
     await this.access.requireProject(orgId, projectId);
 
