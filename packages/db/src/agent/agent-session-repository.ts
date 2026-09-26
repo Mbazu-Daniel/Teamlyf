@@ -72,6 +72,7 @@ export class AgentSessionRepository {
     if (!checkpoint) return undefined;
     return {
       id: checkpoint.id,
+      organizationId: checkpoint.organizationId,
       sessionId: checkpoint.sessionId,
       sequence: checkpoint.sequence,
       reason: checkpoint.reason as "tool" | "message" | "manual",
