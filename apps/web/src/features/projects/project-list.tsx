@@ -29,6 +29,7 @@ export function ProjectListPage({
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCreateProject, setShowCreateProject] = useState(false);
 
   const filteredProjects = useMemo(
     () => state.projects.filter((project: Project) => (statusFilter === "all" || project.status === statusFilter) && (!searchQuery.trim() || `${project.name} ${project.identifier} ${project.description ?? ""}`.toLowerCase().includes(searchQuery.trim().toLowerCase()))),
@@ -60,8 +61,8 @@ export function ProjectListPage({
           <Link to="/$organizationSlug/settings" params={{ organizationSlug }} className="hidden items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium hover:bg-muted sm:inline-flex">
             <IconSettings className="size-3.5" /> Settings
           </Link>
-          <button type="button" onClick={() => document.getElementById("create-project")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
-            <IconPlus className="size-4" /> Add Project
+          <button type="button" onClick={() => setShowCreateProject((value) => !value)} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
+            <IconPlus className="size-4" /> {showCreateProject ? "Close" : "Add Project"}
           </button>
         </div>
       </div>
@@ -78,7 +79,7 @@ export function ProjectListPage({
                 <IconLayoutGrid className="size-8 text-primary/70" />
               </div>
               <h3 className="mb-5 text-lg font-bold">{state.projects.length === 0 ? "Create your first project" : "No projects found"}</h3>
-              <button type="button" onClick={() => document.getElementById("create-project")?.scrollIntoView({ behavior: "smooth" })} className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+              <button type="button" onClick={() => setShowCreateProject(true)} className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
                 <IconPlus className="mr-2 inline size-4" /> Create project
               </button>
             </div>
@@ -99,7 +100,7 @@ export function ProjectListPage({
           </div>
         )}
 
-        <section id="create-project" className="mt-5 rounded-xl border bg-background p-4">
+        {showCreateProject && <section id="create-project" className="mt-5 rounded-xl border bg-background p-4">
           <h2 className="text-sm font-bold">Create Project</h2>
           <p className="mt-1 text-xs text-muted-foreground">Create a project to start managing tasks and milestones.</p>
           <form onSubmit={state.createProject} className="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_auto]">
@@ -108,8 +109,7 @@ export function ProjectListPage({
             <input value={state.description} onChange={(event) => state.setDescription(event.target.value)} placeholder="Description" className="h-10 rounded-lg border bg-card px-3 text-sm" />
             <button disabled={state.loading} className="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{state.loading ? "Creating..." : "Create"}</button>
           </form>
-        </section>
-      </div>
+        </section>}\n      </div>
     </div>
   );
 }
