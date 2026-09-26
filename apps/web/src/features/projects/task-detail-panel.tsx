@@ -50,7 +50,7 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
   return <DesktopTaskPanel organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} />;
 }
 
-function DesktopTaskPanel(props: TaskDetailPanelProps) {
+function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId: string }) {
   const [width, setWidth] = useState(600);
   const [maximized, setMaximized] = useState(false);
   const resizing = useRef(false);
@@ -129,8 +129,6 @@ function TaskDetailContent({
   statuses,
   mobile,
 }: TaskDetailPanelProps & { mobile?: boolean }) {
-  if (!taskId) return null;
-
   const detail = useTaskDetail(organizationId, projectId, taskId);
   const task = detail.task;
 
