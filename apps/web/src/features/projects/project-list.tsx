@@ -91,6 +91,10 @@ export function ProjectListPage({
     <div className="flex h-full min-h-0 w-full flex-col bg-[var(--app-page-background)]">
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-4 p-3 pb-6 md:p-4">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight">Projects</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">Projects in this organization</p>
+          </div>
           <section className="rounded-xl border border-border bg-card/95 p-3 shadow-sm">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
