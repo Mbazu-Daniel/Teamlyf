@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { createDecipheriv, createHash } from "node:crypto";
+import { createDecipheriv, createHash, randomUUID } from "node:crypto";
 import type { Database } from "@teamlyf/db";
 import { AgentSessionRepository, agentEvent, agentRun, aiProviderConfig } from "@teamlyf/db";
 import {
@@ -100,7 +100,7 @@ export class AgentRuntimeService {
     const session = await this.createSession(run, input);
     const provider = await this.resolveProvider(organizationId);
     const repository = new AgentSessionRepository(this.db);
-    const store = new AgentRuntimeStoreAdapter(repository, session.id);
+    const store = new AgentRuntimeStoreAdapter(repository, session.id, session.organizationId);
     const workspaceExecutor = new WorkspaceToolExecutor({
       commandRunner: new LocalWorkspaceCommandRunner(),
       getWorkspace: (current) => current.workspace,
@@ -233,7 +233,7 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
   async appendEvent(event: AgentEvent): Promise<void> {
     await this.repository.appendEvent({
       id: event.id,
-      organizationId: event.payload.organizationId as string ?? "",
+      organizationId: this.organizationId,
       sessionId: event.sessionId,
       sequence: event.sequence,
       type: event.type,
@@ -242,7 +242,7 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
     });
   }
 
-  async createCheckpoint(checkpoint: AgentEvent extends never ? never : {
+  async createCheckpoint(checkpoint: AgentCheckpoint) {
     id: string;
     organizationId: string;
     sessionId: string;
