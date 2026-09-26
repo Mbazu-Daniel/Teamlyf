@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { chmod, rm, writeFile } from "node:fs/promises";
 import {
   createWorkspaceRoot,
   removeWorkspaceRoot,
@@ -8,30 +9,41 @@ import {
   type WorkspaceHandle,
   type WorkspaceManager,
   type WorkspaceSpec,
+  type WorkspaceGitCredentials,
 } from "./workspace";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
 const DEFAULT_MAX_OUTPUT_BYTES = 256 * 1024;
 
 export class LocalWorkspaceManager implements WorkspaceManager {
+  constructor(private readonly credentials?: WorkspaceGitCredentials) {}
   async provision(spec: WorkspaceSpec): Promise<WorkspaceHandle> {
     const root = await createWorkspaceRoot();
     try {
-      await runProcess(
-        "git",
-        [
-          "clone",
-          "--no-tags",
-          "--depth",
-          "1",
-          "--branch",
-          spec.baseBranch,
-          "https://github.com/" + spec.repository + ".git",
-          root,
-        ],
-        DEFAULT_TIMEOUT_MS,
-        DEFAULT_MAX_OUTPUT_BYTES,
-      );
+      const askpass = this.credentials ? await createAskpass() : undefined;
+      try {
+        const token = this.credentials ? await this.credentials.getToken(spec.repository) : undefined;
+        await runProcess(
+          "git",
+          [
+            ...(token ? ["-c", "credential.helper="] : []),
+            "clone",
+            "--no-tags",
+            "--depth",
+            "1",
+            "--branch",
+            spec.baseBranch,
+            "https://github.com/" + spec.repository + ".git",
+            root,
+          ],
+          DEFAULT_TIMEOUT_MS,
+          DEFAULT_MAX_OUTPUT_BYTES,
+          undefined,
+          askpass ? { GIT_ASKPASS: askpass, GIT_TERMINAL_PROMPT: "0", TEAMLYF_GIT_TOKEN: token ?? "" } : undefined,
+        );
+      } finally {
+        if (askpass) await rm(askpass, { force: true });
+      }
       await runProcess(
         "git",
         ["checkout", "-b", spec.workingBranch],
@@ -74,9 +86,10 @@ async function runProcess(
   timeoutMs: number,
   maxOutputBytes: number,
   cwd?: string,
+  env?: Record<string, string>,
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, [...args], { cwd, shell: false });
+    const child = spawn(command, [...args], { cwd, shell: false, env: { ...process.env, ...env } });
     let stdout = "";
     let stderr = "";
     let totalBytes = 0;
@@ -117,4 +130,16 @@ async function runProcess(
       resolve({ exitCode: exitCode ?? -1, stdout, stderr });
     });
   });
+}
+
+
+async function createAskpass(): Promise<string> {
+  const path = tmpdir() + "/teamlyf-git-askpass-" + process.pid + "-" + Date.now();
+  await writeFile(
+    path,
+    '#!/bin/sh\ncase "$1" in *Username*) echo x-access-token;; *) printf "%s" "$TEAMLYF_GIT_TOKEN";; esac\n',
+    { mode: 0o700 },
+  );
+  await chmod(path, 0o700);
+  return path;
 }

@@ -30,6 +30,8 @@ const apiEnvSchema = z.object({
   AGENT_ENCRYPTION_SECRET: z.string().optional(),
   AGENT_MANAGED_API_KEY: z.string().optional(),
   AGENT_OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
+  GITHUB_APP_ID: z.coerce.number().int().positive().optional(),
+  GITHUB_APP_PRIVATE_KEY: z.string().optional(),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

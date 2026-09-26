@@ -5,6 +5,7 @@ import { project, projectRepository, status } from "@teamlyf/db/project-schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { ProjectAccessService } from "./project-access.service";
+import { GithubAppService } from "./github-app.service";
 import type { ConnectGithubRepositoryDto, CreateProjectDto, UpdateProjectDto } from "./dto";
 
 const DEFAULT_STATUSES = [
@@ -20,6 +21,7 @@ export class ProjectService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly access: ProjectAccessService,
+    private readonly githubApp: GithubAppService,
   ) {}
 
   async createProject(orgId: string, dto: CreateProjectDto) {
@@ -78,26 +80,37 @@ export class ProjectService {
 
   async connectGithubRepository(orgId: string, projectId: string, memberId: string, dto: ConnectGithubRepositoryDto) {
     await this.access.requireProject(orgId, projectId);
+    const repositoryFullName = dto.repositoryFullName.trim();
+    const defaultBranch = dto.defaultBranch.trim();
+    const installationId = dto.installationId?.trim() || null;
+
+    if (installationId) {
+      const repository = await this.githubApp.getRepository(installationId, repositoryFullName);
+      if (repository.fullName.toLowerCase() !== repositoryFullName.toLowerCase()) {
+        throw new Error("GitHub repository name does not match the connected repository");
+      }
+    }
+
     const [connected] = await this.db
       .insert(projectRepository)
       .values({
         organizationId: orgId,
         projectId,
         repositoryId: dto.repositoryId,
-        repositoryFullName: dto.repositoryFullName.trim(),
-        defaultBranch: dto.defaultBranch.trim(),
-        baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),
-        installationId: dto.installationId?.trim() || null,
+        repositoryFullName,
+        defaultBranch,
+        baseBranch: dto.baseBranch?.trim() || defaultBranch,
+        installationId,
         connectedByMemberId: memberId,
       })
       .onConflictDoUpdate({
         target: projectRepository.projectId,
         set: {
           repositoryId: dto.repositoryId,
-          repositoryFullName: dto.repositoryFullName.trim(),
-          defaultBranch: dto.defaultBranch.trim(),
-          baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),
-          installationId: dto.installationId?.trim() || null,
+          repositoryFullName,
+          defaultBranch,
+          baseBranch: dto.baseBranch?.trim() || defaultBranch,
+          installationId,
           connectedByMemberId: memberId,
           updatedAt: new Date(),
         },

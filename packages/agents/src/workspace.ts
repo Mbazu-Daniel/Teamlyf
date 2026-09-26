@@ -16,6 +16,10 @@ export type CommandResult = {
   stderr: string;
 };
 
+export interface WorkspaceGitCredentials {
+  getToken(repository: string): Promise<string>;
+}
+
 export interface WorkspaceManager {
   provision(spec: WorkspaceSpec): Promise<WorkspaceHandle>;
   cleanup(workspace: WorkspaceHandle): Promise<void>;
