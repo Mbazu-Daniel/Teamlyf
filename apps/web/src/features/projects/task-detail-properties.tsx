@@ -24,6 +24,7 @@ type TaskPropertiesProps = {
 };
 
 export function TaskProperties({
+  organizationId,
   task,
   statuses,
   members,
