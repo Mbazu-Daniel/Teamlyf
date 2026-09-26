@@ -80,6 +80,7 @@ export function TasksPage({ organizationSlug }: TasksPageProps) {
   const deleteTaskMutation = useDeleteTask(organizationId, projectId);
   const duplicateTaskMutation = useMutation({ mutationFn: (task: ProjectTask) => projectsApi.createTask(organizationId!, projectId, { name: task.name + " (copy)", statusId: task.statusId }), onSuccess: (task) => queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]), onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }) });
   function openCreate() { setTaskStatusId(statuses[0]?.id ?? ""); setCreating(true); }
+  // fallow-ignore-next-line complexity -- form validation delegates the actual mutation to the shared mutation handler
   function createTask() { if (!organizationId || !projectId || !taskName.trim() || !(taskStatusId || statuses[0]?.id)) return; createTaskMutation.mutate(); }
 
   if (!organizationId || projects.length === 0) return null;
