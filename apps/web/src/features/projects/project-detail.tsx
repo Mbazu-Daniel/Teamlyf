@@ -20,10 +20,6 @@ type ProjectDetailPageProps = {
   onCloseTask: () => void;
 };
 
-function projectSlug(project: Project) {
-  return project.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
 // fallow-ignore-next-line complexity -- project detail coordinates board/list/milestone views and their shared task state
 export function ProjectDetailPage({ project, state, organizationId, organizationSlug, selectedTaskId, onSelectTask, onCloseTask }: ProjectDetailPageProps) {
   const [view, setView] = useState<"kanban" | "list">("kanban");
@@ -50,7 +46,7 @@ export function ProjectDetailPage({ project, state, organizationId, organization
           <div className="flex items-center gap-2">
             {project.members?.length ? <div className="flex items-center -space-x-2">{project.members.slice(0, 5).map((member) => <div key={member.id} title={`${member.firstName ?? ""} ${member.lastName ?? ""}`.trim()} className="grid size-8 place-items-center rounded-full border-2 border-background bg-muted text-[10px] font-semibold">{((member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "")).toUpperCase() || "M"}</div>)}</div> : null}
             <button type="button" className="grid size-8 place-items-center rounded-full border border-dashed hover:bg-accent" aria-label="Add project member"><IconPlus className="size-3.5" /></button>
-            <Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: projectSlug(project) }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
+            <Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: project.identifier }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
             <button type="button" className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Copy project link" onClick={() => navigator.clipboard.writeText(window.location.href)}><IconLink className="size-3.5" /></button>
             <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90" onClick={() => { state.setStatusId(state.statusId); }}><IconPlus className="mr-1.5 inline size-3.5" /> Add task</button>
           </div>
