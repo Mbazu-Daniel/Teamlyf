@@ -6,5 +6,6 @@ export const Route = createFileRoute("/$organizationSlug/tasks")({
 });
 
 function TasksRoute() {
-  return <TasksPage />;
+  const { organizationSlug } = Route.useParams();
+  return <TasksPage organizationSlug={organizationSlug} />;
 }
