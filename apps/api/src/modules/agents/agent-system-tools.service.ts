@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { chatSchema, documentsSchema, hrSchema, notesSchema, organizationSchema, projectSchema } from "@teamlyf/db";
-import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import type { AgentToolCall, AgentToolRegistration, AgentSession } from "@teamlyf/agents";
 import { DATABASE } from "../../common/db/db.provider";
 
