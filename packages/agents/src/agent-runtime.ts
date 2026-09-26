@@ -7,7 +7,7 @@ import type {
   AgentSession,
   AgentToolExecutor,
 } from "./contracts";
-import type { AgentRuntime, AgentRuntimeEventSink } from "./runtime";
+import type { AgentModel, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
 
