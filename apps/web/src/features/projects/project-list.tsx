@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { IconLayoutGrid, IconList, IconPlus, IconArrowLeft, IconSettings, IconSearch } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
@@ -16,10 +16,6 @@ const STATUS_OPTIONS = [
   { label: "Completed", value: "completed" },
   { label: "Cancelled", value: "cancelled" },
 ];
-
-function projectSlug(project: Project) {
-  return project.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
 
 // fallow-ignore-next-line complexity -- project list coordinates filters, creation and responsive presentation in one page
 export function ProjectListPage({
