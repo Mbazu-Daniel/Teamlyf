@@ -123,6 +123,7 @@ export class AgentService {
     }
   }
 
+  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- provider resolution intentionally validates source, provider and credential requirements together
   private async resolveProvider(organizationId: string) {
     const configs = await this.db.query.aiProviderConfig.findMany({
       where: and(eq(aiProviderConfig.organizationId, organizationId), eq(aiProviderConfig.isActive, true)),
