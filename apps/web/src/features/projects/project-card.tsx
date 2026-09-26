@@ -32,13 +32,13 @@ export function ProjectCard({
   }
 
   return (
-    <div className="group flex min-h-[330px] flex-col overflow-hidden rounded-xl border border-border/60 bg-background shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="group flex min-h-[255px] flex-col overflow-hidden rounded-xl border border-border/60 bg-background shadow-sm transition-all duration-300 hover:shadow-md">
       <Link
         to="/$organizationSlug/projects/$projectId"
         params={{ organizationSlug, projectId: project.identifier }}
         className="flex h-full flex-col"
       >
-        <div className="relative h-32 w-full shrink-0 overflow-hidden">
+        <div className="relative h-20 w-full shrink-0 overflow-hidden">
           <div className={`absolute inset-0 bg-gradient-to-br ${preset} transition-transform duration-500 group-hover:scale-105`}>
             <div className="absolute -left-10 -top-10 size-40 rounded-full bg-white/20 blur-3xl" />
             <div className="absolute -bottom-5 -right-5 size-32 rounded-full bg-black/10 blur-2xl" />
@@ -59,18 +59,23 @@ export function ProjectCard({
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col p-5 pb-4 pt-8">
+        <div className="flex flex-1 flex-col gap-3 p-4">
           <div className="mb-2 flex items-start justify-between gap-4">
             <h3 className="line-clamp-1 text-[16px] font-bold leading-snug">{project.name}</h3>
-            <span className="shrink-0 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-              {project.code || project.identifier || "PRJ"}
-            </span>
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                {project.code || project.identifier || "PRJ"}
+              </span>
+              <span className="truncate rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold capitalize text-muted-foreground">
+                {project.status?.replace("_", " ") || "planned"}
+              </span>
+            </div>
           </div>
-          <p className="min-h-[36px] flex-1 line-clamp-2 text-xs leading-relaxed text-foreground/70">
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
             {project.description || "No description provided for this project."}
           </p>
 
-          <div className="mt-5 flex items-center justify-between border-t border-border/40 pt-4">
+          <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/40 pt-3">
             <div className="flex items-center">
               {members.length === 0 ? (
                 <span className="inline-flex h-7 items-center gap-1.5 rounded border border-dashed border-primary/40 px-2.5 text-[10px] font-medium text-primary">
