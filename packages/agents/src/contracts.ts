@@ -5,6 +5,11 @@ export const agentToolNames = [
   "git_status","git_diff","git_create_branch","git_checkout","git_commit","git_push",
   "github_create_pull_request","github_get_pull_request",
   "ask_user","apply_patch","web_search",
+  "get_project","list_tasks","update_task",
+  "search_documents","read_document","create_document",
+  "search_notes","read_note","update_note",
+  "search_chat","send_chat_message",
+  "get_member_profile","list_leave_requests",
 ] as const;
 
 export type AgentToolName = (typeof agentToolNames)[number];
@@ -65,15 +70,7 @@ export const agentWorkspaceSchema = z.object({
 export type AgentWorkspace = z.infer<typeof agentWorkspaceSchema>;
 
 export const agentContextTypeSchema = z.enum([
-  "organization",
-  "project",
-  "task",
-  "chat",
-  "document",
-  "note",
-  "hr",
-  "call",
-  "custom",
+  "organization","project","task","chat","document","note","hr","call","custom",
 ]);
 export type AgentContextType = z.infer<typeof agentContextTypeSchema>;
 
