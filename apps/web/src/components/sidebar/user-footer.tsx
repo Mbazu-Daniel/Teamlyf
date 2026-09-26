@@ -1,23 +1,25 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { IconChevronDown, IconLogout, IconSettings } from "@tabler/icons-react";
+import { IconCheck, IconChevronDown, IconDeviceDesktop, IconLogout, IconMoon, IconSettings, IconSun } from "@tabler/icons-react";
 import { getSession, signOut } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { useResetSession } from "@/lib/session";
 import { useOrganization } from "@/lib/organization";
+import { getThemeMode, setThemeMode, type ThemeMode } from "@/lib/theme";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 type Account = Readonly<{ name?: string | null; email?: string | null }>;
 
-/** Same cache entry the SessionGate reads, so the footer never refetches. */
 function useCurrentUser() {
   const { data } = useQuery({
     queryKey: queryKeys.session,
@@ -34,20 +36,26 @@ function accountName(account: Account | null) {
 
 type UserFooterProps = Readonly<{ collapsed: boolean }>;
 
-/** Current identity plus the account menu: Settings and Log out. */
+const THEME_OPTIONS: readonly { mode: ThemeMode; label: string; icon: typeof IconSun }[] = [
+  { mode: "light", label: "Light", icon: IconSun },
+  { mode: "dark", label: "Dark", icon: IconMoon },
+  { mode: "system", label: "System", icon: IconDeviceDesktop },
+];
+
 export function UserFooter({ collapsed }: UserFooterProps) {
   const navigate = useNavigate();
   const resetSession = useResetSession();
   const { organization, reset: resetWorkspace } = useOrganization();
   const user = useCurrentUser();
   const name = accountName(user);
+  const [theme, setTheme] = useState<ThemeMode>("system");
+
+  useEffect(() => setTheme(getThemeMode()), []);
 
   async function logOut() {
     try {
       await signOut();
     } finally {
-      // Clear the in-memory workspace only. The persisted workspace is user-scoped
-      // and intentionally survives sign-out so the same user returns to it next time.
       resetSession();
       resetWorkspace();
       await navigate({ to: "/sign-in" });
@@ -74,22 +82,15 @@ export function UserFooter({ collapsed }: UserFooterProps) {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold">{name}</span>
                   {user?.email && (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {user.email}
-                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
                   )}
                 </span>
               )}
-              {!collapsed && (
-                <IconChevronDown
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
-              )}
+              {!collapsed && <IconChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
             </button>
           }
         />
-        <DropdownMenuContent align="start" side="top" className="min-w-48 w-(--anchor-width)">
+        <DropdownMenuContent align="start" side="top" className="min-w-52 w-(--anchor-width)">
           <DropdownMenuGroup>
             <DropdownMenuLabel>{user?.email || name}</DropdownMenuLabel>
           </DropdownMenuGroup>
@@ -97,6 +98,22 @@ export function UserFooter({ collapsed }: UserFooterProps) {
             <IconSettings aria-hidden="true" />
             Settings
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+          {THEME_OPTIONS.map(({ mode, label, icon: Icon }) => (
+            <DropdownMenuItem
+              key={mode}
+              onClick={() => {
+                setThemeMode(mode);
+                setTheme(mode);
+              }}
+            >
+              <Icon aria-hidden="true" />
+              {label}
+              {theme === mode && <IconCheck className="ml-auto text-primary-300" aria-hidden="true" />}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => void logOut()}>
             <IconLogout aria-hidden="true" />
             Log out
