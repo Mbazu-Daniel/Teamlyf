@@ -152,6 +152,7 @@ export class AgentLoop {
   ): Promise<void> {
     const checkpoint = {
       id: crypto.randomUUID(),
+      organizationId: this.options.state.session.organizationId,
       sessionId: this.options.state.session.id,
       sequence: this.options.state.checkpoints.length,
       reason,
