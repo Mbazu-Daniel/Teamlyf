@@ -79,6 +79,32 @@ export class TaskController {
     return this.taskService.getTask(orgId, projectId, taskId);
   }
 
+  @Patch(":taskId/status")
+  @RequirePermission("pm", "update", "taskId")
+  @ApiOperation({ summary: "Update task status" })
+  updateTaskStatus(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Param("taskId") taskId: string,
+    @Body("statusId") statusId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.taskService.updateTask(orgId, projectId, taskId, { statusId }, member.id);
+  }
+
+  @Patch(":taskId/assign")
+  @RequirePermission("pm", "update", "taskId")
+  @ApiOperation({ summary: "Assign task" })
+  assignTask(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Param("taskId") taskId: string,
+    @Body("assignedToId") assignedToId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.taskService.updateTask(orgId, projectId, taskId, { assignedToId }, member.id);
+  }
+
   @Patch("reorder")
   @RequirePermission("pm", "update", "projectId")
   @ApiOperation({ summary: "Reorder tasks; ids are ranked top-to-bottom" })
