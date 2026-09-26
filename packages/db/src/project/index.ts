@@ -10,17 +10,6 @@ export { milestone } from "./milestone";
 export { milestoneTask } from "./milestone-task";
 export { projectMember } from "./project-member";
 export { sprint } from "./sprint";
+export { taskAttachment } from "./task-attachment";
 export { organizationReference, memberReference } from "./references";
-export {
-  projectRelations,
-  statusRelations,
-  labelRelations,
-  taskRelations,
-  taskAssigneeRelations,
-  taskLabelRelations,
-  taskActivityRelations,
-  taskCommentRelations,
-  milestoneRelations,
-  milestoneTaskRelations,
-  projectMemberRelations,
-} from "./relations";
+export { projectRelations, statusRelations, labelRelations, taskRelations, taskAssigneeRelations, taskLabelRelations, taskActivityRelations, taskCommentRelations, milestoneRelations, milestoneTaskRelations, projectMemberRelations } from "./relations";
