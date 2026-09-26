@@ -50,7 +50,9 @@ export class ProjectMemberService {
           memberId,
           role: "member",
         })),
-      );
+      ).onConflictDoNothing({
+        target: [projectMember.projectId, projectMember.memberId],
+      });
     }
 
     return this.getMembers(orgId, projectId);
