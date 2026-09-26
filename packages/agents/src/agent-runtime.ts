@@ -50,10 +50,47 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       model: this.factory.createModel(session),
       executor: this.factory.createExecutor(session),
       emit,
+      checkpoint: async (nextState) => {
+        const checkpoint = nextState.checkpoints[nextState.checkpoints.length - 1];
+        if (checkpoint) await this.store?.createCheckpoint(checkpoint);
+      },
     });
 
     this.entries.set(session.runId, { state, loop });
     await this.store?.createSession(session);
+  }
+
+  async recoverSession(session: AgentSession, sink: AgentRuntimeEventSink): Promise<void> {
+    if (this.entries.has(session.runId)) return;
+
+    const checkpoint = await this.store?.loadLatestCheckpoint?.(session.id);
+    const state: AgentRuntimeState = checkpoint
+      ? {
+          session,
+          messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
+          checkpoints: [checkpoint],
+          pendingPermission: checkpoint.state.pendingPermission as AgentRuntimeState["pendingPermission"],
+          interrupted: false,
+        }
+      : { session, messages: [], checkpoints: [], interrupted: false };
+
+    const emit = async (event: AgentEvent): Promise<void> => {
+      await this.store?.appendEvent(event);
+      await sink(event);
+    };
+
+    const loop = new AgentLoop({
+      state,
+      model: this.factory.createModel(session),
+      executor: this.factory.createExecutor(session),
+      emit,
+      checkpoint: async (nextState) => {
+        const latest = nextState.checkpoints[nextState.checkpoints.length - 1];
+        if (latest) await this.store?.createCheckpoint(latest);
+      },
+    });
+
+    this.entries.set(session.runId, { state, loop });
   }
 
   async sendMessage(runId: string, message: string): Promise<void> {
