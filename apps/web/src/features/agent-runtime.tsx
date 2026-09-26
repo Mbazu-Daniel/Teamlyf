@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   IconArrowLeft,
@@ -15,17 +15,15 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
-import { agentsApi, agentRuntimeApi, type AgentEvent, type AgentPermissionPolicy, type AgentRun } from "@/lib/api";
+import { agentsApi, agentRuntimeApi, type AgentEvent, type AgentPermissionPolicy } from "@/lib/api";
 import { useOrganization } from "@/lib/organization";
 import { getErrorMessage } from "@/lib/error-message";
-
 type PermissionRequest = {
   id: string;
   tool: string;
   reason: string;
   metadata: Record<string, unknown>;
 };
-
 export function AgentRuntimePage({ agentId }: { agentId: string }) {
   const { organization } = useOrganization();
   const queryClient = useQueryClient();
@@ -34,7 +32,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
   const [message, setMessage] = useState("");
   const [permission, setPermission] = useState<PermissionRequest | null>(null);
   const [runtimeStatus, setRuntimeStatus] = useState<string>("idle");
-
   const organizationId = organization?.id ?? "";
   const agentQuery = useQuery({
     queryKey: ["agent", organizationId, agentId],
@@ -52,7 +49,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
     queryFn: () => agentsApi.permissions(organizationId, agentId),
     enabled: Boolean(organizationId),
   });
-
   useEffect(() => {
     const latest = runsQuery.data?.[0];
     if (latest && !runId) {
@@ -60,7 +56,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
       setRuntimeStatus(latest.status);
     }
   }, [runsQuery.data, runId]);
-
   useEffect(() => {
     if (!organizationId || !runId) return;
     setEvents([]);
@@ -91,16 +86,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
       source.close();
     };
   }, [organizationId, runId]);
-
-  const createRunMutation = useMutation({
-    mutationFn: () => agentsApi.run(organizationId, agentId, { contextType: "organization" }),
-    onSuccess: (run) => {
-      setRunId(run.id);
-      setRuntimeStatus(run.status);
-      void queryClient.invalidateQueries({ queryKey: ["agent-runs", organizationId, agentId] });
-    },
-  });
-
   const sendMutation = useMutation({
     mutationFn: async (text: string) => {
       let currentRunId = runId;
@@ -117,17 +102,14 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
       void queryClient.invalidateQueries({ queryKey: ["agent-runs", organizationId, agentId] });
     },
   });
-
   const interruptMutation = useMutation({
     mutationFn: () => agentRuntimeApi.interrupt(organizationId, runId!),
     onSuccess: () => setRuntimeStatus("interrupted"),
   });
-
   const resumeMutation = useMutation({
     mutationFn: () => agentRuntimeApi.resume(organizationId, runId!),
     onSuccess: (result) => setRuntimeStatus(result.resumed ? "running" : "waiting_for_permission"),
   });
-
   const permissionMutation = useMutation({
     mutationFn: (decision: "once" | "always" | "reject") =>
       agentRuntimeApi.resolvePermission(organizationId, runId!, permission!.id, decision),
@@ -139,28 +121,19 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
       }
     },
   });
-
   const revokeMutation = useMutation({
     mutationFn: (tool: string) => agentsApi.revokePermission(organizationId, agentId, tool),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["agent-permissions", organizationId, agentId] }),
   });
-
-  const visibleEvents = useMemo(() => events.filter((event) =>
-    ["assistant_message", "tool_call", "tool_result", "permission_resolved"].includes(event.type),
-  ), [events]);
-
   const error = getErrorMessage(
     agentQuery.error ?? runsQuery.error ?? sendMutation.error ?? permissionMutation.error ?? revokeMutation.error,
     "Unable to run the agent",
   );
-
   if (!organization) return <main className="p-6 text-sm text-muted-foreground">Select an organization first.</main>;
   if (!agentQuery.data) return <main className="p-6 text-sm text-muted-foreground">Agent not found.</main>;
-
   const agent = agentQuery.data;
   const run = runsQuery.data?.find((item) => item.id === runId);
   const busy = sendMutation.isPending || permissionMutation.isPending || resumeMutation.isPending;
-
   return (
     <main className="flex h-full min-h-0 flex-col bg-background">
       <header className="border-b px-5 py-4 sm:px-6">
@@ -189,7 +162,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
           </div>
         </div>
       </header>
-
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section className="flex min-h-0 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
@@ -200,17 +172,14 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
                 <p className="mt-1 text-xs text-muted-foreground">Send a message to start this agent in the organization context.</p>
               </div>
             )}
-
             {run && (
               <div className="mb-4 rounded-lg border bg-card px-3 py-2 text-xs text-muted-foreground">
                 Run {run.id.slice(0, 8)} · {formatStatus(runtimeStatus)}
               </div>
             )}
-
             <div className="space-y-3">
-              {visibleEvents.map((event) => <EventRow key={event.id} event={event} />)}
+              {events.filter((event) => ["assistant_message", "tool_call", "tool_result", "permission_resolved"].includes(event.type)).map((event) => <EventRow key={event.id} event={event} />)}
             </div>
-
             {permission && (
               <PermissionCard
                 request={permission}
@@ -218,10 +187,8 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
                 onDecision={(decision) => permissionMutation.mutate(decision)}
               />
             )}
-
             {error && <p className="mt-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">{error}</p>}
           </div>
-
           <form
             className="border-t bg-card px-5 py-4 sm:px-6"
             onSubmit={(event) => {
@@ -245,7 +212,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
             </div>
           </form>
         </section>
-
         <aside className="min-h-0 overflow-y-auto border-t px-5 py-5 lg:border-l lg:border-t-0 sm:px-6">
           <div className="flex items-center justify-between">
             <div>
@@ -254,7 +220,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
             </div>
             <button type="button" title="Refresh permissions" onClick={() => void permissionsQuery.refetch()} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"><IconRefresh className="size-4" /></button>
           </div>
-
           <div className="mt-4 space-y-2">
             {(permissionsQuery.data ?? []).length === 0 ? (
               <div className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">No durable permissions yet.</div>
@@ -277,7 +242,6 @@ export function AgentRuntimePage({ agentId }: { agentId: string }) {
     </main>
   );
 }
-
 function EventRow({ event }: { event: AgentEvent }) {
   const text = typeof event.payload.text === "string" ? event.payload.text : "";
   const toolCall = isRecord(event.payload.toolCall) ? event.payload.toolCall : undefined;
@@ -295,7 +259,6 @@ function EventRow({ event }: { event: AgentEvent }) {
   }
   return <div className="rounded-lg border px-3 py-2 text-xs text-muted-foreground">Permission {event.type === "permission_resolved" ? "resolved" : "updated"}.</div>;
 }
-
 function PermissionCard({ request, busy, onDecision }: { request: PermissionRequest; busy: boolean; onDecision: (decision: "once" | "always" | "reject") => void }) {
   return (
     <div className="mt-4 rounded-xl border bg-card p-4">
@@ -315,16 +278,13 @@ function PermissionCard({ request, busy, onDecision }: { request: PermissionRequ
     </div>
   );
 }
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-
 function isPermissionRequest(value: unknown): value is PermissionRequest {
   if (!isRecord(value)) return false;
   return typeof value.id === "string" && typeof value.tool === "string" && typeof value.reason === "string" && isRecord(value.metadata);
 }
-
 function formatStatus(status: string) {
   return status.replaceAll("_", " ");
 }
