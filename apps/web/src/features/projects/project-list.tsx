@@ -17,6 +17,7 @@ const STATUS_OPTIONS = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
+// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- project list coordinates filters, creation and responsive presentation in one page
 export function ProjectListPage({
   organizationSlug,
   state,
