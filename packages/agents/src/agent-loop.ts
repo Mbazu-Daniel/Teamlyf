@@ -32,6 +32,7 @@ export class AgentLoop {
   private sequence: number;
   private readonly pendingPermissions = new Map<string, PendingPermission>();
   private readonly alwaysAllowedTools = new Set<string>();
+  private readonly recoveredPermissionDecisions = new Map<string, AgentPermissionDecision>();
 
   constructor(private readonly options: AgentLoopOptions) {
     this.sequence = options.initialSequence ?? 0;
@@ -41,7 +42,24 @@ export class AgentLoop {
     this.options.state.messages.push({ role: "user", content: initialMessage });
     await this.checkpoint("message");
     await this.emit("session_started", { message: initialMessage });
+    await this.runLoop();
+  }
 
+  async resume(): Promise<void> {
+    if (this.options.state.pendingPermission) {
+      const request = this.options.state.pendingPermission;
+      const decision = this.recoveredPermissionDecisions.get(request.id);
+      if (!decision) {
+        await this.emit("permission_requested", { request, permissionId: request.id });
+        return;
+      }
+      this.recoveredPermissionDecisions.delete(request.id);
+      await this.applyPermissionDecision(request, decision);
+    }
+    await this.runLoop();
+  }
+
+  private async runLoop(): Promise<void> {
     while (!this.options.state.interrupted) {
       let toolUsed = false;
       let assistantText = "";
@@ -82,15 +100,10 @@ export class AgentLoop {
 
           this.options.state.pendingPermission = request;
           await this.emit("permission_requested", { request, permissionId: request.id });
+          await this.checkpoint("tool");
 
           const decision = await this.waitForPermission(request);
-          this.options.state.pendingPermission = undefined;
-
-          await this.emit("permission_resolved", {
-            permissionId: request.id,
-            decision,
-            tool: call.name,
-          });
+          await this.applyPermissionDecision(request, decision);
 
           if (decision === "reject") {
             const result: AgentToolResult = {
@@ -137,9 +150,29 @@ export class AgentLoop {
 
   resolvePermission(requestId: string, decision: AgentPermissionDecision): void {
     const pending = this.pendingPermissions.get(requestId);
-    if (!pending) throw new Error(`No pending permission request found for ${requestId}`);
-    this.pendingPermissions.delete(requestId);
-    pending.resolve(decision);
+    if (pending) {
+      this.pendingPermissions.delete(requestId);
+      pending.resolve(decision);
+      return;
+    }
+    if (this.options.state.pendingPermission?.id === requestId) {
+      this.recoveredPermissionDecisions.set(requestId, decision);
+      return;
+    }
+    throw new Error(`No pending permission request found for ${requestId}`);
+  }
+
+  private async applyPermissionDecision(
+    request: AgentPermissionRequest,
+    decision: AgentPermissionDecision,
+  ): Promise<void> {
+    this.options.state.pendingPermission = undefined;
+    await this.emit("permission_resolved", {
+      permissionId: request.id,
+      decision,
+      tool: request.tool,
+    });
+    if (decision === "always") this.alwaysAllowedTools.add(request.tool);
   }
 
   private waitForPermission(request: AgentPermissionRequest): Promise<AgentPermissionDecision> {
