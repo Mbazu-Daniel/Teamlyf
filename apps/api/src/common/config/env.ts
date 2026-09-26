@@ -28,6 +28,8 @@ const apiEnvSchema = z.object({
   BACHS_API_KEY: z.string().optional(),
   BACHS_WEBHOOK_SECRET: z.string().optional(),
   AGENT_ENCRYPTION_SECRET: z.string().optional(),
+  AGENT_MANAGED_API_KEY: z.string().optional(),
+  AGENT_OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
