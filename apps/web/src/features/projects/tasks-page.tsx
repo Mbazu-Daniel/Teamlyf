@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { useOrganization } from "@/lib/organization";
@@ -12,7 +12,6 @@ import { TaskDetailPanel } from "@/features/projects/task-detail-panel";
 export function TasksPage() {
   const { organization } = useOrganization();
   const { searchStr } = useLocation();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [search, setSearch] = useState("");
