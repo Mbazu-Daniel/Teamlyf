@@ -9,6 +9,7 @@ import { TaskList } from "@/features/projects/task-list";
 import { KanbanBoard } from "@/features/projects/board";
 import { TaskDetailPanel } from "@/features/projects/task-detail-panel";
 
+// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- task workspace coordinates several independent project mutations and views
 export function TasksPage() {
   const { organization } = useOrganization();
   const { searchStr } = useLocation();
