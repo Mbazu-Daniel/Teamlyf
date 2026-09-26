@@ -108,9 +108,9 @@ export function ProjectDetailPage({
 
       {section === "tasks" ? (
         view === "kanban" ? (
-          <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={state.deleteTask} onDuplicate={state.duplicateTask} />
+          <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
         ) : (
-          <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={state.deleteTask} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
+          <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
         )
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
