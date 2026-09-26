@@ -81,6 +81,16 @@ function AssigneePicker({
     retry: false,
   });
 
+  const assignedAgentIds = task.taskAssignees.flatMap((row) => row.kind === "agent" && row.agentId ? [row.agentId] : []);
+  const runQueries = assignedAgentIds.map((agentId) => useQuery({
+    queryKey: ["agent-runs", organizationId, agentId],
+    queryFn: () => agentsApi.runs(organizationId, agentId),
+    enabled: Boolean(organizationId && agentId),
+    refetchInterval: 5000,
+    retry: false,
+  }));
+  const activeRuns = runQueries.flatMap((query) => query.data ?? []).filter((run) => run.status === "queued" || run.status === "running");
+
   const assignedMembers = new Set(
     task.taskAssignees.flatMap((row) => row.kind === "member" && row.memberId ? [row.memberId] : []),
   );
