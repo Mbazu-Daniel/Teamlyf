@@ -79,7 +79,7 @@ export class AgentService {
     }
   }
 
-  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- agent execution coordinates validation, provider resolution and terminal run state transitions
+  // fallow-ignore-next-line complexity -- agent execution coordinates validation, provider resolution and terminal run state transitions
   private async executeRun(runId: string) {
     try {
       const run = await this.db.query.agentRun.findFirst({ where: eq(agentRun.id, runId) });
@@ -123,7 +123,7 @@ export class AgentService {
     }
   }
 
-  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- provider resolution intentionally validates source, provider and credential requirements together
+  // fallow-ignore-next-line complexity -- provider resolution intentionally validates source, provider and credential requirements together
   private async resolveProvider(organizationId: string) {
     const configs = await this.db.query.aiProviderConfig.findMany({
       where: and(eq(aiProviderConfig.organizationId, organizationId), eq(aiProviderConfig.isActive, true)),
@@ -139,7 +139,7 @@ export class AgentService {
     return { model: config.model, apiKey, baseUrl: this.env.AGENT_OPENAI_BASE_URL };
   }
 
-  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- model execution owns the bounded tool-calling loop and provider response handling
+  // fallow-ignore-next-line complexity -- model execution owns the bounded tool-calling loop and provider response handling
   private async runModel(
     provider: { model: string; apiKey: string; baseUrl: string },
     target: { name: string; description: string | null },
