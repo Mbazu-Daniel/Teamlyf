@@ -202,6 +202,9 @@ importers:
       '@scalar/nestjs-api-reference':
         specifier: ^1.2.19
         version: 1.2.19
+      '@teamlyf/agents':
+        specifier: workspace:*
+        version: link:../../packages/agents
       '@teamlyf/db':
         specifier: workspace:*
         version: link:../../packages/db
