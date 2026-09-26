@@ -54,13 +54,13 @@ function NavItemLink({
       {active && item.children && !collapsed && (
         <div className="mb-1 ml-3 border-l border-background-700 pl-2">
           {item.children.map((child) => {
-            const childActive = window.location.pathname.endsWith("/tasks") &&
-              new URLSearchParams(window.location.search).get("view") === child.to.split("=")[1];
+            const childActive = pathname.endsWith("/tasks") &&
+              new URLSearchParams(searchStr).get("view") === child.to.split("=")[1];
             const ChildIcon = child.icon;
             return (
               <Link
                 key={child.id}
-                to={"/" + (window.location.pathname.split("/")[1] || "") + "/" + child.to}
+                to={"/" + organizationSlug + "/" + child.to}
                 className={cn(
                   "flex h-8 items-center gap-2 rounded-md px-2.5 text-xs transition-colors",
                   childActive ? "bg-background-800 text-text-50" : "text-muted-foreground hover:bg-background-800 hover:text-text-50",
@@ -78,7 +78,7 @@ function NavItemLink({
 }
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
-  const { pathname } = useLocation();
+  const { pathname, searchStr } = useLocation();
   const { organization } = useOrganization();
   const organizationSlug = organization?.slug || organization?.id || "";
 
