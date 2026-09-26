@@ -106,6 +106,7 @@ export function TasksPage() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   });
 
+  // fallow-ignore-next-line code-duplication -- optimistic task deletion follows the shared project-page mutation contract
   const deleteTaskMutation = useMutation({
     mutationFn: (taskId: string) => projectsApi.deleteTask(organizationId!, projectId, taskId),
     onMutate: async (taskId) => {
