@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Organization } from "@/lib/api";
 import { OrganizationProvider } from "@/lib/organization";
-import { WorkspaceSwitcher } from "@/components/sidebar/workspace-switcher";
+import { OrganizationSwitcher } from "@/components/sidebar/organization-switcher";
 
 const ORG_A: Organization = { id: "org-a", name: "Acme Inc", slug: "acme" };
 const ORG_B: Organization = { id: "org-b", name: "Globex", slug: "globex" };
@@ -36,7 +36,7 @@ function renderSwitcher() {
   return render(
     <QueryClientProvider client={queryClient}>
       <OrganizationProvider>
-        <WorkspaceSwitcher collapsed={false} />
+        <OrganizationSwitcher collapsed={false} />
       </OrganizationProvider>
     </QueryClientProvider>,
   );
@@ -58,7 +58,7 @@ beforeEach(() => {
   mocks.getOrganizations.mockResolvedValue(mocks.workspaces);
 });
 
-describe("WorkspaceSwitcher", () => {
+describe("OrganizationSwitcher", () => {
   it("listsTheMembersWorkspaces_whenMenuOpened_includingTheCreateAffordance", async () => {
     const user = userEvent.setup();
     renderSwitcher();
