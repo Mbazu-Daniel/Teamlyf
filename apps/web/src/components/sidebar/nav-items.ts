@@ -9,7 +9,7 @@ import {
   IconSettings,
   IconUsers,
   IconCheck,
-  IconList,
+  IconList,\n  IconCalendar,\n  IconBell,
 } from "@tabler/icons-react";
 
 export type NavChild = Readonly<{
@@ -54,10 +54,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
         ],
       },
       { id: "chat", label: "Chat", to: "chat", icon: IconMessage },
-      { id: "documents", label: "Documents", to: "documents", icon: IconFileText, available: false },
-      { id: "notes", label: "Notes", to: "notes", icon: IconNotes, available: false },
-      { id: "people", label: "People & HR", to: "people", icon: IconUsers, available: false },
-      { id: "calls", label: "Calls", to: "calls", icon: IconPhone, available: false },
+      { id: "documents", label: "Documents", to: "documents", icon: IconFileText },
+      { id: "notes", label: "Notes", to: "notes", icon: IconNotes },\n      { id: "schedule", label: "Schedule", to: "schedule", icon: IconCalendar },
+      { id: "people", label: "People & HR", to: "people", icon: IconUsers },
+      { id: "calls", label: "Calls", to: "calls", icon: IconPhone },\n      { id: "notifications", label: "Notifications", to: "notifications", icon: IconBell },
       // AI agents are temporarily hidden from navigation. The implementation remains intact.\n      // { id: "ai", label: "AI agents", to: "ai", icon: IconRobot },
     ],
   },
