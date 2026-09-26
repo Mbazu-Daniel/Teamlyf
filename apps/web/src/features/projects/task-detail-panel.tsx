@@ -145,8 +145,8 @@ function TaskDetailContent({
                 <h2 className="mt-1 text-2xl font-semibold tracking-tight">{task.name}</h2>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <button type="button" onClick={() => navigator.clipboard.writeText(buildTaskUrl())} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Copy task link"><IconLink className="size-4" /></button>
-                <button type="button" onClick={async () => { if (navigator.share) await navigator.share({ title: task.name, url: buildTaskUrl() }); else await navigator.clipboard.writeText(window.location.href); }} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Share task"><IconShare2 className="size-4" /></button>
+                <button type="button" onClick={() => navigator.clipboard.writeText(buildTaskUrl(task.id))} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Copy task link"><IconLink className="size-4" /></button>
+                <button type="button" onClick={async () => { if (navigator.share) await navigator.share({ title: task.name, url: buildTaskUrl(task.id) }); else await navigator.clipboard.writeText(window.location.href); }} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Share task"><IconShare2 className="size-4" /></button>
               </div>
             </div>
             <TaskDetailsForm detail={detail} />
@@ -163,10 +163,9 @@ function TaskDetailContent({
   );
 }
 
-function buildTaskUrl() {
+function buildTaskUrl(taskId: string) {
   const url = new URL(window.location.href);
-  const task = url.searchParams.get("task");
-  if (task) return url.toString();
+  url.searchParams.set("task", taskId);
   return url.toString();
 }
 
