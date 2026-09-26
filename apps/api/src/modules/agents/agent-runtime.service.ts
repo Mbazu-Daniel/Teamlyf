@@ -250,6 +250,46 @@ export class AgentRuntimeService {
   }
 }
 
+
+function cryptoRandomUuid(): string {
+  return randomUUID();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isWorkspace(value: unknown): value is NonNullable<AgentSession["workspace"]> {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.repository === "string" &&
+    typeof value.baseBranch === "string" &&
+    typeof value.workingBranch === "string" &&
+    typeof value.root === "string"
+  );
+}
+
+function isContextType(value: unknown): value is AgentSession["context"]["type"] {
+  return (
+    value === "organization" ||
+    value === "project" ||
+    value === "task" ||
+    value === "chat" ||
+    value === "document" ||
+    value === "note" ||
+    value === "hr" ||
+    value === "call" ||
+    value === "custom"
+  );
+}
+
+function inferContextType(input: Record<string, unknown>): AgentSession["context"]["type"] {
+  if (typeof input.taskId === "string") return "task";
+  if (typeof input.projectId === "string") return "project";
+  if (typeof input.contextType === "string" && isContextType(input.contextType)) return input.contextType;
+  return "organization";
+}
+
 class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
   constructor(
     private readonly repository: AgentSessionRepository,
