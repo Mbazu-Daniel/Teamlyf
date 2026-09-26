@@ -19,6 +19,7 @@ import {
 import type { SessionMember } from "../../../common/types";
 import { ReorderDto } from "../dto";
 import { CreateTaskDto, UpdateTaskDto } from "./dto";
+import { TaskOperationService } from "./task-operation.service";
 import { TaskService } from "./task.service";
 
 @ApiTags("Tasks")
@@ -26,7 +27,10 @@ import { TaskService } from "./task.service";
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
 @Controller("organization/:orgId/projects/:projectId/tasks")
 export class TaskController {
-  constructor(private readonly taskService: TaskService) {}
+  constructor(
+    private readonly taskService: TaskService,
+    private readonly taskOperations: TaskOperationService,
+  ) {}
 
   @Post()
   @RequirePermission("pm", "create")
@@ -90,6 +94,32 @@ export class TaskController {
     @Body() body: ReorderDto,
   ) {
     return this.taskService.reorderTasks(orgId, projectId, body.ids);
+  }
+
+  @Patch(":taskId/status")
+  @RequirePermission("pm", "update", "taskId")
+  @ApiOperation({ summary: "Update task status" })
+  updateTaskStatus(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Param("taskId") taskId: string,
+    @Body("statusId") statusId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.taskOperations.updateStatus(orgId, projectId, taskId, statusId, member.id);
+  }
+
+  @Patch(":taskId/assign")
+  @RequirePermission("pm", "update", "taskId")
+  @ApiOperation({ summary: "Assign task to an organization member" })
+  assignTask(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @Param("taskId") taskId: string,
+    @Body("memberId") memberId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.taskOperations.assign(orgId, projectId, taskId, memberId, member.id);
   }
 
   @Patch(":taskId")
