@@ -101,7 +101,7 @@ export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => void navigate({ to: "/organizations" })}>
+        <DropdownMenuItem onClick={() => void navigate({ to: "/workspaces" })}>
           <IconPlus />
           Create organization
         </DropdownMenuItem>
