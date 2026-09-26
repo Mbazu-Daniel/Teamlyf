@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { createDecipheriv, createHash, randomUUID } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { AgentSessionRepository, agentRun, aiProviderConfig } from "@teamlyf/db";
+import { AgentSessionRepository, agentRun, agentSession, aiProviderConfig } from "@teamlyf/db";
 import {
   AgentToolRegistry,
   InMemoryAgentRuntime,
@@ -99,7 +99,13 @@ export class AgentRuntimeService {
 
     const run = await this.requireRun(organizationId, runId, memberId);
     const input = isRecord(run.input) ? run.input : {};
-    const session = await this.createSession(run, input);
+    const persisted = await this.db.query.agentSession.findFirst({
+      where: eq(agentSession.runId, runId),
+      orderBy: (row, { desc }) => desc(row.startedAt),
+    });
+    const session = persisted
+      ? this.restoreSession(run, input, persisted)
+      : await this.createSession(run, input);
     const provider = await this.resolveProvider(organizationId);
     const repository = new AgentSessionRepository(this.db);
     const store = new AgentRuntimeStoreAdapter(repository, session.organizationId);
@@ -129,9 +135,32 @@ export class AgentRuntimeService {
       createTools: () => getAgentToolsForContext(session.context.type),
     }, store);
 
-    await runtime.createSession(session, (event) => this.events.publish(event));
+    const sink = (event: AgentEvent) => this.events.publish(event);\n    if (persisted) await runtime.recoverSession(session, sink);\n    else await runtime.createSession(session, sink);
     this.runtimes.set(runId, runtime);
     return runtime;
+  }
+
+  private restoreSession(
+    run: typeof agentRun.$inferSelect,
+    input: Record<string, unknown>,
+    persisted: typeof agentSession.$inferSelect,
+  ): AgentSession {
+    const workspace = isRecord(input.workspace) && isWorkspace(input.workspace) ? input.workspace : undefined;
+    return {
+      id: persisted.id,
+      runId: run.id,
+      agentId: run.agentId,
+      organizationId: run.organizationId,
+      memberId: run.memberId,
+      projectId: persisted.projectId ?? undefined,
+      taskId: persisted.taskId ?? undefined,
+      context: {
+        type: isContextType(persisted.contextType) ? persisted.contextType : inferContextType(input),
+        id: persisted.contextId ?? undefined,
+        metadata: isRecord(persisted.metadata) ? persisted.metadata : input,
+      },
+      workspace,
+    };
   }
 
   private async createSession(run: typeof agentRun.$inferSelect, input: Record<string, unknown>): Promise<AgentSession> {
