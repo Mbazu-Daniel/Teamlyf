@@ -28,14 +28,14 @@ export function ProjectCard({
   async function copyLink(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    await navigator.clipboard.writeText(window.location.origin + `/${organizationSlug}/projects/${slugify(project.name)}`);
+    await navigator.clipboard.writeText(window.location.origin + `/${organizationSlug}/projects/${project.identifier}`);
   }
 
   return (
     <div className="group flex min-h-[330px] flex-col overflow-hidden rounded-xl border border-border/60 bg-background shadow-sm transition-all duration-300 hover:shadow-md">
       <Link
         to="/$organizationSlug/projects/$projectId"
-        params={{ organizationSlug, projectId: slugify(project.name) }}
+        params={{ organizationSlug, projectId: project.identifier }}
         className="flex h-full flex-col"
       >
         <div className="relative h-32 w-full shrink-0 overflow-hidden">
