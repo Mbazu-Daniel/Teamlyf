@@ -2,8 +2,6 @@ import { useLocation } from "@tanstack/react-router";
 import { IconMenu2 } from "@tabler/icons-react";
 import { getBreadcrumbs } from "./breadcrumbs";
 import { UserFooter } from "@/components/sidebar/user-footer";
-import { WorkspaceSwitcher } from "@/components/sidebar/workspace-switcher";
-import { useOrganization } from "@/lib/organization";
 
 type AppHeaderProps = Readonly<{ onToggle: () => void }>;
 
@@ -11,7 +9,6 @@ type AppHeaderProps = Readonly<{ onToggle: () => void }>;
 export function AppHeader({ onToggle }: AppHeaderProps) {
   const { pathname } = useLocation();
   const crumbs = getBreadcrumbs(pathname);
-  const { organization } = useOrganization();
 
   return (
     <header className="app-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border px-3 sm:px-5">
@@ -23,8 +20,6 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
       >
         <IconMenu2 className="size-5" aria-hidden="true" />
       </button>
-
-      {organization && <WorkspaceSwitcher collapsed={false} />}
 
       <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
         {crumbs.length > 0 && (
