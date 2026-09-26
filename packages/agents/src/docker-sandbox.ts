@@ -3,28 +3,49 @@ import type { AgentSandbox, SandboxLimits, SandboxOptions } from "./sandbox";
 import {
   DEFAULT_SANDBOX_LIMITS,
   DEFAULT_SANDBOX_OPTIONS,
+  validateSandboxLimits,
 } from "./sandbox";
 import type { CommandResult, WorkspaceHandle } from "./workspace";
 
 const WORKSPACE_MOUNT = "/workspace";
+const CONTAINER_TIMEOUT_COMMAND = "/usr/bin/timeout";
+const TEMPFS_SIZE = "64m";
 
 export class DockerAgentSandbox implements AgentSandbox {
   private readonly options: SandboxOptions;
 
   constructor(options: Partial<SandboxOptions> = {}) {
+    if (options.network && options.network !== "none") {
+      throw new Error("Agent sandboxes must use isolated networking");
+    }
+
+    const limits = validateSandboxLimits({
+      ...DEFAULT_SANDBOX_LIMITS,
+      ...options.limits,
+    });
+
     this.options = {
       ...DEFAULT_SANDBOX_OPTIONS,
       ...options,
-      limits: {
-        ...DEFAULT_SANDBOX_LIMITS,
-        ...options.limits,
-      },
+      network: "none",
+      limits,
     };
   }
 
   async start(workspace: WorkspaceHandle): Promise<void> {
-    await this.runDocker(["create", ...this.containerOptions(workspace), "sleep", "infinity"]);
-    await this.runDocker(["start", this.containerName(workspace)]);
+    const name = this.containerName(workspace);
+    try {
+      await this.runDocker([
+        "create",
+        ...this.containerOptions(workspace),
+        "sleep",
+        "infinity",
+      ]);
+      await this.runDocker(["start", name]);
+    } catch (error) {
+      await this.runDocker(["rm", "-f", name]).catch(() => undefined);
+      throw error;
+    }
   }
 
   async run(
@@ -33,9 +54,25 @@ export class DockerAgentSandbox implements AgentSandbox {
     args: readonly string[] = [],
     options: Partial<SandboxLimits> = {},
   ): Promise<CommandResult> {
-    const limits = { ...this.options.limits, ...options };
+    if (!command.trim()) throw new Error("Sandbox command must not be empty");
+
+    const limits = validateSandboxLimits({
+      ...this.options.limits,
+      ...options,
+    });
+    const timeout = (limits.timeoutMs / 1000).toFixed(3) + "s";
+
     return this.runDockerCommand(
-      ["exec", this.containerName(workspace), command, ...args],
+      [
+        "exec",
+        this.containerName(workspace),
+        CONTAINER_TIMEOUT_COMMAND,
+        "--signal=TERM",
+        "--kill-after=1s",
+        timeout,
+        command,
+        ...args,
+      ],
       limits,
     );
   }
@@ -46,22 +83,37 @@ export class DockerAgentSandbox implements AgentSandbox {
 
   private containerOptions(workspace: WorkspaceHandle): string[] {
     const limits = this.options.limits;
-    const network =
-      this.options.network === "none" ? ["--network", "none"] : [];
+
     return [
       "--name",
       this.containerName(workspace),
+      "--rm",
       "--cap-drop",
       "ALL",
       "--security-opt",
       "no-new-privileges:true",
+      "--read-only",
+      "--pids-limit",
+      String(limits.pidsLimit),
       "--memory",
+      limits.memoryMb + "m",
+      "--memory-swap",
       limits.memoryMb + "m",
       "--cpus",
       String(limits.cpuCount),
-      "--pids-limit",
-      String(limits.pidsLimit),
-      ...network,
+      "--network",
+      "none",
+      "--ipc",
+      "none",
+      "--init",
+      "--tmpfs",
+      "/tmp:rw,noexec,nosuid,nodev,size=" + TEMPFS_SIZE,
+      "--shm-size",
+      "64m",
+      "--env",
+      "HOME=/tmp",
+      "--env",
+      "TMPDIR=/tmp",
       "--mount",
       "type=bind,src=" + workspace.root + ",dst=" + WORKSPACE_MOUNT,
       "--workdir",
@@ -73,14 +125,16 @@ export class DockerAgentSandbox implements AgentSandbox {
   }
 
   private containerName(workspace: WorkspaceHandle): string {
-    return "teamlyf-agent-" + workspace.root.split("/").pop();
+    const suffix = workspace.root.split("/").pop();
+    if (!suffix) throw new Error("Workspace root must have a container-safe path");
+    return "teamlyf-agent-" + suffix;
   }
 
   private runDockerCommand(
     args: readonly string[],
     limits: SandboxLimits,
   ): Promise<CommandResult> {
-    return runProcess("docker", args, limits.timeoutMs, limits.maxOutputBytes);
+    return runProcess("docker", args, limits.timeoutMs + 5_000, limits.maxOutputBytes);
   }
 
   private runDocker(args: readonly string[]): Promise<CommandResult> {
@@ -111,6 +165,10 @@ function runProcess(
     let totalBytes = 0;
     let settled = false;
 
+    const timer = setTimeout(() => {
+      finishError(new Error("Sandbox command timed out after " + timeoutMs + "ms"));
+    }, timeoutMs);
+
     const finishError = (error: unknown) => {
       if (settled) return;
       settled = true;
@@ -126,10 +184,6 @@ function runProcess(
       }
       return current + chunk.toString("utf8");
     };
-
-    const timer = setTimeout(() => {
-      finishError(new Error("Sandbox command timed out after " + timeoutMs + "ms"));
-    }, timeoutMs);
 
     child.stdout.on("data", (chunk: Buffer) => {
       try {

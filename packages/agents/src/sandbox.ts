@@ -10,7 +10,7 @@ export type SandboxLimits = {
 
 export type SandboxOptions = {
   image: string;
-  network: "none" | "host";
+  network: "none";
   limits: SandboxLimits;
 };
 
@@ -38,3 +38,29 @@ export const DEFAULT_SANDBOX_OPTIONS: SandboxOptions = {
   network: "none",
   limits: DEFAULT_SANDBOX_LIMITS,
 };
+
+export function validateSandboxLimits(
+  limits: SandboxLimits,
+): SandboxLimits {
+  const fields: Array<[keyof SandboxLimits, number]> = [
+    ["timeoutMs", limits.timeoutMs],
+    ["maxOutputBytes", limits.maxOutputBytes],
+    ["memoryMb", limits.memoryMb],
+    ["cpuCount", limits.cpuCount],
+    ["pidsLimit", limits.pidsLimit],
+  ];
+
+  for (const [name, value] of fields) {
+    if (!Number.isFinite(value) || value <= 0) {
+      throw new Error(`Sandbox limit '${name}' must be a positive number`);
+    }
+  }
+
+  return {
+    timeoutMs: Math.ceil(limits.timeoutMs),
+    maxOutputBytes: Math.ceil(limits.maxOutputBytes),
+    memoryMb: Math.ceil(limits.memoryMb),
+    cpuCount: limits.cpuCount,
+    pidsLimit: Math.ceil(limits.pidsLimit),
+  };
+}
