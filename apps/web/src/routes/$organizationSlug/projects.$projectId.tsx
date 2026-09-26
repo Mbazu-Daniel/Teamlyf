@@ -41,12 +41,14 @@ function ProjectRoute() {
 
 function ProjectRouteContent({
   organization,
+  organizationSlug,
   state,
   selectedTaskId,
   openTask,
   closeTask,
 }: {
   organization: ReturnType<typeof useOrganization>["organization"];
+  organizationSlug: string;
   state: ReturnType<typeof useProjectPage>;
   selectedTaskId: string | null;
   openTask: (task: ProjectTask) => void;
