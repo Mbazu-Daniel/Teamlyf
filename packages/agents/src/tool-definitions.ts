@@ -11,7 +11,7 @@ export const agentToolDefinitions: readonly AgentToolDefinition[] = [
  {name:"apply_patch",description:"Apply a patch to workspace files.",parameters:{type:"object",properties:{patch:s},required:["patch"]},requiresPermission:true},
  {name:"list_directory",description:"List workspace files and directories.",parameters:{type:"object",properties:{path:s},required:["path"]},requiresPermission:false},
  {name:"search_files",description:"Search workspace files for code or text.",parameters:{type:"object",properties:{query:s},required:["query"]},requiresPermission:false},
- {name:"execute_command",description:"Run a command in the project workspace.",parameters:{type:"object",properties:{command:s},required:["command"]},requiresPermission:true},
+ {name:"execute_command",description:"Run a command in the project workspace.",parameters:{type:"object",properties:{command:s,args:{type:"array",items:s}},required:["command"]},requiresPermission:true},
  {name:"git_status",description:"Inspect git status.",parameters:{type:"object",properties:{}},requiresPermission:false},
  {name:"git_diff",description:"Inspect git diff.",parameters:{type:"object",properties:{}},requiresPermission:false},
  {name:"git_create_branch",description:"Create the agent working branch.",parameters:{type:"object",properties:{branch:s},required:["branch"]},requiresPermission:true},
