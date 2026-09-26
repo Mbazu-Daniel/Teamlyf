@@ -10,7 +10,7 @@ export type AgentEvent = {
   createdAt: string;
 };
 
-const agentRuntimeApi = {
+export const agentRuntimeApi = {
   sendMessage(organizationId: string, runId: string, message: string) {
     return client.request<{ runId: string; accepted: boolean }>(
       `/organization/${organizationId}/agents/runs/${runId}/messages`,
