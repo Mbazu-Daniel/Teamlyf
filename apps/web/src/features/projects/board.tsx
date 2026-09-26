@@ -28,7 +28,7 @@ export function StatusColumn({
 
   if (collapsed) {
     return (
-      <section className="flex min-h-[420px] w-14 shrink-0 flex-col rounded-2xl border bg-muted/20">
+      <section className="flex h-full min-h-[420px] w-14 shrink-0 flex-col rounded-2xl border bg-muted/20">
         <button
           type="button"
           onClick={() => setCollapsed(false)}
@@ -50,7 +50,7 @@ export function StatusColumn({
 
   return (
     <section
-      className="flex min-h-[420px] w-[285px] shrink-0 flex-col rounded-2xl border bg-muted/20 p-2"
+      className="flex h-full min-h-[420px] w-[285px] shrink-0 flex-col rounded-2xl border bg-muted/20 p-2"
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
         event.preventDefault();
@@ -127,7 +127,7 @@ export function KanbanBoard({
   onDuplicate?: (task: ProjectTask) => void;
 }) {
   return (
-    <div className="flex min-h-[420px] gap-3 overflow-x-auto pb-2">
+    <div className="flex h-full min-h-[420px] gap-3 overflow-x-auto overflow-y-hidden pb-2">
       {statuses.map((status) => (
         <StatusColumn
           key={status.id}
