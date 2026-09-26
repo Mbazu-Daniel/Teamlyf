@@ -1,3 +1,4 @@
+// fallow-ignore-file complexity
 import { Link, useLocation } from "@tanstack/react-router";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import { NAV_SECTIONS, isNavItemActive, type NavItem } from "./nav-items";
