@@ -4,6 +4,8 @@ import { NAV_SECTIONS, isNavItemActive, type NavItem } from "./nav-items";
 import { Brand } from "@/components/ui/brand";
 import { cn } from "@/lib/utils";
 import { useOrganization } from "@/lib/organization";
+import { ProjectSwitcher } from "./project-switcher";
+import { UserFooter } from "./user-footer";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 
 type AppSidebarProps = Readonly<{ collapsed: boolean; onToggle: () => void }>;
@@ -96,6 +98,12 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           </div>
         ))}
       </nav>
+
+      <div className="border-t border-background-700 px-2 py-2">
+        <ProjectSwitcher collapsed={collapsed} />
+      </div>
+
+      <UserFooter collapsed={collapsed} />
 
       <div className="border-t border-background-700">
         <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
