@@ -3,7 +3,7 @@ import type { AgentCheckpoint, AgentEvent, AgentRuntimeState, AgentSession } fro
 export interface AgentRuntimeStore {
   createSession(session: AgentSession): Promise<void>;
   updateSession(
-    sessionId: string,
+    runId: string,
     update: { status?: "active" | "completed" | "failed" | "interrupted"; endedAt?: Date },
   ): Promise<void>;
   appendEvent(event: AgentEvent): Promise<void>;
