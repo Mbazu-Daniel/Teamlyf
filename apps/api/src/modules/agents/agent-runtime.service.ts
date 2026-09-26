@@ -82,8 +82,8 @@ export class AgentRuntimeService {
   async resume(organizationId: string, runId: string, memberId: string) {
     this.events.open(runId);
     const runtime = await this.ensureRuntime(organizationId, runId, memberId);
-    await runtime.resume(runId);
-    return { runId, resumed: true };
+    const status = await runtime.resume(runId);
+    return { runId, status, resumed: status !== "waiting_for_permission" };
   }
 
   async resolvePermission(
@@ -264,7 +264,6 @@ export class AgentRuntimeService {
   }
 }
 
-
 function cryptoRandomUuid(): string {
   return randomUUID();
 }
@@ -323,7 +322,6 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
     return this.repository.loadLatestCheckpoint(sessionId);
   }
 }
-
 
 class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").WorkspaceCommandRunner {
   private readonly started = new Map<string, import("@teamlyf/agents").WorkspaceHandle>();

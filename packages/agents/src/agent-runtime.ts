@@ -1,6 +1,6 @@
 import { AgentLoop } from "./agent-loop";
 import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentSession } from "./contracts";
-import type { AgentModel, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
+import type { AgentModel, AgentResumeStatus, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
 
@@ -123,7 +123,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     await this.store?.updateSession(runId, { status: "interrupted" });
   }
 
-  async resume(runId: string): Promise<void> {
+  async resume(runId: string): Promise<AgentResumeStatus> {
     if (this.running.has(runId)) {
       throw new Error(`Agent run ${runId} is already executing`);
     }
@@ -132,11 +132,16 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     entry.state.interrupted = false;
     try {
       await entry.loop.resume();
-      const status = entry.state.interrupted ? "interrupted" : "completed";
+      if (entry.state.pendingPermission) {
+        await this.store?.updateSession(runId, { status: "interrupted" });
+        return "waiting_for_permission";
+      }
+      const status: AgentResumeStatus = entry.state.interrupted ? "interrupted" : "completed";
       await this.store?.updateSession(runId, {
         status,
         endedAt: status === "completed" ? new Date() : undefined,
       });
+      return status;
     } catch (error) {
       await this.store?.updateSession(runId, { status: "failed", endedAt: new Date() });
       throw error;
