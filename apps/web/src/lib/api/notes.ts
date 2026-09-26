@@ -1,5 +1,6 @@
 import { client } from "./client";
 
+// fallow-ignore-next-line unused-export
 export type Note = {
   id: string;
   title: string;
