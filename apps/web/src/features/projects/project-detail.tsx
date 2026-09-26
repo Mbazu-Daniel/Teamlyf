@@ -34,9 +34,21 @@ export function ProjectDetailPage({ project, state, organizationId, organization
 
   return (
     <div className="flex min-w-0 h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <div className="flex flex-col border-b px-3 py-2">
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+      <header className="border-b px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+              {project.emoji || project.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-sm font-semibold">{project.name}</h1>
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{project.identifier}</span>
+              </div>
+              {project.description && <p className="mt-0.5 truncate text-xs text-muted-foreground">{project.description}</p>}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center rounded-lg bg-secondary p-0.5">
               <button type="button" onClick={() => { setView("kanban"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "kanban" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconLayoutKanban className="mr-1.5 inline size-3.5" /> Board</button>
               <button type="button" onClick={() => { setView("list"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "list" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconList className="mr-1.5 inline size-3.5" /> List</button>
@@ -46,13 +58,13 @@ export function ProjectDetailPage({ project, state, organizationId, organization
           </div>
           <div className="flex items-center gap-2">
             {project.members?.length ? <div className="flex items-center -space-x-2">{project.members.slice(0, 5).map((member) => <div key={member.id} title={`${member.firstName ?? ""} ${member.lastName ?? ""}`.trim()} className="grid size-8 place-items-center rounded-full border-2 border-background bg-muted text-[10px] font-semibold">{((member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "")).toUpperCase() || "M"}</div>)}</div> : null}
-            <button type="button" className="grid size-8 place-items-center rounded-full border border-dashed hover:bg-accent" aria-label="Add project member"><IconPlus className="size-3.5" /></button>
-            <Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: project.identifier }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
+
+<Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: project.identifier }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
             <button type="button" className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Copy project link" onClick={() => navigator.clipboard.writeText(window.location.href)}><IconLink className="size-3.5" /></button>
             <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90" onClick={() => { setSection("tasks"); setShowAddTask((value) => !value); }}><IconPlus className="mr-1.5 inline size-3.5" /> Add task</button>
           </div>
         </div>
-      </div>
+      </header>
       {showAddTask && section === "tasks" && (
         <form
           onSubmit={(event) => {
