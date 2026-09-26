@@ -15,6 +15,7 @@ export type AgentLoopOptions = {
   model: AgentModel;
   executor: AgentToolExecutor;
   emit: (event: AgentEvent) => Promise<void> | void;
+  tools?: readonly import("./tool-definitions").AgentToolDefinition[];
   checkpoint?: (
     state: AgentRuntimeState,
     reason: AgentRuntimeState["checkpoints"][number]["reason"],
@@ -48,7 +49,7 @@ export class AgentLoop {
 
       for await (const chunk of this.options.model.stream(
         this.options.state.messages,
-        agentToolDefinitions,
+        this.options.tools ?? agentToolDefinitions,
       )) {
         if (chunk.type === "text" && chunk.text) {
           assistantText += chunk.text;
