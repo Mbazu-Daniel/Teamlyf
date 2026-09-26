@@ -50,6 +50,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       model: this.factory.createModel(session),
       executor: this.factory.createExecutor(session),
       emit,
+      initialSequence: checkpoint ? checkpoint.sequence + 1 : 0,
       checkpoint: async (nextState) => {
         const checkpoint = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (checkpoint) await this.store?.createCheckpoint(checkpoint);
@@ -69,7 +70,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
           session,
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
-          pendingPermission: checkpoint.state.pendingPermission as AgentRuntimeState["pendingPermission"],
+          pendingPermission: undefined,
           interrupted: false,
         }
       : { session, messages: [], checkpoints: [], interrupted: false };
