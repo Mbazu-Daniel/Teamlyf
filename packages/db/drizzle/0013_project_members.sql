@@ -14,3 +14,9 @@ CREATE INDEX "project_member_project_id_idx" ON "project_member" USING btree ("p
 CREATE INDEX "project_member_organization_id_idx" ON "project_member" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "project_member_member_id_idx" ON "project_member" USING btree ("member_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "project_member_project_member_uidx" ON "project_member" USING btree ("project_id","member_id");
+--> statement-breakpoint
+INSERT INTO "project_member" ("id", "project_id", "organization_id", "member_id", "role")
+SELECT gen_random_uuid(), p."id", p."organization_id", m."id", 'admin'
+FROM "project" p
+INNER JOIN "member" m ON m."organization_id" = p."organization_id" AND m."role" = 'owner'
+ON CONFLICT ("project_id", "member_id") DO NOTHING;
