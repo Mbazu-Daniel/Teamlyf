@@ -6,12 +6,14 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../common/better-auth/session.guard";
-import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
-import { CreateProjectDto, UpdateProjectDto } from "./dto";
+import type { SessionMember } from "../../common/types";
+import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
+import { ConnectGithubRepositoryDto, CreateProjectDto, UpdateProjectDto } from "./dto";
 import { ProjectService } from "./project.service";
 
 @ApiTags("Projects")
@@ -57,6 +59,29 @@ export class ProjectController {
     @Body() body: UpdateProjectDto,
   ) {
     return this.projectService.updateProject(orgId, projectId, body);
+  }
+
+  @Get(":projectId/integrations/github")
+  @RequirePermission("pm", "read", "projectId")
+  getGithubRepository(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {
+    return this.projectService.getGithubRepository(orgId, projectId);
+  }
+
+  @Put(":projectId/integrations/github")
+  @RequirePermission("pm", "update", "projectId")
+  connectGithubRepository(
+    @Param("orgId") orgId: string,
+    @Param("projectId") projectId: string,
+    @CurrentMember() member: SessionMember,
+    @Body() body: ConnectGithubRepositoryDto,
+  ) {
+    return this.projectService.connectGithubRepository(orgId, projectId, member.id, body);
+  }
+
+  @Delete(":projectId/integrations/github")
+  @RequirePermission("pm", "update", "projectId")
+  disconnectGithubRepository(@Param("orgId") orgId: string, @Param("projectId") projectId: string) {
+    return this.projectService.disconnectGithubRepository(orgId, projectId);
   }
 
   @Delete(":projectId")

@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { project, status } from "@teamlyf/db/project-schema";
+import { project, projectRepository, status } from "@teamlyf/db/project-schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { ProjectAccessService } from "./project-access.service";
-import type { CreateProjectDto, UpdateProjectDto } from "./dto";
+import type { ConnectGithubRepositoryDto, CreateProjectDto, UpdateProjectDto } from "./dto";
 
 const DEFAULT_STATUSES = [
   { name: "Backlog", color: "#60646C", group: "backlog", sequence: 15000, default: true },
@@ -67,6 +67,50 @@ export class ProjectService {
       .where(and(eq(project.organizationId, orgId), eq(project.id, projectId)))
       .returning();
     return updated;
+  }
+
+  async getGithubRepository(orgId: string, projectId: string) {
+    await this.access.requireProject(orgId, projectId);
+    return this.db.query.projectRepository.findFirst({
+      where: and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),
+    });
+  }
+
+  async connectGithubRepository(orgId: string, projectId: string, memberId: string, dto: ConnectGithubRepositoryDto) {
+    await this.access.requireProject(orgId, projectId);
+    const [connected] = await this.db
+      .insert(projectRepository)
+      .values({
+        organizationId: orgId,
+        projectId,
+        repositoryId: dto.repositoryId,
+        repositoryFullName: dto.repositoryFullName.trim(),
+        defaultBranch: dto.defaultBranch.trim(),
+        baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),
+        installationId: dto.installationId?.trim() || null,
+        connectedByMemberId: memberId,
+      })
+      .onConflictDoUpdate({
+        target: projectRepository.projectId,
+        set: {
+          repositoryId: dto.repositoryId,
+          repositoryFullName: dto.repositoryFullName.trim(),
+          defaultBranch: dto.defaultBranch.trim(),
+          baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),
+          installationId: dto.installationId?.trim() || null,
+          connectedByMemberId: memberId,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return connected;
+  }
+
+  async disconnectGithubRepository(orgId: string, projectId: string) {
+    await this.access.requireProject(orgId, projectId);
+    await this.db.delete(projectRepository).where(
+      and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),
+    );
   }
 
   async deleteProject(orgId: string, projectId: string) {
