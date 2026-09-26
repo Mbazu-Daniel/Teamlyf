@@ -14,7 +14,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
-import { projectsApi, statusesApi, type Status } from "@/lib/api";
+import { projectsApi, statusesApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
 
@@ -161,7 +161,7 @@ function GeneralSettings({ organizationId, project }: { organizationId: string; 
         </div>
       </section>
 
-      <DangerZone organizationId={organizationId} project={project} />
+      <DangerZone organizationId={organizationId} organizationSlug={organizationId ? window.location.pathname.split("/")[1] ?? "" : ""} project={project} />
     </div>
   );
 }
@@ -294,11 +294,11 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (value: str
   );
 }
 
-function DangerZone({ organizationId, project }: { organizationId: string; project: Project }) {
+function DangerZone({ organizationId, organizationSlug, project }: { organizationId: string; organizationSlug: string; project: Project }) {
   const navigate = useNavigate();
   const mutation = useMutation({
     mutationFn: () => projectsApi.delete(organizationId, project.id),
-    onSuccess: () => void navigate({ to: "/$organizationSlug/projects", params: { organizationSlug: window.location.pathname.split("/")[1] ?? "" } }),
+    onSuccess: () => void navigate({ to: "/$organizationSlug/projects", params: { organizationSlug } }),
   });
 
   return (
