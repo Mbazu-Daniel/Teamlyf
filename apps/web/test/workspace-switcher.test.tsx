@@ -67,7 +67,7 @@ describe("OrganizationSwitcher", () => {
 
     expect(screen.getByRole("menuitem", { name: /Acme Inc/ })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: /Globex/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Create workspace" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Organization settings" })).toBeInTheDocument();
   });
 
   it("persistsTheChoice_whenAnotherWorkspacePicked_updatesTheActiveWorkspace", async () => {
@@ -120,8 +120,8 @@ describe("OrganizationSwitcher", () => {
     renderSwitcher();
 
     await openSwitcher(user);
-    await user.click(screen.getByRole("menuitem", { name: "Create workspace" }));
+    await user.click(screen.getByRole("menuitem", { name: "Organization settings" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/workspaces" });
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/acme/settings" });
   });
 });
