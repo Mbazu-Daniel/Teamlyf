@@ -19,6 +19,7 @@ export interface AgentRuntime {
   interrupt(runId: string): Promise<void>;
   resume(runId: string): Promise<void>;
   resolvePermission(runId: string, requestId: string, decision: AgentPermissionDecision): Promise<void>;
+  recoverSession(session: AgentSession, sink: AgentRuntimeEventSink): Promise<void>;
 }
 
 export interface AgentModel {
