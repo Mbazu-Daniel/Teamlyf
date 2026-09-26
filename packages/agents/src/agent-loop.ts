@@ -1,13 +1,5 @@
-import {
-  type AgentEvent,
-  type AgentModel,
-  type AgentPermissionDecision,
-  type AgentPermissionRequest,
-  type AgentRuntimeState,
-  type AgentToolExecutor,
-  type AgentToolResult,
-  agentEventTypes,
-} from "./index";
+import { agentEventTypes, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentToolCall, type AgentToolResult } from "./contracts";
+import type { AgentModel, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import { agentToolDefinitions } from "./tool-definitions";
 
 export type AgentLoopOptions = {
@@ -147,7 +139,6 @@ export class AgentLoop {
             continue;
           }
 
-          if (decision === "always") this.alwaysAllowedTools.add(call.name);
         }
 
         const result = await this.options.executor.execute(this.options.state.session, call);
