@@ -81,6 +81,7 @@ function NavItemLink({
   );
 }
 
+// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- sidebar composition intentionally owns all primary navigation sections and responsive state
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const { pathname } = useLocation();
   const { organization } = useOrganization();
