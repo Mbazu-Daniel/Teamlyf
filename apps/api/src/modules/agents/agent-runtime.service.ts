@@ -326,7 +326,7 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
 
 
 class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").WorkspaceCommandRunner {
-  private readonly started = new Set<string>();
+  private readonly started = new Map<string, import("@teamlyf/agents").WorkspaceHandle>();
 
   constructor(
     private readonly sandbox: DockerAgentSandbox,
@@ -334,8 +334,8 @@ class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").Workspa
   ) {}
 
   async stop(): Promise<void> {
-    for (const root of this.started) {
-      await this.sandbox.stop({ repository: "", baseBranch: "", workingBranch: "", root }).catch(() => undefined);
+    for (const workspace of this.started.values()) {
+      await this.sandbox.stop(workspace).catch(() => undefined);
     }
     this.started.clear();
   }
@@ -352,7 +352,7 @@ class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").Workspa
     }
     if (!this.started.has(key)) {
       await this.sandbox.start(workspace);
-      this.started.add(key);
+      this.started.set(key, workspace);
     }
     return this.sandbox.run(workspace, command, args, options);
   }
