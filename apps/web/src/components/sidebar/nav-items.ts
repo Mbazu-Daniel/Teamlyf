@@ -9,6 +9,7 @@ import {
   IconRobot,
   IconSettings,
   IconUsers,
+  IconChecklist,
 } from "@tabler/icons-react";
 
 export type NavItem = Readonly<{
@@ -34,6 +35,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { id: "home", label: "Overview", to: "", icon: IconHome },
       { id: "projects", label: "Projects", to: "projects", icon: IconLayoutKanban },
+      { id: "tasks", label: "Tasks", to: "tasks", icon: IconChecklist },
       { id: "chat", label: "Chat", to: "chat", icon: IconMessage, available: false },
       { id: "documents", label: "Documents", to: "documents", icon: IconFileText, available: false },
       { id: "notes", label: "Notes", to: "notes", icon: IconNotes, available: false },
