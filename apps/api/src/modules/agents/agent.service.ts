@@ -139,6 +139,7 @@ export class AgentService {
     return { model: config.model, apiKey, baseUrl: this.env.AGENT_OPENAI_BASE_URL };
   }
 
+  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- model execution owns the bounded tool-calling loop and provider response handling
   private async runModel(
     provider: { model: string; apiKey: string; baseUrl: string },
     target: { name: string; description: string | null },
