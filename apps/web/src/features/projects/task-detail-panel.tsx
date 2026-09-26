@@ -127,7 +127,6 @@ function TaskDetailContent({
   projectId,
   taskId,
   statuses,
-  mobile,
 }: Omit<TaskDetailPanelProps, "taskId"> & { taskId: string; mobile?: boolean }) {
   const detail = useTaskDetail(organizationId, projectId, taskId);
   const task = detail.task;
