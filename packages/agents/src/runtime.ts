@@ -4,6 +4,7 @@ import type {
   AgentPermissionRequest,
   AgentSession,
   AgentToolCall,
+  AgentToolName,
   AgentToolResult,
 } from "./contracts";
 
@@ -16,6 +17,7 @@ export type AgentRuntimeState = {
   messages: AgentMessage[];
   checkpoints: import("./contracts").AgentCheckpoint[];
   pendingPermission?: AgentPermissionRequest;
+  allowedTools: AgentToolName[];
   interrupted: boolean;
 };
 
