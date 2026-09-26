@@ -17,6 +17,7 @@ type RuntimeEntry = {
 
 export class InMemoryAgentRuntime implements AgentRuntime {
   private readonly entries = new Map<string, RuntimeEntry>();
+  private readonly running = new Set<string>();
 
   constructor(
     private readonly factory: AgentRuntimeFactory,
@@ -93,28 +94,55 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     this.entries.set(session.runId, { state, loop });
   }
 
-  async sendMessage(runId: string, message: string): Promise<void> {
+  async sendMessage(runId: string, message: string): Promise<"completed" | "interrupted"> {
+    if (this.running.has(runId)) {
+      throw new Error(`Agent run ${runId} is already executing`);
+    }
     const entry = this.getEntry(runId);
+    this.running.add(runId);
     entry.state.interrupted = false;
     try {
       await entry.loop.run(message);
+      const status = entry.state.interrupted ? "interrupted" : "completed";
       await this.store?.updateSession(runId, {
-        status: entry.state.interrupted ? "interrupted" : "completed",
-        endedAt: entry.state.interrupted ? undefined : new Date(),
+        status,
+        endedAt: status === "completed" ? new Date() : undefined,
       });
+      return status;
     } catch (error) {
       await this.store?.updateSession(runId, { status: "failed", endedAt: new Date() });
       throw error;
+    } finally {
+      this.running.delete(runId);
     }
   }
 
   async interrupt(runId: string): Promise<void> {
-    this.getEntry(runId).state.interrupted = true;
+    const entry = this.getEntry(runId);
+    entry.state.interrupted = true;
+    await this.store?.updateSession(runId, { status: "interrupted" });
   }
 
   async resume(runId: string): Promise<void> {
+    if (this.running.has(runId)) {
+      throw new Error(`Agent run ${runId} is already executing`);
+    }
     const entry = this.getEntry(runId);
+    this.running.add(runId);
     entry.state.interrupted = false;
+    try {
+      await entry.loop.resume();
+      const status = entry.state.interrupted ? "interrupted" : "completed";
+      await this.store?.updateSession(runId, {
+        status,
+        endedAt: status === "completed" ? new Date() : undefined,
+      });
+    } catch (error) {
+      await this.store?.updateSession(runId, { status: "failed", endedAt: new Date() });
+      throw error;
+    } finally {
+      this.running.delete(runId);
+    }
   }
 
   async resolvePermission(
