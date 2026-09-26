@@ -129,6 +129,8 @@ function TaskDetailContent({
   statuses,
   mobile,
 }: TaskDetailPanelProps & { mobile?: boolean }) {
+  if (!taskId) return null;
+
   const detail = useTaskDetail(organizationId, projectId, taskId);
   const task = detail.task;
 
