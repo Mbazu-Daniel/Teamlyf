@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
+import { agent } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import {
   milestoneTask,
@@ -27,7 +28,7 @@ export class TaskService {
     return this.db.query.task.findMany({
       where: eq(task.projectId, projectId),
       orderBy: (t, { asc }) => [asc(t.sortOrder), asc(t.sequenceId)],
-      with: { taskAssignees: true, taskLabels: true },
+      with: { taskAssignees: true, taskLabels: true, milestoneTasks: true },
     });
   }
 
@@ -54,10 +55,11 @@ export class TaskService {
     await this.access.requireTask(orgId, projectId, taskId);
     return this.db.query.task.findFirst({
       where: and(eq(task.projectId, projectId), eq(task.id, taskId)),
-      with: { taskAssignees: true, taskLabels: true },
+      with: { taskAssignees: true, taskLabels: true, milestoneTasks: true },
     });
   }
 
+  // fallow-ignore-next-line complexity -- task creation coordinates status, ordering, relations and activity in one transaction flow
   async createTask(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
     await this.access.requireProject(orgId, projectId);
 
@@ -104,7 +106,7 @@ export class TaskService {
 
     return this.db.query.task.findFirst({
       where: eq(task.id, created.id),
-      with: { taskAssignees: true, taskLabels: true },
+      with: { taskAssignees: true, taskLabels: true, milestoneTasks: true },
     });
   }
 
@@ -173,6 +175,7 @@ export class TaskService {
     });
   }
 
+  // fallow-ignore-next-line complexity -- assignee validation handles two organization-scoped actor types and relation replacement
   private async updateTaskAssignees(
     orgId: string,
     taskId: string,
@@ -184,6 +187,12 @@ export class TaskService {
           where: and(eq(member.id, assignee.id), eq(member.organizationId, orgId)),
         });
         if (!found) throw new BadRequestException(`Member ${assignee.id} not in organization`);
+      } else {
+        const found = await this.db.query.agent.findFirst({
+          where: and(eq(agent.id, assignee.id), eq(agent.organizationId, orgId)),
+        });
+        if (!found) throw new BadRequestException(`Agent ${assignee.id} not in organization`);
+        if (!found.enabled) throw new BadRequestException(`Agent ${assignee.id} is disabled`);
       }
     }
 

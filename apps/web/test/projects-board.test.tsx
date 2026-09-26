@@ -28,10 +28,12 @@ const doing: Status = {
 function makeTask(id: string, name: string, statusId: string): ProjectTask {
   return {
     id,
+    sequenceId: Number(id.replace(/\D/g, "")) || 1,
     name,
     description: null,
     priority: "high",
     statusId,
+    startDate: null,
     targetDate: null,
   };
 }

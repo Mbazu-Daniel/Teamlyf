@@ -1,5 +1,11 @@
-import { IconCopy, IconDots, IconPin, IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconCopy, IconDots, IconPencil, IconTrash } from "@tabler/icons-react";
 import type { ProjectTask } from "@/lib/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type TaskActionsMenuProps = {
   task: ProjectTask;
@@ -10,32 +16,32 @@ type TaskActionsMenuProps = {
 
 export function TaskActionsMenu({ task, onEdit, onDelete, onDuplicate }: TaskActionsMenuProps) {
   return (
-    <details className="relative shrink-0" onClick={(event) => event.stopPropagation()}>
-      <summary className="list-none cursor-pointer rounded-md p-1 hover:bg-accent">
-        <IconDots className="size-4 text-muted-foreground" />
-      </summary>
-      <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border bg-popover p-1.5 shadow-xl">
-        <button type="button" onClick={() => onEdit(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">
-          <IconPencil className="size-3.5" />Edit
-        </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<button type="button" aria-label={`Actions for ${task.name}`} />}
+        className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <IconDots className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onEdit(task)}>
+          <IconPencil />
+          Edit
+        </DropdownMenuItem>
         {onDuplicate && (
-          <button type="button" onClick={() => onDuplicate(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">
-            <IconCopy className="size-3.5" />Duplicate
-          </button>
+          <DropdownMenuItem onClick={() => onDuplicate(task)}>
+            <IconCopy />
+            Duplicate
+          </DropdownMenuItem>
         )}
-        <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">
-          Convert to subtask
-        </button>
-        <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">
-          <IconPin className="size-3.5" />Pin task to dashboard
-        </button>
-        <div className="my-1 border-t" />
         {onDelete && (
-          <button type="button" onClick={() => onDelete(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-destructive hover:bg-destructive/10">
-            <IconTrash className="size-3.5" />Delete
-          </button>
+          <DropdownMenuItem variant="destructive" onClick={() => onDelete(task)}>
+            <IconTrash />
+            Delete
+          </DropdownMenuItem>
         )}
-      </div>
-    </details>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

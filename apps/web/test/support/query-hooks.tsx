@@ -34,10 +34,12 @@ export const done: Status = {
 
 export const existingTask: ProjectTask = {
   id: "task-1",
+  sequenceId: 1,
   name: "Design the header",
   description: null,
   priority: "high",
   statusId: todo.id,
+  startDate: null,
   targetDate: null,
 };
 

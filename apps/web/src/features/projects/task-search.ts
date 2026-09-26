@@ -1,4 +1,4 @@
-/** `?task=<id>` deep-links the task detail panel; validated once at the router boundary. */
+/** `?task=<task-name-slug>` deep-links the task detail panel; IDs remain accepted for backwards compatibility. */
 export type TaskSearch = {
   task?: string;
 };

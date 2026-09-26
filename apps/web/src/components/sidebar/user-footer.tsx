@@ -34,7 +34,7 @@ function accountName(account: Account | null) {
   return account?.name?.trim() || account?.email?.trim() || "Account";
 }
 
-type UserFooterProps = Readonly<{ collapsed: boolean }>;
+type UserFooterProps = Readonly<{ collapsed: boolean; compact?: boolean }>;
 
 const THEME_OPTIONS: readonly { mode: ThemeMode; label: string; icon: typeof IconSun }[] = [
   { mode: "light", label: "Light", icon: IconSun },
@@ -42,7 +42,7 @@ const THEME_OPTIONS: readonly { mode: ThemeMode; label: string; icon: typeof Ico
   { mode: "system", label: "System", icon: IconDeviceDesktop },
 ];
 
-export function UserFooter({ collapsed }: UserFooterProps) {
+export function UserFooter({ collapsed, compact = false }: UserFooterProps) {
   const navigate = useNavigate();
   const resetSession = useResetSession();
   const { organization, reset: resetWorkspace } = useOrganization();
@@ -63,7 +63,7 @@ export function UserFooter({ collapsed }: UserFooterProps) {
   }
 
   return (
-    <div className="border-t border-border">
+    <div className={cn(!compact && "border-t border-border", compact && "shrink-0")}>
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -71,7 +71,8 @@ export function UserFooter({ collapsed }: UserFooterProps) {
               type="button"
               title={collapsed ? name : undefined}
               className={cn(
-                "flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors duration-150 hover:bg-muted",
+                "flex items-center gap-2.5 text-left transition-colors duration-150 hover:bg-muted",
+                compact ? "rounded-lg px-2 py-1.5" : "w-full px-3 py-2.5",
                 collapsed && "justify-center px-0",
               )}
             >
@@ -90,7 +91,7 @@ export function UserFooter({ collapsed }: UserFooterProps) {
             </button>
           }
         />
-        <DropdownMenuContent align="start" side="top" className="min-w-52 w-(--anchor-width)">
+        <DropdownMenuContent align="end" side="bottom" className="min-w-52 w-(--anchor-width)">
           <DropdownMenuGroup>
             <DropdownMenuLabel>{user?.email || name}</DropdownMenuLabel>
           </DropdownMenuGroup>

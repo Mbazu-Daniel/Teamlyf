@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { projectsApi, statusesApi, type ProjectTask, type Status } from "@/lib/api";
+import { milestonesApi, projectsApi, statusesApi, type Milestone, type ProjectTask, type Status } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
+import { slugify } from "@/lib/slug";
+import { useDeleteTask } from "./use-delete-task";
 
 type CreateTaskInput = { name: string; statusId: string };
 type MoveTaskInput = { taskId: string; statusId: string };
 
-export function useProjectPage(organizationId: string | undefined, projectId: string) {
+// fallow-ignore-next-line complexity -- project page hook intentionally centralizes task and milestone mutations for one project
+export function useProjectPage(organizationId: string | undefined, projectSlug: string) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [statusId, setStatusId] = useState("");
@@ -15,28 +18,38 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
   // Without an organization there is nothing to fetch; "" keeps the keys defined.
   const organizationKey = organizationId ?? "";
   const enabled = Boolean(organizationId);
-  const projectKey = queryKeys.project(organizationKey, projectId);
-  const statusesKey = queryKeys.statuses(organizationKey, projectId);
-  const tasksKey = queryKeys.tasks(organizationKey, projectId);
-
-  const projectQuery = useQuery({
-    queryKey: projectKey,
-    queryFn: () => projectsApi.get(organizationKey, projectId),
+  const projectsKey = queryKeys.projects(organizationKey);
+  const projectsQuery = useQuery({
+    queryKey: projectsKey,
+    queryFn: () => projectsApi.getProjects(organizationKey),
     enabled,
     retry: false,
   });
+  const project = projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ?? null;
+  const projectId = project?.id ?? "";
+  const statusesKey = queryKeys.statuses(organizationKey, projectId);
+  const tasksKey = queryKeys.tasks(organizationKey, projectId);
+  const milestonesKey = queryKeys.milestones(organizationKey, projectId);
+  const projectEnabled = enabled && Boolean(projectId);
 
   const statusesQuery = useQuery({
     queryKey: statusesKey,
     queryFn: () => statusesApi.getStatuses(organizationKey, projectId),
-    enabled,
+    enabled: projectEnabled,
     retry: false,
   });
 
   const tasksQuery = useQuery({
     queryKey: tasksKey,
     queryFn: () => projectsApi.getTasks(organizationKey, projectId),
-    enabled,
+    enabled: projectEnabled,
+    retry: false,
+  });
+
+  const milestonesQuery = useQuery({
+    queryKey: milestonesKey,
+    queryFn: () => milestonesApi.getMilestones(organizationKey, projectId),
+    enabled: projectEnabled,
     retry: false,
   });
 
@@ -48,6 +61,70 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
       queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+
+  const duplicateTaskMutation = useMutation({
+    mutationFn: (task: ProjectTask) => projectsApi.createTask(organizationKey, projectId, { name: task.name + " (copy)", statusId: task.statusId }),
+    onSuccess: (task) => queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  // fallow-ignore-next-line code-duplication -- optimistic task deletion follows the shared project-page mutation contract
+  const deleteTaskMutation = useDeleteTask(organizationId, projectId);
+
+  const createMilestoneMutation = useMutation({
+    mutationFn: (input: { name: string; description?: string; startDate?: string; targetDate?: string }) =>
+      milestonesApi.createMilestone(organizationKey, projectId, input),
+    onSuccess: (milestone) => {
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) => [milestone, ...(current ?? [])]);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
+  });
+
+  const updateMilestoneMutation = useMutation({
+    mutationFn: ({ milestoneId, ...input }: { milestoneId: string; name?: string; description?: string; status?: import("@/lib/api").MilestoneStatus; startDate?: string; targetDate?: string }) =>
+      milestonesApi.updateMilestone(organizationKey, projectId, milestoneId, input),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) =>
+        (current ?? []).map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
+      );
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
+  });
+
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: (milestoneId: string) => milestonesApi.deleteMilestone(organizationKey, projectId, milestoneId),
+    onMutate: async (milestoneId) => {
+      await queryClient.cancelQueries({ queryKey: milestonesKey });
+      const previous = queryClient.getQueryData<Milestone[]>(milestonesKey);
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) =>
+        (current ?? []).filter((milestone) => milestone.id !== milestoneId),
+      );
+      return { previous };
+    },
+    onError: (_error, _milestoneId, context) => {
+      if (context?.previous) queryClient.setQueryData(milestonesKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
+  });
+
+  const addMilestoneTaskMutation = useMutation({
+    mutationFn: (input: { milestoneId: string; taskId: string }) =>
+      milestonesApi.createMilestoneTask(organizationKey, projectId, input.milestoneId, input.taskId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: milestonesKey });
+      queryClient.invalidateQueries({ queryKey: tasksKey });
+    },
+  });
+
+  const removeMilestoneTaskMutation = useMutation({
+    mutationFn: (input: { milestoneId: string; taskId: string }) =>
+      milestonesApi.deleteMilestoneTask(organizationKey, projectId, input.milestoneId, input.taskId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: milestonesKey });
+      queryClient.invalidateQueries({ queryKey: tasksKey });
+    },
   });
 
   const moveTaskMutation = useMutation({
@@ -85,16 +162,23 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
 
   const error =
     getErrorMessage(createTaskMutation.error, "Unable to create task") ??
+    getErrorMessage(duplicateTaskMutation.error, "Unable to duplicate task") ??
+    getErrorMessage(deleteTaskMutation.error, "Unable to delete task") ??
+    getErrorMessage(createMilestoneMutation.error, "Unable to create milestone") ??
+    getErrorMessage(updateMilestoneMutation.error, "Unable to update milestone") ??
+    getErrorMessage(deleteMilestoneMutation.error, "Unable to update milestones") ??
     getErrorMessage(moveTaskMutation.error, "Unable to update task") ??
     getErrorMessage(
-      projectQuery.error ?? statusesQuery.error ?? tasksQuery.error,
+      projectsQuery.error ?? statusesQuery.error ?? tasksQuery.error,
       "Unable to load project",
     );
 
   return {
-    project: projectQuery.data ?? null,
+    project,
     statuses,
     tasks: tasksQuery.data ?? [],
+    milestones: milestonesQuery.data ?? [],
+    milestonesLoading: milestonesQuery.isLoading,
     name,
     statusId: selectedStatusId,
     loading: createTaskMutation.isPending,
@@ -103,6 +187,13 @@ export function useProjectPage(organizationId: string | undefined, projectId: st
     setStatusId,
     createTask,
     moveTask,
+    duplicateTask: duplicateTaskMutation.mutate,
+    deleteTask: deleteTaskMutation.mutate,
+    createMilestone: createMilestoneMutation.mutate,
+    updateMilestone: updateMilestoneMutation.mutate,
+    deleteMilestone: deleteMilestoneMutation.mutate,
+    addTaskToMilestone: addMilestoneTaskMutation.mutate,
+    removeTaskFromMilestone: removeMilestoneTaskMutation.mutate,
   };
 }
 

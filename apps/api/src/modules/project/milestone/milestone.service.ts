@@ -19,6 +19,7 @@ export class MilestoneService {
     return this.db.query.milestone.findMany({
       where: eq(milestone.projectId, projectId),
       orderBy: (m, { desc }) => [desc(m.createdAt)],
+      with: { milestoneTasks: true },
     });
   }
 
