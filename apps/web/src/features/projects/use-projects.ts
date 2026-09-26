@@ -11,8 +11,8 @@ export function useProjects(organizationId: string | undefined) {
   const [name, setName] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [description, setDescription] = useState("");
+  const [createdProject, setCreatedProject] = useState<Project | null>(null);
 
-  // Without an organization there is nothing to fetch; "" keeps the key defined.
   const organizationKey = organizationId ?? "";
   const projectsKey = queryKeys.projects(organizationKey);
 
@@ -29,6 +29,7 @@ export function useProjects(organizationId: string | undefined) {
       setName("");
       setIdentifier("");
       setDescription("");
+      setCreatedProject(project);
       queryClient.setQueryData<Project[]>(projectsKey, (current) => [project, ...(current ?? [])]);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: projectsKey }),
@@ -50,6 +51,7 @@ export function useProjects(organizationId: string | undefined) {
 
   return {
     projects: projectsQuery.data ?? [],
+    createdProject,
     name,
     identifier,
     description,
