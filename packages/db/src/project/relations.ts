@@ -80,6 +80,5 @@ export const milestoneTaskRelations = relations(milestoneTask, ({ one }) => ({
 
 export const projectMemberRelations = relations(projectMember, ({ one }) => ({
   project: one(project, { fields: [projectMember.projectId], references: [project.id] }),
-  organization: one(member, { fields: [projectMember.organizationId], references: [member.organizationId] }),
   member: one(member, { fields: [projectMember.memberId], references: [member.id] }),
 }));
