@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { IconFilter, IconLayoutGrid, IconList, IconPlus, IconArrowLeft, IconSettings, IconSearch } from "@tabler/icons-react";
+import { IconLayoutGrid, IconList, IconPlus, IconArrowLeft, IconSettings, IconSearch } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
 import { ProjectCard } from "./project-card";
 import { ErrorMessage, MutedMessage } from "./feedback";
@@ -41,7 +41,7 @@ export function ProjectListPage({
     setShowCreateProject(false);
     void navigate({
       to: "/$organizationSlug/projects/$projectId",
-      params: { organizationSlug, projectId: projectSlug(state.createdProject) },
+      params: { organizationSlug, projectId: state.createdProject.identifier },
     });
   }, [navigate, organizationSlug, state.createdProject]);
 
@@ -76,7 +76,7 @@ export function ProjectListPage({
         ) : viewMode === "board" ? (
           <div className="grid grid-cols-1 gap-4 pb-8 md:grid-cols-2 lg:grid-cols-3">{filteredProjects.map((project) => <ProjectCard key={project.id} project={project} organizationSlug={organizationSlug} />)}</div>
         ) : (
-          <div className="divide-y rounded-xl border bg-background">{filteredProjects.map((project) => <Link key={project.id} to="/$organizationSlug/projects/$projectId" params={{ organizationSlug, projectId: projectSlug(project) }} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50"><span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">{project.name.charAt(0)}</span><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{project.name}</strong><span className="text-xs text-muted-foreground">{project.description || "No description"}</span></span><span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold">{project.identifier}</span></Link>)}</div>
+          <div className="divide-y rounded-xl border bg-background">{filteredProjects.map((project) => <Link key={project.id} to="/$organizationSlug/projects/$projectId" params={{ organizationSlug, projectId: project.identifier }} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50"><span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">{project.name.charAt(0)}</span><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{project.name}</strong><span className="text-xs text-muted-foreground">{project.description || "No description"}</span></span><span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold">{project.identifier}</span></Link>)}</div>
         )}
 
         {showCreateProject && <section id="create-project" className="mt-5 rounded-xl border bg-background p-4"><h2 className="text-sm font-bold">Create Project</h2><p className="mt-1 text-xs text-muted-foreground">Create a project to start managing tasks and milestones.</p><form onSubmit={state.createProject} className="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_auto]"><input value={state.name} onChange={(event) => state.setName(event.target.value)} placeholder="Project name" className="h-10 rounded-lg border bg-card px-3 text-sm" required /><input value={state.identifier} onChange={(event) => state.setIdentifier(event.target.value)} placeholder="Code" className="h-10 rounded-lg border bg-card px-3 text-sm" required /><input value={state.description} onChange={(event) => state.setDescription(event.target.value)} placeholder="Description" className="h-10 rounded-lg border bg-card px-3 text-sm" /><button disabled={state.loading} className="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">{state.loading ? "Creating..." : "Create"}</button></form></section>}

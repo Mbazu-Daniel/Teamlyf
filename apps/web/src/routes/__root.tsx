@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import styles from "../styles.css?url";
 import { OrganizationProvider } from "../lib/organization";
+import { initializeTheme } from "../lib/theme";
 import { NotFound } from "../components/not-found";
 
 export const Route = createRootRoute({
@@ -23,6 +24,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: styles },
+      { rel: "stylesheet", href: "/theme.css" },
       { rel: "icon", type: "image/svg+xml", href: "/brand/logo-icon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -36,7 +38,6 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-  // Per-request instance: a module-scope QueryClient would leak cache across SSR requests.
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -52,13 +53,15 @@ function RootComponent() {
       }),
   );
 
+  useEffect(() => initializeTheme(), []);
+
   return (
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <OrganizationProvider>
           <Outlet />
         </OrganizationProvider>
-        <Toaster richColors position="top-right" theme="dark" closeButton />
+        <Toaster richColors position="top-right" theme="system" closeButton />
       </QueryClientProvider>
     </RootDocument>
   );
@@ -66,7 +69,7 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

@@ -1,0 +1,45 @@
+html.light {
+  color-scheme: light;
+
+  --text-50: oklch(0.16 0.01 280);
+  --text-100: oklch(0.20 0.01 280);
+  --text-200: oklch(0.27 0.01 280);
+  --text-300: oklch(0.36 0.01 280);
+  --text-400: oklch(0.46 0.01 280);
+  --text-500: oklch(0.56 0.01 280);
+  --text-600: oklch(0.64 0.01 280);
+  --text-700: oklch(0.72 0.01 280);
+  --text-800: oklch(0.80 0.01 280);
+  --text-900: oklch(0.89 0.006 280);
+  --text-950: oklch(0.96 0.003 280);
+
+  --background-50: oklch(0.99 0.002 280);
+  --background-100: oklch(0.975 0.003 280);
+  --background-200: oklch(0.95 0.004 280);
+  --background-300: oklch(0.92 0.005 280);
+  --background-400: oklch(0.88 0.006 280);
+  --background-500: oklch(0.82 0.007 280);
+  --background-600: oklch(0.74 0.008 280);
+  --background-700: oklch(0.88 0.006 280);
+  --background-800: oklch(0.94 0.004 280);
+  --background-900: oklch(0.975 0.003 280);
+  --background-950: oklch(0.99 0.002 280);
+
+  --background: var(--background-950);
+  --foreground: var(--text-100);
+  --card: var(--background-50);
+  --card-foreground: var(--text-100);
+  --popover: var(--background-50);
+  --popover-foreground: var(--text-100);
+  --secondary: var(--background-800);
+  --secondary-foreground: var(--text-100);
+  --muted: var(--background-800);
+  --muted-foreground: var(--text-400);
+  --border: var(--background-700);
+  --input: var(--background-700);
+  --ring: var(--primary-400);
+}
+
+html.dark {
+  color-scheme: dark;
+}
