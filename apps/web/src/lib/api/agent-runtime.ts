@@ -1,6 +1,6 @@
 import { API_URL, client } from "./client";
 
-export type AgentRuntimeEvent = {
+type AgentRuntimeEvent = {
   id: string;
   sessionId: string;
   runId: string;
@@ -10,7 +10,7 @@ export type AgentRuntimeEvent = {
   createdAt: string;
 };
 
-export const agentRuntimeApi = {
+const agentRuntimeApi = {
   sendMessage(organizationId: string, runId: string, message: string) {
     return client.request<{ runId: string; accepted: boolean }>(
       `/organization/${organizationId}/agents/runs/${runId}/messages`,
