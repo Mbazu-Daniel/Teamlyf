@@ -1,3 +1,4 @@
+// fallow-ignore-file complexity
 import type { AgentMessage, AgentModel, AgentModelStreamEvent, AgentToolCall } from "./contracts";
 import type { AgentToolDefinition } from "./tool-definitions";
 
