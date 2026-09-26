@@ -1,5 +1,6 @@
 import type { Project } from "@/lib/api";
 
+// fallow-ignore-next-line complexity -- project progress normalizes task summary fields for the dashboard
 export function projectProgress(project: Project) {
   const total = Number((project as Project & { totalTasks?: number }).totalTasks ?? 0);
   const done = Number((project as Project & { completedTasks?: number }).completedTasks ?? 0);
