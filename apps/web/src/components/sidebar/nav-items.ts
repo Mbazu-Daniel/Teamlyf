@@ -6,7 +6,6 @@ import {
   IconMessage,
   IconNotes,
   IconPhone,
-  IconRobot,
   IconSettings,
   IconUsers,
   IconCheck,
