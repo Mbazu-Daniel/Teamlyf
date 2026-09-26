@@ -184,6 +184,12 @@ export class TaskService {
           where: and(eq(member.id, assignee.id), eq(member.organizationId, orgId)),
         });
         if (!found) throw new BadRequestException(`Member ${assignee.id} not in organization`);
+      } else {
+        const found = await this.db.query.agent.findFirst({
+          where: and(eq(agent.id, assignee.id), eq(agent.organizationId, orgId)),
+        });
+        if (!found) throw new BadRequestException(`Agent ${assignee.id} not in organization`);
+        if (!found.enabled) throw new BadRequestException(`Agent ${assignee.id} is disabled`);
       }
     }
 
