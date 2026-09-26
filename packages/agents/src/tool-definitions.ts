@@ -1,9 +1,7 @@
-import type { AgentToolDefinition } from "./contracts/model";
-
-export type { AgentToolDefinition };
+export type { AgentToolDefinition } from "./contracts/model";
 
 export function defineAgentTool(
-  definition: AgentToolDefinition,
-): AgentToolDefinition {
+  definition: import("./contracts/model").AgentToolDefinition,
+): import("./contracts/model").AgentToolDefinition {
   return definition;
 }
