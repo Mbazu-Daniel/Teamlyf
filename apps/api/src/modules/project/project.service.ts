@@ -23,23 +23,35 @@ export class ProjectService {
   ) {}
 
   async createProject(orgId: string, dto: CreateProjectDto, creatorMemberId: string) {
-    const [created] = await this.db.insert(project).values({
-      organizationId: orgId,
-      name: dto.name,
-      identifier: dto.identifier.toUpperCase(),
-      description: dto.description ?? null,
-      emoji: dto.emoji ?? null,
-    }).returning();
+    return this.db.transaction(async (tx) => {
+      const [created] = await tx.insert(project).values({
+        organizationId: orgId,
+        name: dto.name,
+        identifier: dto.identifier.toUpperCase(),
+        description: dto.description ?? null,
+        emoji: dto.emoji ?? null,
+      }).returning();
 
-    await this.db.insert(projectMember).values({
-      projectId: created.id,
-      organizationId: orgId,
-      memberId: creatorMemberId,
-      role: "admin",
+      await tx.insert(projectMember).values({
+        projectId: created.id,
+        organizationId: orgId,
+        memberId: creatorMemberId,
+        role: "admin",
+      });
+
+      await tx.insert(status).values(
+        DEFAULT_STATUSES.map((item) => ({
+          projectId: created.id,
+          name: item.name,
+          color: item.color,
+          group: item.group,
+          sequence: item.sequence,
+          default: item.default ?? false,
+        })),
+      );
+
+      return created;
     });
-
-    await this.createDefaultStatuses(created.id);
-    return created;
   }
 
   private createDefaultStatuses(projectId: string) {
@@ -81,7 +93,13 @@ export class ProjectService {
         firstName: membership.member.firstName,
         lastName: membership.member.lastName,
       })),
-      leads: [],
+      leads: (membersByProject.get(item.id) ?? [])
+        .filter((membership) => membership.role === "admin")
+        .map((membership) => ({
+          id: membership.member.id,
+          firstName: membership.member.firstName,
+          lastName: membership.member.lastName,
+        })),
     }));
   }
 
