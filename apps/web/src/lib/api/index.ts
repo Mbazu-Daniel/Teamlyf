@@ -4,6 +4,7 @@ export { ApiError } from "./errors";
 export * from "./auth";
 export * from "./organizations";
 export * from "./projects";
+export * from "./agents";
 export * from "./settings";
 export * from "./statuses";
 export * from "./labels";
