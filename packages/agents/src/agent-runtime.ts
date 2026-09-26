@@ -32,6 +32,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       session,
       messages: [],
       checkpoints: [],
+      allowedTools: [],
       interrupted: false,
     };
 
@@ -66,9 +67,10 @@ export class InMemoryAgentRuntime implements AgentRuntime {
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
           pendingPermission: isPendingPermission(checkpoint.state.pendingPermission) ? checkpoint.state.pendingPermission : undefined,
+          allowedTools: isAllowedTools(checkpoint.state.allowedTools),
           interrupted: false,
         }
-      : { session, messages: [], checkpoints: [], interrupted: false };
+      : { session, messages: [], checkpoints: [], allowedTools: [], interrupted: false };
 
     const emit = async (event: AgentEvent): Promise<void> => {
       await this.store?.appendEvent(event);
@@ -130,6 +132,10 @@ export class InMemoryAgentRuntime implements AgentRuntime {
   }
 }
 
+function isAllowedTools(value: unknown): AgentRuntimeState["allowedTools"] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((tool): tool is AgentRuntimeState["allowedTools"][number] => typeof tool === "string");
+}
 
 function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
