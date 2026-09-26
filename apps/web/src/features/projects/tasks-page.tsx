@@ -7,12 +7,10 @@ import { queryKeys } from "@/lib/queryKeys";
 import { TaskList } from "@/features/projects/task-list";
 import { KanbanBoard } from "@/features/projects/board";
 import { TaskDetailPanel } from "@/features/projects/task-detail-panel";
-import { useProjectPage } from "@/features/projects/hooks";
 
 export function TasksPage() {
   const { organization } = useOrganization();
   const organizationId = organization?.id;
-  const organizationSlug = organization?.slug ?? organization?.id ?? "";
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [view, setView] = useState<"board" | "list">("board");
   const [search, setSearch] = useState("");
@@ -68,7 +66,6 @@ export function TasksPage() {
     );
   }, [search, tasks]);
 
-  const projectState = useProjectPage(organizationId, selectedProject ? selectedProject.name : "");
 
   if (!organizationId) return null;
 
