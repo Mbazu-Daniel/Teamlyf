@@ -32,7 +32,7 @@ export function TaskList({ tasks, statuses, onMove, onSelect, onDelete, onDuplic
               <span className="ml-auto"><IconChevronDown className={`size-4 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`} /></span>
               {onAddTask && <button type="button" aria-label="Add task" onClick={(event) => { event.stopPropagation(); onAddTask(status.id); }} className="rounded-md p-1 hover:bg-accent"><IconPlus className="size-4 text-muted-foreground" /></button>}
             </div>
-            {/* fallow-ignore-next-line code-duplication -- task actions intentionally mirror the card menu for interaction parity */}
+            /* fallow-ignore-next-line code-duplication -- task actions intentionally mirror the card menu for interaction parity */
             {open && (group.length ? group.map((task) => (
               <div key={task.id} onClick={() => onSelect(task)} className="flex cursor-pointer items-center justify-between border-b border-border/30 px-6 py-3 transition-colors hover:bg-accent/50">
                 <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -46,7 +46,7 @@ export function TaskList({ tasks, statuses, onMove, onSelect, onDelete, onDuplic
                     {statuses.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                   </select>
                   {(onDelete || onDuplicate) && (
-                    {/* fallow-ignore-next-line code-duplication -- task list keeps the same task actions as the card view by design */}
+                    /* fallow-ignore-next-line code-duplication -- task list keeps the same task actions as the card view by design */
                     <details onClick={(event) => event.stopPropagation()} className="relative">
                       <summary className="list-none cursor-pointer rounded-md p-1 hover:bg-accent"><IconDots className="size-4 text-muted-foreground" /></summary>
                       <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border bg-popover p-1.5 shadow-xl">
