@@ -236,7 +236,7 @@ function MembersSettings({
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{name}</p>
-                    <p className="text-xs text-muted-foreground">{item.role === "admin" ? "Project lead" : "Member"}</p>
+                    <p className="text-xs text-muted-foreground">{item.role === "admin" ? "Project admin" : "Member"}</p>
                   </div>
                 </div>
                 <button
