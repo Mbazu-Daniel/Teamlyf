@@ -67,9 +67,9 @@ export function ProjectDetailPage({ project, state, organizationId, organization
       </header>
       {showAddTask && section === "tasks" && (
         <form
-          onSubmit={(event) => {
-            state.createTask(event);
-            setShowAddTask(false);
+          onSubmit={async (event) => {
+            const created = await state.createTask(event);
+            if (created) setShowAddTask(false);
           }}
           className="flex shrink-0 items-center gap-2 border-b bg-muted/20 px-3 py-2.5"
         >
@@ -98,7 +98,7 @@ export function ProjectDetailPage({ project, state, organizationId, organization
         {section === "tasks" ? (
           <div className="h-full min-h-0 overflow-hidden p-3 md:p-4">
             {view === "kanban" ? (
-              <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
+              <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={(statusId) => { state.setStatusId(statusId); setShowAddTask(true); }} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
             ) : (
               <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
             )}
