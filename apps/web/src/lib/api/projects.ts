@@ -9,6 +9,7 @@ export type Project = {
   emoji: string | null;
   code?: string | null;
   image?: string | null;
+  coverImageURL?: string | null;
   status?: string | null;
   members?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
   leads?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
