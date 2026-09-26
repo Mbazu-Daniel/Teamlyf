@@ -85,7 +85,7 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
           </nav>
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
-            {tab === "general" && <GeneralSettings organizationId={organizationId} project={project} />}
+            {tab === "general" && <GeneralSettings organizationId={organizationId} organizationSlug={organizationSlug} project={project} />}
             {tab === "members" && <MembersSettings project={project} />}
             {tab === "states" && <WorkflowSettings organizationId={organizationId} projectId={project.id} />}
           </div>
@@ -95,7 +95,7 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
   );
 }
 
-function GeneralSettings({ organizationId, project }: { organizationId: string; project: Project }) {
+function GeneralSettings({ organizationId, organizationSlug, project }: { organizationId: string; organizationSlug: string; project: Project }) {
   const queryClient = useQueryClient();
   const [name, setName] = useState(project.name);
   const [identifier, setIdentifier] = useState(project.identifier);
@@ -161,7 +161,7 @@ function GeneralSettings({ organizationId, project }: { organizationId: string; 
         </div>
       </section>
 
-      <DangerZone organizationId={organizationId} organizationSlug={organizationId ? window.location.pathname.split("/")[1] ?? "" : ""} project={project} />
+      <DangerZone organizationId={organizationId} organizationSlug={organizationSlug} project={project} />
     </div>
   );
 }
