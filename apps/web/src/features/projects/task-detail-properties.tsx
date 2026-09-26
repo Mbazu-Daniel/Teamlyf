@@ -15,7 +15,7 @@ import type { TaskDetail } from "./use-task-detail";
 const PRIORITIES: readonly TaskPriority[] = ["urgent", "high", "medium", "low", "none"];
 
 type TaskPropertiesProps = {
-  task: TaskDetail;
+  organizationId: string;\n  task: TaskDetail;
   statuses: Status[];
   members: OrganizationMember[];
   membersLoading: boolean;
@@ -58,7 +58,7 @@ export function TaskProperties({
           <input id="task-target-date" type="date" value={toDateValue(task.targetDate)} onChange={(event) => { if (event.target.value) updateTask({ targetDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 py-2 text-sm" />
         </Field>
       </div>
-      <AssigneePicker organizationId={task.organizationId ?? ""} projectId={task.projectId} task={task} members={members} membersLoading={membersLoading} updateTask={updateTask} />
+      <AssigneePicker organizationId={organizationId} projectId={task.projectId} task={task} members={members} membersLoading={membersLoading} updateTask={updateTask} />
     </section>
   );
 }
