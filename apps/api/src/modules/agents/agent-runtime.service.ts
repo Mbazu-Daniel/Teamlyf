@@ -19,6 +19,7 @@ import {
   type AgentRuntimeState,
   type AgentRuntimeStore,
   type AgentSession,
+  type AgentToolName,
 } from "@teamlyf/agents";
 import { and, desc, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
@@ -320,6 +321,14 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
 
   async loadLatestCheckpoint(sessionId: string) {
     return this.repository.loadLatestCheckpoint(sessionId);
+  }
+
+  async loadAllowedTools(session: AgentSession): Promise<AgentToolName[]> {
+    return this.repository.loadAllowedTools(session.organizationId, session.memberId, session.agentId) as Promise<AgentToolName[]>;
+  }
+
+  async persistAllowedTool(session: AgentSession, tool: AgentToolName): Promise<void> {
+    await this.repository.allowTool(session.organizationId, session.memberId, session.agentId, tool);
   }
 }
 
