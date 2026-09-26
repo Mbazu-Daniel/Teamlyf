@@ -20,6 +20,8 @@ import {
   type AgentRuntimeStore,
   type AgentSession,
   type AgentToolName,
+  type WorkspaceCommandRunner,
+  type WorkspaceHandle,
 } from "@teamlyf/agents";
 import { and, desc, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
@@ -54,7 +56,7 @@ export class AgentRuntimeService {
     try {
       const status = await runtime.sendMessage(runId, message);
       await this.db.update(agentRun).set({
-        status,
+        status: status === "interrupted" ? "cancelled" : status,
         completedAt: status === "completed" ? new Date() : undefined,
         updatedAt: new Date(),
       }).where(and(eq(agentRun.id, runId), eq(agentRun.organizationId, organizationId)));
@@ -332,8 +334,8 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
   }
 }
 
-class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").WorkspaceCommandRunner {
-  private readonly started = new Map<string, import("@teamlyf/agents").WorkspaceHandle>();
+class SandboxWorkspaceCommandRunner implements WorkspaceCommandRunner {
+  private readonly started = new Map<string, WorkspaceHandle>();
 
   constructor(
     private readonly sandbox: DockerAgentSandbox,
@@ -348,7 +350,7 @@ class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").Workspa
   }
 
   async run(
-    workspace: import("@teamlyf/agents").WorkspaceHandle,
+    workspace: WorkspaceHandle,
     command: string,
     args: readonly string[] = [],
     options: { timeoutMs?: number; maxOutputBytes?: number } = {},
