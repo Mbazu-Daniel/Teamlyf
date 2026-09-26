@@ -16,6 +16,7 @@ type Message = {
   content: string;
   senderId?: string | null;
   senderKind?: string;
+  sender?: { id: string; firstName: string | null; lastName: string | null } | null;
   createdAt: string;
   updatedAt?: string;
   threadRootId?: string | null;
@@ -205,9 +206,9 @@ export function ChatPage() {
                         {visibleMessages.map((message) => (
                           <article key={message.id} className="group relative rounded-lg px-2 py-2 hover:bg-muted/50">
                             <div className="flex gap-3">
-                              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">{initials(message.senderId ?? "tm")}</div>
+                              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">{message.sender ? `${message.sender.firstName?.[0] ?? ""}${message.sender.lastName?.[0] ?? ""}`.toUpperCase() || "TM" : initials(message.senderId ?? "tm")}</div>
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-baseline gap-2"><span className="text-xs font-semibold">{message.senderId ? initials(message.senderId) : "Team member"}</span><time className="text-[10px] text-muted-foreground">{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>
+                                <div className="flex items-baseline gap-2"><span className="text-xs font-semibold">{message.sender ? `${message.sender.firstName ?? ""} ${message.sender.lastName ?? ""}`.trim() || "Team member" : "Team member"}</span><time className="text-[10px] text-muted-foreground">{new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time></div>
                                 <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">{message.content}</p>
                                 <div className="mt-1.5 flex items-center gap-1.5">
                                   {["👍", "❤️", "😂"].map((emoji) => {
