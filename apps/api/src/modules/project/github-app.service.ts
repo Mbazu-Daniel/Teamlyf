@@ -55,6 +55,36 @@ export class GithubAppService {
     return token.token;
   }
 
+  async getRepository(installationId: string, repositoryFullName: string): Promise<{ id: number; fullName: string; defaultBranch: string }> {
+    const token = await this.getInstallationToken(installationId);
+    const response = await fetch(
+      `https://api.github.com/repos/${repositoryFullName}`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new ServiceUnavailableException(
+        `GitHub repository access failed (${response.status})`,
+      );
+    }
+
+    const body = (await response.json()) as {
+      id?: number;
+      full_name?: string;
+      default_branch?: string;
+    };
+    if (!body.id || !body.full_name || !body.default_branch) {
+      throw new ServiceUnavailableException("GitHub returned an invalid repository");
+    }
+    return { id: body.id, fullName: body.full_name, defaultBranch: body.default_branch };
+  }
+
   private createAppJwt(appId: number, privateKey: string): string {
     const now = Math.floor(Date.now() / 1000);
     const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
