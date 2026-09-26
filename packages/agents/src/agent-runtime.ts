@@ -1,12 +1,5 @@
 import { AgentLoop } from "./agent-loop";
-import type {
-  AgentEvent,
-  AgentModel,
-  AgentPermissionDecision,
-  AgentRuntimeState,
-  AgentSession,
-  AgentToolExecutor,
-} from "./contracts";
+import type { AgentEvent, AgentPermissionDecision, AgentSession } from "./contracts";
 import type { AgentModel, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
