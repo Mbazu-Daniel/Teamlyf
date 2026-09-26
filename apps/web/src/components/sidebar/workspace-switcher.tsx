@@ -20,14 +20,14 @@ function organizationInitial(name: string) {
   return name.slice(0, 1).toUpperCase();
 }
 
-type OrganizationSwitcherProps = Readonly<{ collapsed: boolean }>;
+type WorkspaceSwitcherProps = Readonly<{ collapsed: boolean }>;
 
 /**
  * Shows the active organization and lists the member's other organizations.
  * Picking one persists it for the signed-in user, and OrganizationProvider restores
  * it on the next login without forcing the organization picker again.
  */
-export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
+export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
