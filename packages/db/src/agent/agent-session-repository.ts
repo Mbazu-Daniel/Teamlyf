@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import type { Database } from "../index";
 import { agentCheckpoint } from "./agent-checkpoint";
 import { agentEvent } from "./agent-event";
+import { agentPermissionPolicy } from "./agent-permission-policy";
 import { agentSession } from "./agent-session";
 
 export type AgentSessionRecord = {
@@ -99,5 +100,40 @@ export class AgentSessionRepository {
       payload: event.payload,
       createdAt: event.createdAt,
     });
+  }
+
+  async loadAllowedTools(
+    organizationId: string,
+    memberId: string,
+    agentId: string,
+  ): Promise<string[]> {
+    const rows = await this.db
+      .select({ tool: agentPermissionPolicy.tool })
+      .from(agentPermissionPolicy)
+      .where(
+        eq(agentPermissionPolicy.organizationId, organizationId),
+      );
+
+    return rows.map((row) => row.tool);
+  }
+
+  async allowTool(
+    organizationId: string,
+    memberId: string,
+    agentId: string,
+    tool: string,
+  ): Promise<void> {
+    await this.db
+      .insert(agentPermissionPolicy)
+      .values({ organizationId, memberId, agentId, tool, effect: "allow" })
+      .onConflictDoUpdate({
+        target: [
+          agentPermissionPolicy.organizationId,
+          agentPermissionPolicy.memberId,
+          agentPermissionPolicy.agentId,
+          agentPermissionPolicy.tool,
+        ],
+        set: { effect: "allow", updatedAt: new Date() },
+      });
   }
 }
