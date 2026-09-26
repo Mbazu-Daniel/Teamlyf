@@ -6,11 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { SessionGuard } from "../../common/better-auth/session.guard";\nimport { CurrentMember } from "../rbac";\nimport type { SessionMember } from "../../common/types";
-import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
+import { SessionGuard } from "../../common/better-auth/session.guard";
+import type { SessionMember } from "../../common/types";
+import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
 import { ConnectGithubRepositoryDto, CreateProjectDto, UpdateProjectDto } from "./dto";
 import { ProjectService } from "./project.service";
 
@@ -58,7 +60,6 @@ export class ProjectController {
   ) {
     return this.projectService.updateProject(orgId, projectId, body);
   }
-
 
   @Get(":projectId/integrations/github")
   @RequirePermission("pm", "read", "projectId")
