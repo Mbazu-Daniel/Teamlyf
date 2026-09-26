@@ -33,7 +33,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       session,
       messages: [],
       checkpoints: [],
-      allowedTools: [],
+      allowedTools: await this.store?.loadAllowedTools?.(session) ?? [],
       interrupted: false,
     };
 
@@ -52,6 +52,9 @@ export class InMemoryAgentRuntime implements AgentRuntime {
         const checkpoint = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (checkpoint) await this.store?.createCheckpoint(checkpoint);
       },
+      persistPermission: async (tool) => {
+        await this.store?.persistAllowedTool?.(session, tool);
+      },
     });
 
     this.entries.set(session.runId, { state, loop });
@@ -62,16 +65,17 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     if (this.entries.has(session.runId)) return;
 
     const checkpoint = await this.store?.loadLatestCheckpoint?.(session.id);
+    const persistedAllowedTools = await this.store?.loadAllowedTools?.(session) ?? [];
     const state: AgentRuntimeState = checkpoint
       ? {
           session,
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
           pendingPermission: isPendingPermission(checkpoint.state.pendingPermission) ? checkpoint.state.pendingPermission : undefined,
-          allowedTools: isAllowedTools(checkpoint.state.allowedTools),
+          allowedTools: mergeAllowedTools(isAllowedTools(checkpoint.state.allowedTools), persistedAllowedTools),
           interrupted: false,
         }
-      : { session, messages: [], checkpoints: [], allowedTools: [], interrupted: false };
+      : { session, messages: [], checkpoints: [], allowedTools: persistedAllowedTools, interrupted: false };
 
     const emit = async (event: AgentEvent): Promise<void> => {
       await this.store?.appendEvent(event);
@@ -88,6 +92,9 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       checkpoint: async (nextState) => {
         const latest = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (latest) await this.store?.createCheckpoint(latest);
+      },
+      persistPermission: async (tool) => {
+        await this.store?.persistAllowedTool?.(session, tool);
       },
     });
 
@@ -171,6 +178,13 @@ function isAllowedTools(value: unknown): AgentRuntimeState["allowedTools"] {
     (tool): tool is AgentRuntimeState["allowedTools"][number] =>
       typeof tool === "string" && agentToolNames.includes(tool as AgentRuntimeState["allowedTools"][number]),
   );
+}
+
+function mergeAllowedTools(
+  checkpointTools: AgentRuntimeState["allowedTools"],
+  persistedTools: AgentRuntimeState["allowedTools"],
+): AgentRuntimeState["allowedTools"] {
+  return [...new Set([...checkpointTools, ...persistedTools])];
 }
 
 function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
