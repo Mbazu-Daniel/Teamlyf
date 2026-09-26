@@ -126,7 +126,7 @@ export class ChatService {
       orderBy: (table, { desc }) => [desc(table.createdAt)],
       limit: 100,
     });
-    return this.withReactions(rows.reverse());
+    return this.withMessageMetadata(rows.reverse(), organizationId);
   }
 
   async thread(organizationId: string, channelId: string, messageId: string, memberId: string, cursor?: string) {
@@ -134,7 +134,7 @@ export class ChatService {
     const root = await this.findThreadRoot(channelId, messageId);
     const cursorDate = this.parseThreadCursor(cursor);
     const rows = await this.findThreadMessages(channelId, messageId, cursorDate);
-    return this.withReactions([root, ...rows.reverse()]);
+    return this.withMessageMetadata([root, ...rows.reverse()], organizationId);
   }
 
   private async findThreadRoot(channelId: string, messageId: string) {
@@ -265,7 +265,7 @@ export class ChatService {
       orderBy: (table, { desc }) => [desc(table.createdAt)],
       limit: 50,
     });
-    return this.withReactions(rows);
+    return this.withMessageMetadata(rows, organizationId);
   }
 
   private async requireChannelMessage(channelId: string, messageId: string) {
@@ -315,12 +315,35 @@ export class ChatService {
     if (rows.length !== memberIds.length) throw new ForbiddenException("All channel members must belong to this organization");
   }
 
-  private async withReactions<T extends typeof message.$inferSelect>(rows: T[]) {
-    const reactions = rows.length
-      ? await this.db.query.messageReaction.findMany({ where: inArray(messageReaction.messageId, rows.map((row) => row.id)) })
-      : [];
-    const reactionsByMessage = new Map(reactions.map((reaction) => [reaction.messageId, [] as typeof reactions]));
-    for (const reaction of reactions) reactionsByMessage.get(reaction.messageId)?.push(reaction);
-    return rows.map((row) => ({ ...row, reactions: reactionsByMessage.get(row.id) ?? [] }));
+  private async withMessageMetadata<T extends typeof message.$inferSelect>(rows: T[], organizationId: string) {
+    if (!rows.length) return [];
+
+    const [reactions, members] = await Promise.all([
+      this.db.query.messageReaction.findMany({
+        where: inArray(messageReaction.messageId, rows.map((row) => row.id)),
+      }),
+      this.db.query.member.findMany({
+        where: and(
+          eq(member.organizationId, organizationId),
+          inArray(member.id, rows.map((row) => row.senderId).filter((id): id is string => Boolean(id))),
+        ),
+        columns: { id: true, firstName: true, lastName: true },
+      }),
+    ]);
+
+    const reactionsByMessage = new Map<string, typeof reactions>();
+    for (const reaction of reactions) {
+      const list = reactionsByMessage.get(reaction.messageId) ?? [];
+      list.push(reaction);
+      reactionsByMessage.set(reaction.messageId, list);
+    }
+
+    const membersById = new Map(members.map((item) => [item.id, item]));
+
+    return rows.map((row) => ({
+      ...row,
+      sender: row.senderId ? membersById.get(row.senderId) ?? null : null,
+      reactions: reactionsByMessage.get(row.id) ?? [],
+    }));
   }
 }
