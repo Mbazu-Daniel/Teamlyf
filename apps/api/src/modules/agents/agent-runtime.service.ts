@@ -218,7 +218,7 @@ export class AgentRuntimeService {
 class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
   constructor(
     private readonly repository: AgentSessionRepository,
-    private readonly sessionId: string,
+    private readonly organizationId: string,
   ) {}
 
   async createSession(): Promise<void> {}
@@ -242,44 +242,11 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
     });
   }
 
-  async createCheckpoint(checkpoint: AgentCheckpoint) {
-    id: string;
-    organizationId: string;
-    sessionId: string;
-    sequence: number;
-    reason: "tool" | "message" | "manual";
-    state: Record<string, unknown>;
-    createdAt: Date;
-  }): Promise<void> {
+  async createCheckpoint(checkpoint: AgentCheckpoint): Promise<void> {
     await this.repository.createCheckpoint(checkpoint);
   }
 
   async loadLatestCheckpoint(sessionId: string) {
     return this.repository.loadLatestCheckpoint(sessionId);
   }
-}
-
-function cryptoRandomUuid(): string {
-  return globalThis.crypto?.randomUUID?.() ?? require("node:crypto").randomUUID();
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isContextType(value: unknown): value is AgentSession["context"]["type"] {
-  return ["organization","project","task","chat","document","note","hr","call","custom"].includes(String(value));
-}
-
-function inferContextType(input: Record<string, unknown>): AgentSession["context"]["type"] {
-  if (typeof input.taskId === "string") return "task";
-  if (typeof input.projectId === "string") return "project";
-  if (typeof input.channelId === "string") return "chat";
-  if (typeof input.documentId === "string") return "document";
-  if (typeof input.noteId === "string") return "note";
-  return "organization";
-}
-
-function isWorkspace(value: Record<string, unknown>): value is AgentSession["workspace"] {
-  return ["repository","baseBranch","workingBranch","root"].every((key) => typeof value[key] === "string");
 }
