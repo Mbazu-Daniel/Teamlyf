@@ -20,6 +20,7 @@ export function TaskCard({ task, statuses, onMove, onSelect, onDelete, onDuplica
           {task.description && <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">{task.description}</p>}
         </button>
         {(onDelete || onDuplicate) && (
+          {/* fallow-ignore-next-line code-duplication -- task card keeps the same task actions as the list view by design */}
           <details className="relative shrink-0">
             <summary className="list-none cursor-pointer rounded-md p-1 hover:bg-accent"><IconDots className="size-4 text-muted-foreground" /></summary>
             <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border bg-popover p-1.5 shadow-xl">
