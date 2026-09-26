@@ -28,6 +28,19 @@ type ToolAccumulator = {
   arguments: string;
 };
 
+type OpenAIStreamChunk = {
+  choices?: Array<{
+    delta?: {
+      content?: string | null;
+      tool_calls?: Array<{
+        index: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }>;
+    };
+  }>;
+};
+
 export class OpenAIChatModel implements AgentModel {
   private readonly options: Required<Pick<OpenAIChatModelOptions, "apiKey" | "model" | "baseUrl">> &
     Pick<OpenAIChatModelOptions, "systemPrompt" | "signal">;
@@ -83,6 +96,12 @@ export class OpenAIChatModel implements AgentModel {
     const accumulators = new Map<number, ToolAccumulator>();
     let buffer = "";
 
+    const processLine = (line: string): OpenAIStreamChunk | null => {
+      const data = line.startsWith("data:") ? line.slice(5).trim() : "";
+      if (!data || data === "[DONE]") return null;
+      return JSON.parse(data) as OpenAIStreamChunk;
+    };
+
     try {
       while (true) {
         const { done, value } = await reader.read();
@@ -93,21 +112,9 @@ export class OpenAIChatModel implements AgentModel {
         buffer = lines.pop() ?? "";
 
         for (const line of lines) {
-          const data = line.startsWith("data:") ? line.slice(5).trim() : "";
-          if (!data || data === "[DONE]") continue;
+          const parsed = processLine(line);
+          if (!parsed) continue;
 
-          const parsed = JSON.parse(data) as {
-            choices?: Array<{
-              delta?: {
-                content?: string | null;
-                tool_calls?: Array<{
-                  index: number;
-                  id?: string;
-                  function?: { name?: string; arguments?: string };
-                }>;
-              };
-            }>;
-          };
           const delta = parsed.choices?.[0]?.delta;
           if (!delta) continue;
 
@@ -128,13 +135,23 @@ export class OpenAIChatModel implements AgentModel {
       }
 
       buffer += decoder.decode();
-      const finalLine = buffer.startsWith("data:") ? buffer.slice(5).trim() : "";
-      if (finalLine && finalLine !== "[DONE]") {
-        const parsed = JSON.parse(finalLine) as {
-          choices?: Array<{ delta?: { content?: string | null } }>;
-        };
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (content) yield { type: "text", text: content };
+      if (buffer.trim()) {
+        const parsed = processLine(buffer.trim());
+        if (parsed) {
+          const delta = parsed.choices?.[0]?.delta;
+          if (delta?.content) yield { type: "text", text: delta.content };
+          for (const call of delta?.tool_calls ?? []) {
+            const current = accumulators.get(call.index) ?? {
+              id: call.id ?? "",
+              name: "",
+              arguments: "",
+            };
+            if (call.id) current.id = call.id;
+            if (call.function?.name) current.name += call.function.name;
+            if (call.function?.arguments) current.arguments += call.function.arguments;
+            accumulators.set(call.index, current);
+          }
+        }
       }
     } finally {
       reader.releaseLock();
