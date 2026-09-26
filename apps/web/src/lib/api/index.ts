@@ -12,3 +12,4 @@ export * from "./milestones";
 export * from "./comments";
 export * from "./task-activity";
 export * from "./notes";
+export * from "./direct-messages";
