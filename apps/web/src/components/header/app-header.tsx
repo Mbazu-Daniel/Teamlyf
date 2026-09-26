@@ -31,11 +31,7 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
           <ol className="flex min-w-0 items-center gap-1.5 text-sm">
             {crumbs.map((crumb, index) => (
               <li key={crumb.to} className="flex min-w-0 items-center gap-1.5">
-                {index > 0 && (
-                  <span className="text-muted-foreground/60" aria-hidden="true">
-                    /
-                  </span>
-                )}
+                {index > 0 && <span className="text-muted-foreground/60" aria-hidden="true">/</span>}
                 <span className="truncate font-bold" aria-current={index === crumbs.length - 1 ? "page" : undefined}>
                   {crumb.label}
                 </span>
@@ -45,7 +41,7 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
         )}
       </nav>
 
-      <UserFooter collapsed={false} />
+      <UserFooter collapsed={false} compact />
     </header>
   );
 }
