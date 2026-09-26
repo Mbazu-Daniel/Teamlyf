@@ -1,5 +1,5 @@
 import { AgentLoop } from "./agent-loop";
-import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentSession } from "./contracts";
+import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentSession } from "./contracts";
 import type { AgentModel, AgentResumeStatus, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
@@ -33,7 +33,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       session,
       messages: [],
       checkpoints: [],
-      allowedTools: [],
+      allowedTools: await this.store?.loadAllowedTools?.(session) ?? [],
       interrupted: false,
     };
 
@@ -52,6 +52,9 @@ export class InMemoryAgentRuntime implements AgentRuntime {
         const checkpoint = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (checkpoint) await this.store?.createCheckpoint(checkpoint);
       },
+      persistPermission: async (tool) => {
+        await this.store?.persistAllowedTool?.(session, tool);
+      },
     });
 
     this.entries.set(session.runId, { state, loop });
@@ -62,16 +65,19 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     if (this.entries.has(session.runId)) return;
 
     const checkpoint = await this.store?.loadLatestCheckpoint?.(session.id);
+    const persistedAllowedTools = await this.store?.loadAllowedTools?.(session) ?? [];
     const state: AgentRuntimeState = checkpoint
       ? {
           session,
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
-          pendingPermission: isPendingPermission(checkpoint.state.pendingPermission) ? checkpoint.state.pendingPermission : undefined,
-          allowedTools: isAllowedTools(checkpoint.state.allowedTools),
+          ...(isPendingPermission(checkpoint.state.pendingPermission)
+            ? { pendingPermission: checkpoint.state.pendingPermission as AgentPermissionRequest }
+            : {}),
+          allowedTools: mergeAllowedTools(isAllowedTools(checkpoint.state.allowedTools), persistedAllowedTools),
           interrupted: false,
         }
-      : { session, messages: [], checkpoints: [], allowedTools: [], interrupted: false };
+      : { session, messages: [], checkpoints: [], allowedTools: persistedAllowedTools, interrupted: false };
 
     const emit = async (event: AgentEvent): Promise<void> => {
       await this.store?.appendEvent(event);
@@ -88,6 +94,9 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       checkpoint: async (nextState) => {
         const latest = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (latest) await this.store?.createCheckpoint(latest);
+      },
+      persistPermission: async (tool) => {
+        await this.store?.persistAllowedTool?.(session, tool);
       },
     });
 
@@ -173,7 +182,14 @@ function isAllowedTools(value: unknown): AgentRuntimeState["allowedTools"] {
   );
 }
 
-function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
+function mergeAllowedTools(
+  checkpointTools: AgentRuntimeState["allowedTools"],
+  persistedTools: AgentRuntimeState["allowedTools"],
+): AgentRuntimeState["allowedTools"] {
+  return [...new Set([...checkpointTools, ...persistedTools])];
+}
+
+function isPendingPermission(value: unknown): AgentPermissionRequest | undefined {
   const parsed = agentPermissionSchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 }

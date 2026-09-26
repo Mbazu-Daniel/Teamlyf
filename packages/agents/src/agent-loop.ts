@@ -12,6 +12,7 @@ export type AgentLoopOptions = {
     state: AgentRuntimeState,
     reason: AgentRuntimeState["checkpoints"][number]["reason"],
   ) => Promise<void>;
+  persistPermission?: (tool: AgentPermissionRequest["tool"]) => Promise<void>;
   initialSequence?: number;
 };
 
@@ -213,6 +214,7 @@ export class AgentLoop {
         (tool): tool is import("./contracts").AgentToolName =>
           agentToolNames.includes(tool as import("./contracts").AgentToolName),
       );
+      await this.options.persistPermission?.(request.tool);
     }
   }
 
