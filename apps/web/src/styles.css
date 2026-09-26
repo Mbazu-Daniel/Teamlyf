@@ -1,32 +1,20 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5
- * genre: modern-minimal · macrostructure: Layered Hero -> Workbench
- * theme: custom dark — tokens unchanged (brand violet #7c3aed / magenta #bc23d7 / lime #85d209 at 500)
- * nav: app-topbar bar (full-width frosted chrome, same surface as the signed-in header) · footer: Ft2 Inline rule single line
- * studied: yes · DNA-source: image (user reference) — centred hero over a floating card
- *   collage, eyebrow-opened sections, ink pill with an embedded circular arrow badge
- * enrichment: tier-A CSS art (no real screenshots yet) — hero collage + showcase mocks
- * motion: stagger reveal (page load) · auth-panel motion · ink-pill hover lift · crisp-card lift
- *   (4 primitives, reduced-motion guarded)
- * honesty: no fabricated logos, metrics, prices, or integrations — the feature grid lists the
- *   seven modules that actually ship, and every link resolves to a real route
- * inferred at the design gate ("go ahead"): audience = teams/SaaS buyers · use = drive sign-ups · tone = dark modern-minimal
- */
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
   color-scheme: dark;
   --radius: 0.75rem;
+  --font-sans: "Ubuntu", system-ui, sans-serif;
+  --font-heading: "Ubuntu", system-ui, sans-serif;
+  --font-body: "Ubuntu", system-ui, sans-serif;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-micro: 120ms;
   --dur-short: 220ms;
   --dur-long: 420ms;
 
-  /* text — 50 lightest → 950 darkest, cool violet-tinted neutrals */
   --text-50: oklch(0.97 0.004 280);
   --text-100: oklch(0.925 0.005 280);
   --text-200: oklch(0.845 0.006 280);
@@ -39,7 +27,6 @@
   --text-900: oklch(0.17 0.01 280);
   --text-950: oklch(0.11 0.01 280);
 
-  /* background — dark surfaces, elevation gets lighter not darker */
   --background-50: oklch(0.975 0.003 280);
   --background-100: oklch(0.935 0.004 280);
   --background-200: oklch(0.87 0.005 280);
@@ -52,7 +39,6 @@
   --background-900: oklch(0.175 0.012 280);
   --background-950: oklch(0.135 0.012 280);
 
-  /* primary — brand violet */
   --primary-50: oklch(0.968 0.02 293);
   --primary-100: oklch(0.93 0.05 293);
   --primary-200: oklch(0.862 0.095 293);
@@ -65,7 +51,6 @@
   --primary-900: oklch(0.29 0.118 293);
   --primary-950: oklch(0.21 0.085 293);
 
-  /* secondary — vivid magenta */
   --secondary-50: oklch(0.968 0.022 322);
   --secondary-100: oklch(0.93 0.052 322);
   --secondary-200: oklch(0.86 0.105 322);
@@ -78,7 +63,6 @@
   --secondary-900: oklch(0.3 0.13 322);
   --secondary-950: oklch(0.22 0.095 322);
 
-  /* accent — lime */
   --accent-50: oklch(0.972 0.03 128);
   --accent-100: oklch(0.94 0.062 128);
   --accent-200: oklch(0.892 0.112 128);
@@ -91,7 +75,6 @@
   --accent-900: oklch(0.41 0.105 134);
   --accent-950: oklch(0.3 0.078 135);
 
-  /* semantic tokens — map onto the ramps above */
   --background: var(--background-950);
   --foreground: var(--text-100);
   --card: var(--background-900);
@@ -118,7 +101,6 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* user fontSize scale — 1.333 modular */
   --text-sm: 0.75rem;
   --text-base: 1rem;
   --text-xl: 1.333rem;
@@ -128,18 +110,16 @@
   --text-5xl: 4.21rem;
   --text-6xl: 5.611rem;
 
-  /* user fontFamily — Mirza */
-  --font-sans: "Mirza", system-ui, sans-serif;
-  --font-heading: "Mirza", system-ui, sans-serif;
-  --font-body: "Mirza", system-ui, sans-serif;
+  --font-sans: "Ubuntu", system-ui, sans-serif;
+  --font-heading: "Ubuntu", system-ui, sans-serif;
+  --font-body: "Ubuntu", system-ui, sans-serif;
 
-  /* semantic */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+  --color-popover-foreground: var(--text-100);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -153,7 +133,6 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* raw ramps */
   --color-text-50: var(--text-50);
   --color-text-100: var(--text-100);
   --color-text-200: var(--text-200);
@@ -214,7 +193,6 @@
   --color-accent-900: var(--accent-900);
   --color-accent-950: var(--accent-950);
 
-  /* One shadow scale, one ink (black). On dark, elevation = lighter surface + soft drop. */
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
   --shadow-sm: 0 2px 6px -2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 12px 30px -24px rgb(0 0 0 / 0.75);
@@ -227,12 +205,16 @@
   body {
     overflow-x: clip;
   }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background font-body text-foreground antialiased;
+    font-family: "Ubuntu", system-ui, sans-serif;
   }
+
   h1,
   h2,
   h3 {
@@ -244,12 +226,7 @@
   }
 }
 
-/*
- * Shared surfaces. Every panel uses one of these instead of a hand-rolled
- * `rounded-2xl border bg-card` — that repetition is what reads as clutter.
- */
 @layer components {
-  /* Panel: the one containment layer per view. */
   .app-card {
     border-radius: calc(var(--radius) + 4px);
     border: 1px solid var(--border);
@@ -257,7 +234,6 @@
     box-shadow: var(--shadow-md);
   }
 
-  /* Frosted chrome: top bar and any sticky strip. */
   .app-topbar {
     background: color-mix(in oklab, var(--background) 82%, transparent);
     backdrop-filter: blur(18px);
@@ -265,27 +241,20 @@
     box-shadow: var(--shadow-sm);
   }
 
-  /* Quiet hover lift for repeatable tiles (pricing, metric, project cards). */
   .crisp-card {
-    transition:
-      transform var(--dur-short) var(--ease-out),
-      border-color var(--dur-short) var(--ease-out);
+    transition: transform var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
   }
+
   .crisp-card:hover {
     transform: translateY(-2px);
     border-color: color-mix(in oklab, var(--border) 60%, var(--primary-400));
   }
 
-  /* Dashed empty state — guides the next action instead of showing a blank box. */
   .empty-state {
     border: 1px dashed var(--border);
     background: color-mix(in oklab, var(--background-900) 60%, transparent);
   }
 
-  /*
-   * Landing aurora — the page's one decorative layer. Brand hues only, masked
-   * to nothing at the bottom so it reads as light on the page, never as a band.
-   */
   .aurora {
     position: absolute;
     inset-inline: 0;
@@ -293,55 +262,33 @@
     height: 44rem;
     pointer-events: none;
     background:
-      radial-gradient(
-        40% 52% at 50% 4%,
-        color-mix(in oklab, var(--primary-500) 30%, transparent),
-        transparent 68%
-      ),
-      radial-gradient(
-        34% 44% at 20% 26%,
-        color-mix(in oklab, var(--secondary-500) 18%, transparent),
-        transparent 72%
-      ),
-      radial-gradient(
-        32% 40% at 80% 22%,
-        color-mix(in oklab, var(--accent-500) 12%, transparent),
-        transparent 74%
-      );
+      radial-gradient(40% 52% at 50% 4%, color-mix(in oklab, var(--primary-500) 30%, transparent), transparent 68%),
+      radial-gradient(34% 44% at 20% 26%, color-mix(in oklab, var(--secondary-500) 18%, transparent), transparent 72%),
+      radial-gradient(32% 40% at 80% 22%, color-mix(in oklab, var(--accent-500) 12%, transparent), transparent 74%);
     mask-image: linear-gradient(to bottom, black 40%, transparent 94%);
     -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 94%);
   }
 }
 
-/* one orchestrated entrance — page load only */
 .reveal {
   opacity: 0;
   animation: reveal var(--dur-long) var(--ease-out) forwards;
 }
+
 @keyframes reveal {
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  to { opacity: 1; transform: none; }
 }
+
 .reveal-y {
   transform: translateY(8px);
 }
 
-/*
- * Auth panel motion — the only moving parts on the auth screens. The briefcase
- * drifts, its glow breathes, and the promise line under it hands over to the
- * next one; all three run on long slow cycles so the form beside them stays the
- * calmest thing on the page. `translate`/`scale`/`opacity` only, and the
- * reduced-motion guard below stops them instead of shortening them.
- */
 .auth-float {
   animation: auth-float 7s ease-in-out infinite alternate;
 }
+
 @keyframes auth-float {
-  to {
-    translate: 0 -10px;
-  }
+  to { translate: 0 -10px; }
 }
 
 .auth-aura {
@@ -352,86 +299,51 @@
   height: 24rem;
   translate: -50% -55%;
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--primary-500) 30%, transparent),
-    transparent 70%
-  );
+  background: radial-gradient(circle, color-mix(in oklab, var(--primary-500) 30%, transparent), transparent 70%);
   pointer-events: none;
   animation: auth-aura 9s ease-in-out infinite alternate;
 }
+
 @keyframes auth-aura {
-  from {
-    opacity: 0.45;
-    scale: 0.95;
-  }
-  to {
-    opacity: 1;
-    scale: 1.06;
-  }
+  from { opacity: 0.45; scale: 0.95; }
+  to { opacity: 1; scale: 1.06; }
 }
 
-/*
- * One promise line at a time. All three share a single grid cell, so the panel
- * never reflows as they swap; each holds for ~3.5s and hands over with a short
- * fade and a 6px rise. The line is visible by default and only the animation
- * hides it, so reduced-motion readers and engines without animations get one
- * sentence rather than a blank panel.
- */
 .auth-rotator {
   display: grid;
 }
+
 .auth-line {
   grid-area: 1 / 1;
   opacity: 0;
   animation: auth-line 12s ease-in-out infinite;
 }
-.auth-line:first-child {
-  opacity: 1;
-}
-.auth-line:nth-child(2) {
-  animation-delay: -8s;
-}
-.auth-line:nth-child(3) {
-  animation-delay: -4s;
-}
+
+.auth-line:first-child { opacity: 1; }
+.auth-line:nth-child(2) { animation-delay: -8s; }
+.auth-line:nth-child(3) { animation-delay: -4s; }
+
 @keyframes auth-line {
-  0% {
-    opacity: 0;
-    translate: 0 6px;
-  }
-  2% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  31% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  33.33% {
-    opacity: 0;
-    translate: 0 -6px;
-  }
-  100% {
-    opacity: 0;
-    translate: 0 6px;
-  }
+  0% { opacity: 0; translate: 0 6px; }
+  2% { opacity: 1; translate: 0 0; }
+  31% { opacity: 1; translate: 0 0; }
+  33.33% { opacity: 0; translate: 0 -6px; }
+  100% { opacity: 0; translate: 0 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 150ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 150ms !important;
   }
+
   .reveal {
     opacity: 1;
     transform: none;
     animation: none;
   }
-  /* Long-cycle ambience: hold the base frame instead of a 150ms twitch. */
+
   .auth-float,
   .auth-aura,
   .auth-line {
