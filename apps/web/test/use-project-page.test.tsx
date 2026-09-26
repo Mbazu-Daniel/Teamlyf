@@ -86,10 +86,12 @@ describe("useProjectPage", () => {
   it("createTask_whenSubmitted_postsTaskWithFirstStatus_andRefetchesTasks", async () => {
     const created: ProjectTask = {
       id: "task-2",
+      sequenceId: 2,
       name: "Write tests",
       description: null,
       priority: "none",
       statusId: todo.id,
+      startDate: null,
       targetDate: null,
     };
     const { fetchMock, queryClient, result } = await renderDetail({ createdTask: created });
