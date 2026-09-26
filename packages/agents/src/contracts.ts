@@ -29,7 +29,7 @@ export const agentEventTypes = [
 export type AgentEventType = (typeof agentEventTypes)[number];
 
 export const agentEventSchema = z.object({
-  id: z.string().min(1), runId: z.string().uuid(), type: z.enum(agentEventTypes),
+  id: z.string().min(1), sessionId: z.string().uuid(), runId: z.string().uuid(), type: z.enum(agentEventTypes),
   sequence: z.number().int().nonnegative(), payload: z.record(z.unknown()),
   createdAt: z.coerce.date(),
 });
@@ -51,7 +51,7 @@ export const agentWorkspaceSchema = z.object({
 export type AgentWorkspace = z.infer<typeof agentWorkspaceSchema>;
 
 export const agentSessionSchema = z.object({
-  runId: z.string().uuid(), agentId: z.string().uuid(), organizationId: z.string().uuid(),
+  id: z.string().uuid(), runId: z.string().uuid(), agentId: z.string().uuid(), organizationId: z.string().uuid(),
   memberId: z.string().uuid(), projectId: z.string().uuid(), taskId: z.string().uuid(),
   workspace: agentWorkspaceSchema,
 });
