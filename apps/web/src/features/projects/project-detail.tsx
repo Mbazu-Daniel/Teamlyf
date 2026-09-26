@@ -18,6 +18,7 @@ import { KanbanBoard } from "./board";
 import { MilestonesSection } from "./milestones";
 import { TaskDetailPanel } from "./task-detail-panel";
 import { TaskList } from "./task-list";
+import { cn } from "@/lib/utils";
 
 type ProjectPageState = Omit<ReturnType<typeof import("./hooks").useProjectPage>, "project">;
 
