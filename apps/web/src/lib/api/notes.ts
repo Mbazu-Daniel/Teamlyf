@@ -1,7 +1,6 @@
 import { client } from "./client";
 
-// fallow-ignore-next-line unused-export
-export type Note = {
+type Note = {
   id: string;
   title: string;
   content: string;
@@ -25,6 +24,5 @@ export const notesApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  remove: (organizationId: string, noteId: string) =>
-    client.request<void>(`/organization/${organizationId}/notes/${noteId}`, { method: "DELETE" }),
+  remove: (organizationId: string, noteId: string) => client.request<void>(`/organization/${organizationId}/notes/${noteId}`, { method: "DELETE" }),
 };
