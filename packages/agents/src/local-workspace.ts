@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { tmpdir } from "node:os";
 import { chmod, rm, writeFile } from "node:fs/promises";
 import {
   createWorkspaceRoot,
