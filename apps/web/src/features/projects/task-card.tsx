@@ -1,4 +1,5 @@
-import { IconCalendar, IconCopy, IconDots, IconFlag, IconPin, IconTarget, IconTrash } from "@tabler/icons-react";
+import { IconCalendar, IconFlag, IconTarget } from "@tabler/icons-react";
+import { TaskActionsMenu } from "./task-actions-menu";
 import type { ProjectTask, Status } from "@/lib/api";
 
 const priorityTone: Record<string, string> = { urgent: "text-destructive", high: "text-orange-500", medium: "text-amber-500", low: "text-blue-500", none: "text-muted-foreground" };
@@ -19,20 +20,7 @@ export function TaskCard({ task, statuses, onMove, onSelect, onDelete, onDuplica
           <h3 className="mt-1 line-clamp-2 text-sm font-medium leading-snug">{task.name}</h3>
           {task.description && <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">{task.description}</p>}
         </button>
-        {(onDelete || onDuplicate) && (
-          /* fallow-ignore-next-line code-duplication -- task card keeps the same task actions as the list view by design */
-          <details className="relative shrink-0">
-            <summary className="list-none cursor-pointer rounded-md p-1 hover:bg-accent"><IconDots className="size-4 text-muted-foreground" /></summary>
-            <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border bg-popover p-1.5 shadow-xl">
-              <button type="button" onClick={() => onSelect(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">Edit</button>
-              {onDuplicate && <button type="button" onClick={() => onDuplicate(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconCopy className="size-3.5" />Duplicate</button>}
-              <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">Convert to subtask</button>
-              <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconPin className="size-3.5" />Pin task to dashboard</button>
-              <div className="my-1 border-t" />
-              <button type="button" onClick={() => onDelete?.(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-destructive hover:bg-destructive/10"><IconTrash className="size-3.5" />Delete</button>
-            </div>
-          </details>
-        )}
+        {(onDelete || onDuplicate) && <TaskActionsMenu task={task} onEdit={onSelect} onDelete={onDelete} onDuplicate={onDuplicate} />}
       </div>
       <div className="mt-3 flex min-h-7 flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
         <span className={`inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 font-medium ${priorityTone[task.priority] ?? priorityTone.none}`}><IconFlag className="size-3" />{task.priority}</span>
