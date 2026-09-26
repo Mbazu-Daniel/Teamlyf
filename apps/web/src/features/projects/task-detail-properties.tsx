@@ -96,12 +96,6 @@ function AssigneePicker({
     refetchInterval: 5000,
     retry: false,
   });
-  const activeRuns = agentRuns.filter((run) => {
-    if (run.status !== "queued" && run.status !== "running") return false;
-    const input = run.input;
-    return typeof input === "object" && input !== null && "taskId" in input && input.taskId === task.id;
-  });
-
   const assignedMembers = new Set(
     task.taskAssignees.flatMap((row) => row.kind === "member" && row.memberId ? [row.memberId] : []),
   );
