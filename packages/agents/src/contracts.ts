@@ -104,6 +104,7 @@ export type AgentMessage =
 
 export type AgentCheckpoint = {
   id: string;
+  organizationId: string;
   sessionId: string;
   sequence: number;
   reason: "tool" | "message" | "manual";
