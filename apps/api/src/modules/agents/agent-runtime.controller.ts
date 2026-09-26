@@ -1,7 +1,7 @@
 import { Body, Controller, Param, Post, Sse, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import type { MessageEvent } from "rxjs";
-import { map } from "rxjs/operators";
+import { from, type MessageEvent } from "rxjs";
+import { map, switchMap } from "rxjs/operators";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
 import type { SessionMember } from "../../common/types";
