@@ -139,6 +139,7 @@ export function TasksPage() {
     setCreating(true);
   }
 
+  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- form validation is intentionally kept next to the task creation mutation
   function createTask() {
     if (!organizationId || !projectId || !taskName.trim() || !(taskStatusId || statuses[0]?.id)) return;
     createTaskMutation.mutate();
