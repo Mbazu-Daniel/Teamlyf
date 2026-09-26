@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { project, status } from "@teamlyf/db/project-schema";
+import { project, projectRepository, status } from "@teamlyf/db/project-schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { ProjectAccessService } from "./project-access.service";
-import type { CreateProjectDto, UpdateProjectDto } from "./dto";
+import type { ConnectGithubRepositoryDto, CreateProjectDto, UpdateProjectDto } from "./dto";
 
 const DEFAULT_STATUSES = [
   { name: "Backlog", color: "#60646C", group: "backlog", sequence: 15000, default: true },
@@ -69,7 +69,7 @@ export class ProjectService {
     return updated;
   }
 
-  async deleteProject(orgId: string, projectId: string) {
+  async getGithubRepository(orgId: string, projectId: string) {\n    await this.access.requireProject(orgId, projectId);\n    return this.db.query.projectRepository.findFirst({\n      where: and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),\n    });\n  }\n\n  async connectGithubRepository(orgId: string, projectId: string, memberId: string, dto: ConnectGithubRepositoryDto) {\n    await this.access.requireProject(orgId, projectId);\n    const [connected] = await this.db\n      .insert(projectRepository)\n      .values({\n        organizationId: orgId,\n        projectId,\n        repositoryId: dto.repositoryId,\n        repositoryFullName: dto.repositoryFullName.trim(),\n        defaultBranch: dto.defaultBranch.trim(),\n        baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),\n        installationId: dto.installationId?.trim() || null,\n        connectedByMemberId: memberId,\n      })\n      .onConflictDoUpdate({\n        target: projectRepository.projectId,\n        set: {\n          repositoryId: dto.repositoryId,\n          repositoryFullName: dto.repositoryFullName.trim(),\n          defaultBranch: dto.defaultBranch.trim(),\n          baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),\n          installationId: dto.installationId?.trim() || null,\n          connectedByMemberId: memberId,\n          updatedAt: new Date(),\n        },\n      })\n      .returning();\n    return connected;\n  }\n\n  async disconnectGithubRepository(orgId: string, projectId: string) {\n    await this.access.requireProject(orgId, projectId);\n    await this.db.delete(projectRepository).where(\n      and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),\n    );\n  }\n\n  async deleteProject(orgId: string, projectId: string) {
     await this.access.requireProject(orgId, projectId);
     await this.db
       .delete(project)
