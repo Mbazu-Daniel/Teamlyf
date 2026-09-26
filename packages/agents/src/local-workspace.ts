@@ -137,7 +137,7 @@ async function createAskpass(): Promise<string> {
   const path = tmpdir() + "/teamlyf-git-askpass-" + process.pid + "-" + Date.now();
   await writeFile(
     path,
-    '#!/bin/sh\nif [ "$1" = "Username for *" ]; then echo x-access-token; else printf "%s" "$TEAMLYF_GIT_TOKEN"; fi\n',
+    '#!/bin/sh\ncase "$1" in *Username*) echo x-access-token;; *) printf "%s" "$TEAMLYF_GIT_TOKEN";; esac\n',
     { mode: 0o700 },
   );
   await chmod(path, 0o700);
