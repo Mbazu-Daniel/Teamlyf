@@ -93,7 +93,7 @@ export class AgentSessionRepository {
   }): Promise<void> {
     await this.db.insert(agentEvent).values({
       id: event.id,
-      organizationId: this.organizationId,
+      organizationId: event.organizationId,
       sessionId: event.sessionId,
       sequence: event.sequence,
       type: event.type,
