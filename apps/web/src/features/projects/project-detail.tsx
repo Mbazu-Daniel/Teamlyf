@@ -94,7 +94,21 @@ export function ProjectDetailPage({ project, state, organizationId, organization
           <button type="button" onClick={() => setShowAddTask(false)} className="h-9 rounded-lg border px-3 text-xs font-medium hover:bg-muted">Cancel</button>
         </form>
       )}
-      {section === "tasks" ? (view === "kanban" ? <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} /> : <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />) : <div className="min-h-0 flex-1 overflow-y-auto p-4"><MilestonesSection milestones={state.milestones} tasks={state.tasks} loading={state.milestonesLoading} statuses={state.statuses} createMilestone={state.createMilestone} updateMilestone={state.updateMilestone} deleteMilestone={state.deleteMilestone} addTaskToMilestone={state.addTaskToMilestone} removeTaskFromMilestone={state.removeTaskFromMilestone} /></div>}
+      <main className="min-h-0 flex-1 overflow-hidden">
+        {section === "tasks" ? (
+          <div className="h-full min-h-0 overflow-hidden p-3 md:p-4">
+            {view === "kanban" ? (
+              <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
+            ) : (
+              <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
+            )}
+          </div>
+        ) : (
+          <div className="h-full min-h-0 overflow-y-auto p-4">
+            <MilestonesSection milestones={state.milestones} tasks={state.tasks} loading={state.milestonesLoading} statuses={state.statuses} createMilestone={state.createMilestone} updateMilestone={state.updateMilestone} deleteMilestone={state.deleteMilestone} addTaskToMilestone={state.addTaskToMilestone} removeTaskFromMilestone={state.removeTaskFromMilestone} />
+          </div>
+        )}
+      </main>
       <TaskDetailPanel organizationId={organizationId} projectId={project.id} taskId={selectedTaskId} statuses={state.statuses} onClose={onCloseTask} />
     </div>
   );
