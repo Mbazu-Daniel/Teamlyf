@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { IconChevronDown, IconCopy, IconDots, IconFlag, IconPencil, IconPin, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconChevronDown, IconFlag, IconPlus } from "@tabler/icons-react";
+import { TaskActionsMenu } from "./task-actions-menu";
 import type { ProjectTask, Status } from "@/lib/api";
 import { MutedMessage } from "./feedback";
 
@@ -45,20 +46,7 @@ export function TaskList({ tasks, statuses, onMove, onSelect, onDelete, onDuplic
                   <select value={task.statusId} onChange={(event) => { event.stopPropagation(); onMove(task, event.target.value); }} onClick={(event) => event.stopPropagation()} className="max-w-32 rounded-md border bg-background px-2 py-1 text-[10px]">
                     {statuses.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                   </select>
-                  {(onDelete || onDuplicate) && (
-                    /* fallow-ignore-next-line code-duplication -- task list keeps the same task actions as the card view by design */
-                    <details onClick={(event) => event.stopPropagation()} className="relative">
-                      <summary className="list-none cursor-pointer rounded-md p-1 hover:bg-accent"><IconDots className="size-4 text-muted-foreground" /></summary>
-                      <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border bg-popover p-1.5 shadow-xl">
-                        <button type="button" onClick={() => onSelect(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconPencil className="size-3.5" />Edit</button>
-                        {onDuplicate && <button type="button" onClick={() => onDuplicate(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconCopy className="size-3.5" />Duplicate</button>}
-                        <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">Convert to subtask</button>
-                        <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconPin className="size-3.5" />Pin task to dashboard</button>
-                        <div className="my-1 border-t" />
-                        <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-destructive hover:bg-destructive/10" onClick={() => onDelete?.(task)}><IconTrash className="size-3.5" />Delete</button>
-                      </div>
-                    </details>
-                  )}
+                  {(onDelete || onDuplicate) && <TaskActionsMenu task={task} onEdit={onSelect} onDelete={onDelete} onDuplicate={onDuplicate} />}
                 </div>
               </div>
             )) : <div className="px-6 py-6 text-xs font-medium text-muted-foreground">No tasks</div>)}
