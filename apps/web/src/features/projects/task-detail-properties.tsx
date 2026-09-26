@@ -58,7 +58,7 @@ export function TaskProperties({
           <input id="task-target-date" type="date" value={toDateValue(task.targetDate)} onChange={(event) => { if (event.target.value) updateTask({ targetDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 py-2 text-sm" />
         </Field>
       </div>
-      <AssigneePicker task={task} members={members} membersLoading={membersLoading} updateTask={updateTask} />
+      <AssigneePicker organizationId={task.organizationId ?? ""} projectId={task.projectId} task={task} members={members} membersLoading={membersLoading} updateTask={updateTask} />
     </section>
   );
 }
@@ -97,7 +97,7 @@ function AssigneePicker({
     if (runAgentId) {
       void agentsApi.run(organizationId, runAgentId, {
         taskId: task.id,
-        projectId: task.projectId,
+        projectId,
         taskName: task.name,
         description: task.description,
         instruction: "Work on this assigned task. Inspect the available Teamlyf context, take the actions you are permitted to take, and report the work and any blockers.",
