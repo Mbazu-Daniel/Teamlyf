@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { Database } from "../index";
-import { agentEvent, agentSession } from "./index";
+import { agentEvent } from "./agent-event";
+import { agentSession } from "./agent-session";
 
 export type AgentSessionRecord = {
   id: string;
@@ -34,13 +35,13 @@ export class AgentSessionRepository {
   }
 
   async updateSession(
-    sessionId: string,
+    runId: string,
     update: {
       status?: "active" | "completed" | "failed" | "interrupted";
       endedAt?: Date;
     },
   ): Promise<void> {
-    await this.db.update(agentSession).set(update).where(eq(agentSession.id, sessionId));
+    await this.db.update(agentSession).set(update).where(eq(agentSession.runId, runId));
   }
 
   async appendEvent(event: {
