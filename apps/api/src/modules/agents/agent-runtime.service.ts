@@ -4,6 +4,7 @@ import type { Database } from "@teamlyf/db";
 import { AgentSessionRepository, agentRun, agentSession, aiProviderConfig } from "@teamlyf/db";
 import {
   AgentToolRegistry,
+  DockerAgentSandbox,
   InMemoryAgentRuntime,
   LocalWorkspaceCommandRunner,
   OpenAIChatModel,
@@ -111,8 +112,10 @@ export class AgentRuntimeService {
     const provider = await this.resolveProvider(organizationId);
     const repository = new AgentSessionRepository(this.db);
     const store = new AgentRuntimeStoreAdapter(repository, session.organizationId);
+    const sandbox = new DockerAgentSandbox();
+    const localRunner = new LocalWorkspaceCommandRunner();
     const workspaceExecutor = new WorkspaceToolExecutor({
-      commandRunner: new LocalWorkspaceCommandRunner(),
+      commandRunner: new SandboxWorkspaceCommandRunner(sandbox, localRunner),
       getWorkspace: (current) => current.workspace,
     });
     const registry = new AgentToolRegistry([...this.systemTools.registrations(), ...this.githubTools.registrations()]);
@@ -323,5 +326,32 @@ class AgentRuntimeStoreAdapter implements AgentRuntimeStore {
 
   async loadLatestCheckpoint(sessionId: string) {
     return this.repository.loadLatestCheckpoint(sessionId);
+  }
+}
+
+
+class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").WorkspaceCommandRunner {
+  private readonly started = new Set<string>();
+
+  constructor(
+    private readonly sandbox: DockerAgentSandbox,
+    private readonly localRunner: LocalWorkspaceCommandRunner,
+  ) {}
+
+  async run(
+    workspace: import("@teamlyf/agents").WorkspaceHandle,
+    command: string,
+    args: readonly string[] = [],
+    options: { timeoutMs?: number; maxOutputBytes?: number } = {},
+  ) {
+    const key = workspace.root;
+    if (command === "git" && args[0] === "push") {
+      return this.localRunner.run(workspace, command, args, options);
+    }
+    if (!this.started.has(key)) {
+      await this.sandbox.start(workspace);
+      this.started.add(key);
+    }
+    return this.sandbox.run(workspace, command, args, options);
   }
 }
