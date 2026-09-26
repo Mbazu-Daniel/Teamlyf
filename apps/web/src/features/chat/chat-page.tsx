@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { IconHash, IconLock, IconPlus, IconMessageCircle, IconSend, IconX, IconMessage2, IconUsers } from "@tabler/icons-react";
 import { client } from "@/lib/api";
-import { useOrganization } from "@/lib/organization";
+import type { Organization } from "@/lib/api";
 
 type Channel = {
   id: string;
@@ -27,8 +27,7 @@ function initials(id: string) {
   return id.slice(0, 2).toUpperCase();
 }
 
-export function ChatPage() {
-  const { organization } = useOrganization();
+export function ChatPage({ organization }: { organization: Organization }) {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
