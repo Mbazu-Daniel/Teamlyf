@@ -5,3 +5,5 @@ export * from "./agent-loop";
 export * from "./workspace";
 export * from "./local-workspace";
 export * from "./workspace-tool-executor";
+export * from "./sandbox";
+export * from "./docker-sandbox";
