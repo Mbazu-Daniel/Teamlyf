@@ -10,9 +10,7 @@ export type Agent = {
   updatedAt: string;
 };
 
-type CreateAgentInput = { name: string; description?: string };
-type UpdateAgentInput = { name?: string; description?: string; enabled?: boolean };
-type AgentRun = {
+export type AgentRun = {
   id: string;
   organizationId: string;
   agentId: string;
@@ -25,6 +23,20 @@ type AgentRun = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type AgentPermissionPolicy = {
+  id: string;
+  organizationId: string;
+  memberId: string;
+  agentId: string;
+  tool: string;
+  effect: "allow" | string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CreateAgentInput = { name: string; description?: string };
+type UpdateAgentInput = { name?: string; description?: string; enabled?: boolean };
 
 export const agentsApi = {
   list(organizationId: string) {
@@ -51,9 +63,20 @@ export const agentsApi = {
     return client.request<AgentRun[]>(`/organization/${organizationId}/agents/${agentId}/runs`);
   },
   run(organizationId: string, agentId: string, input?: unknown) {
-    return client.request(`/organization/${organizationId}/agents/${agentId}/runs`, {
+    return client.request<AgentRun>(`/organization/${organizationId}/agents/${agentId}/runs`, {
       method: "POST",
       body: JSON.stringify(input === undefined ? {} : { input }),
     });
+  },
+  permissions(organizationId: string, agentId: string) {
+    return client.request<AgentPermissionPolicy[]>(
+      `/organization/${organizationId}/agents/${agentId}/permissions`,
+    );
+  },
+  revokePermission(organizationId: string, agentId: string, tool: string) {
+    return client.request<void>(
+      `/organization/${organizationId}/agents/${agentId}/permissions/${encodeURIComponent(tool)}`,
+      { method: "DELETE" },
+    );
   },
 };
