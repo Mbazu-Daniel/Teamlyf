@@ -22,7 +22,7 @@ export class ProjectService {
     private readonly access: ProjectAccessService,
   ) {}
 
-  async createProject(orgId: string, dto: CreateProjectDto) {
+  async createProject(orgId: string, dto: CreateProjectDto, creatorMemberId: string) {
     const [created] = await this.db.insert(project).values({
       organizationId: orgId,
       name: dto.name,
@@ -30,6 +30,13 @@ export class ProjectService {
       description: dto.description ?? null,
       emoji: dto.emoji ?? null,
     }).returning();
+
+    await this.db.insert(projectMember).values({
+      projectId: created.id,
+      organizationId: orgId,
+      memberId: creatorMemberId,
+      role: "admin",
+    });
 
     await this.createDefaultStatuses(created.id);
     return created;
