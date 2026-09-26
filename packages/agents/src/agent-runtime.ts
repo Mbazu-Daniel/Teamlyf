@@ -1,5 +1,5 @@
 import { AgentLoop } from "./agent-loop";
-import type { AgentEvent, AgentPermissionDecision, AgentSession } from "./contracts";
+import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentSession } from "./contracts";
 import type { AgentModel, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
@@ -134,20 +134,13 @@ export class InMemoryAgentRuntime implements AgentRuntime {
 
 function isAllowedTools(value: unknown): AgentRuntimeState["allowedTools"] {
   if (!Array.isArray(value)) return [];
-  return value.filter((tool): tool is AgentRuntimeState["allowedTools"][number] => typeof tool === "string");
+  return value.filter(
+    (tool): tool is AgentRuntimeState["allowedTools"][number] =>
+      typeof tool === "string" && agentToolNames.includes(tool as AgentRuntimeState["allowedTools"][number]),
+  );
 }
 
 function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
-  const candidate = value as Record<string, unknown>;
-  if (
-    typeof candidate.id !== "string" ||
-    typeof candidate.tool !== "string" ||
-    typeof candidate.scope !== "string" ||
-    typeof candidate.reason !== "string" ||
-    typeof candidate.metadata !== "object" ||
-    candidate.metadata === null ||
-    Array.isArray(candidate.metadata)
-  ) return undefined;
-  return candidate as AgentRuntimeState["pendingPermission"];
+  const parsed = agentPermissionSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
