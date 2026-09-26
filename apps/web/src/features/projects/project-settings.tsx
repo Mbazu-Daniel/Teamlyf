@@ -64,11 +64,11 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
 
         <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <nav className="w-40 shrink-0 border-r bg-muted/20 p-2 sm:w-48" aria-label="Project settings">
-            {[
-              ["general", "General", IconSettings],
-              ["members", "Members", IconCircleDot],
-              ["states", "States", IconCircleDot],
-            ].map(([id, label, Icon]) => (
+            {([
+              { id: "general", label: "General", icon: IconSettings },
+              { id: "members", label: "Members", icon: IconCircleDot },
+              { id: "states", label: "States", icon: IconCircleDot },
+            ] as const).map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
