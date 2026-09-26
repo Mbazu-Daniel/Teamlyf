@@ -9,6 +9,7 @@ import {
   OpenAIChatModel,
   WorkspaceToolExecutor,
   getAgentToolsForContext,
+  type AgentCheckpoint,
   type AgentEvent,
   type AgentModel,
   type AgentRuntimeStore,
@@ -33,6 +34,7 @@ export class AgentRuntimeService {
   ) {}
 
   async sendMessage(organizationId: string, runId: string, memberId: string, message: string): Promise<void> {
+    this.events.open(runId);
     const runtime = await this.ensureRuntime(organizationId, runId, memberId);
     await this.db.update(agentRun).set({
       status: "running",
@@ -58,7 +60,6 @@ export class AgentRuntimeService {
       throw error;
     } finally {
       this.events.close(runId);
-      this.runtimes.delete(runId);
     }
   }
 
@@ -69,6 +70,7 @@ export class AgentRuntimeService {
   }
 
   async resume(organizationId: string, runId: string, memberId: string) {
+    this.events.open(runId);
     const runtime = await this.ensureRuntime(organizationId, runId, memberId);
     await runtime.resume(runId);
     return { runId, resumed: true };
