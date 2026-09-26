@@ -29,6 +29,7 @@ type ProjectDetailPageProps = {
   onCloseTask: () => void;
 };
 
+// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- project detail coordinates board/list/milestone views and their shared task state
 export function ProjectDetailPage({
   project,
   state,
