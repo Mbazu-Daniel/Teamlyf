@@ -14,5 +14,5 @@ function ProjectSettingsRoute() {
   if (!organization) return <main className="p-8 text-sm text-muted-foreground">Select an organization first.</main>;
   if (!state.project) return <main className="p-8 text-sm text-muted-foreground">{state.error ?? "Loading project..."}</main>;
 
-  return <ProjectSettings project={state.project} organizationSlug={organizationSlug} />;
+  return <ProjectSettings project={state.project} organizationId={organization.id} organizationSlug={organizationSlug} />;
 }
