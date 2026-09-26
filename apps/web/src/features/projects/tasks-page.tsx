@@ -9,7 +9,7 @@ import { TaskList } from "@/features/projects/task-list";
 import { KanbanBoard } from "@/features/projects/board";
 import { TaskDetailPanel } from "@/features/projects/task-detail-panel";
 
-// fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- task workspace coordinates several independent project mutations and views
+// fallow-ignore-next-line complexity -- task workspace coordinates several independent project mutations and views
 export function TasksPage() {
   const { organization } = useOrganization();
   const { searchStr } = useLocation();
@@ -140,7 +140,7 @@ export function TasksPage() {
     setCreating(true);
   }
 
-  // fallow-ignore-next-line high-crap-score,high-cognitive-complexity -- form validation is intentionally kept next to the task creation mutation
+  // fallow-ignore-next-line complexity -- form validation is intentionally kept next to the task creation mutation
   function createTask() {
     if (!organizationId || !projectId || !taskName.trim() || !(taskStatusId || statuses[0]?.id)) return;
     createTaskMutation.mutate();
