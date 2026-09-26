@@ -174,6 +174,7 @@ export class TaskService {
     });
   }
 
+  // fallow-ignore-next-line complexity -- assignee validation handles two organization-scoped actor types and relation replacement
   private async updateTaskAssignees(
     orgId: string,
     taskId: string,
