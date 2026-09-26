@@ -64,7 +64,7 @@ export class AgentGithubToolsService {
   }
 
   private async requireRepository(session: AgentSession) {
-    const projectId = session.projectId ?? session.context.type === "project" ? session.context.id : undefined;
+    const projectId = session.projectId ?? (session.context.type === "project" ? session.context.id : undefined);
     if (!projectId) throw new Error("GitHub tools require a project context.");
 
     const repository = await this.db.query.projectRepository.findFirst({
