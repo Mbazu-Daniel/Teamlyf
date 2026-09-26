@@ -86,7 +86,7 @@ export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => void navigate({ to: "/$organizationSlug/settings", params: { organizationSlug: activeOrganization.slug } })}>
+        <DropdownMenuItem onClick={() => void navigate({ to: "/$organizationSlug/settings", params: { organizationSlug: activeOrganization.slug ?? activeOrganization.id } })}>
           <IconPlus />
           Organization settings
         </DropdownMenuItem>
