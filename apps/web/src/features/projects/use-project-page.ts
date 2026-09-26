@@ -25,7 +25,7 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
     enabled,
     retry: false,
   });
-  const project = projectsQuery.data?.find((item) => item.identifier === projectSlug || slugify(item.name) === projectSlug) ?? null;
+  const project = projectsQuery.data?.find((item) => item.identifier === projectSlug) ?? projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ?? null;
   const projectId = project?.id ?? "";
   const statusesKey = queryKeys.statuses(organizationKey, projectId);
   const tasksKey = queryKeys.tasks(organizationKey, projectId);
