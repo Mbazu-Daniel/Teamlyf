@@ -41,7 +41,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { id: "notes", label: "Notes", to: "notes", icon: IconNotes, available: false },
       { id: "people", label: "People & HR", to: "people", icon: IconUsers, available: false },
       { id: "calls", label: "Calls", to: "calls", icon: IconPhone, available: false },
-      { id: "ai", label: "AI agents", to: "ai", icon: IconRobot, available: false },
+      { id: "ai", label: "AI agents", to: "ai", icon: IconRobot },
     ],
   },
   {
