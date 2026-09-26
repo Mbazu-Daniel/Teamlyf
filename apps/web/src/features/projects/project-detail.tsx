@@ -1,9 +1,6 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  IconArrowLeft,
-  IconCalendar,
-  IconCheck,
   IconFlag,
   IconLayoutKanban,
   IconList,
