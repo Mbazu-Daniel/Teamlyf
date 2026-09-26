@@ -85,17 +85,6 @@ function AssigneePicker({
     retry: false,
   });
 
-  const assignedAgentIds = task.taskAssignees.flatMap((row) => row.kind === "agent" && row.agentId ? [row.agentId] : []);
-  const { data: agentRuns = [] } = useQuery({
-    queryKey: ["agent-runs", organizationId, [...assignedAgentIds].sort()],
-    queryFn: async () => {
-      const runs = await Promise.all(assignedAgentIds.map((agentId) => agentsApi.runs(organizationId, agentId)));
-      return runs.flat();
-    },
-    enabled: Boolean(organizationId && assignedAgentIds.length),
-    refetchInterval: 5000,
-    retry: false,
-  });
   const assignedMembers = new Set(
     task.taskAssignees.flatMap((row) => row.kind === "member" && row.memberId ? [row.memberId] : []),
   );
