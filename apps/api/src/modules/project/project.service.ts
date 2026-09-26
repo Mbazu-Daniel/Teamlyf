@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { project, status } from "@teamlyf/db/project-schema";
+import { project, projectMember, status } from "@teamlyf/db/project-schema";
 import { and, eq } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { ProjectAccessService } from "./project-access.service";
@@ -49,14 +49,58 @@ export class ProjectService {
   }
 
   async getProjects(orgId: string) {
-    return this.db.query.project.findMany({
+    const projects = await this.db.query.project.findMany({
       where: eq(project.organizationId, orgId),
       orderBy: (p, { desc }) => [desc(p.createdAt)],
     });
+
+    if (projects.length === 0) return projects;
+
+    const memberships = await this.db.query.projectMember.findMany({
+      where: eq(projectMember.organizationId, orgId),
+      with: { member: true },
+    });
+    const membersByProject = new Map<string, typeof memberships>();
+    for (const membership of memberships) {
+      const current = membersByProject.get(membership.projectId) ?? [];
+      current.push(membership);
+      membersByProject.set(membership.projectId, current);
+    }
+
+    return projects.map((item) => ({
+      ...item,
+      members: (membersByProject.get(item.id) ?? []).map((membership) => ({
+        id: membership.member.id,
+        firstName: membership.member.firstName,
+        lastName: membership.member.lastName,
+      })),
+      leads: [],
+    }));
   }
 
   async getProject(orgId: string, projectId: string) {
-    return this.access.requireProject(orgId, projectId);
+    const found = await this.access.requireProject(orgId, projectId);
+    const memberships = await this.db.query.projectMember.findMany({
+      where: and(eq(projectMember.organizationId, orgId), eq(projectMember.projectId, projectId)),
+      with: { member: true },
+      orderBy: (row, { asc }) => [asc(row.createdAt)],
+    });
+
+    return {
+      ...found,
+      members: memberships.map((membership) => ({
+        id: membership.member.id,
+        firstName: membership.member.firstName,
+        lastName: membership.member.lastName,
+      })),
+      leads: memberships
+        .filter((membership) => membership.role === "admin")
+        .map((membership) => ({
+          id: membership.member.id,
+          firstName: membership.member.firstName,
+          lastName: membership.member.lastName,
+        })),
+    };
   }
 
   async updateProject(orgId: string, projectId: string, dto: UpdateProjectDto) {
