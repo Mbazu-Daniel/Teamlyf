@@ -43,6 +43,7 @@ export class OpenAIChatModel implements AgentModel {
     };
   }
 
+  // fallow-ignore-next-line complexity -- streaming parses SSE chunks and incrementally reconstructs tool calls.
   async *stream(
     messages: readonly AgentMessage[],
     tools: readonly AgentToolDefinition[],
