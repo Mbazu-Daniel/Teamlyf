@@ -5,6 +5,7 @@ import { useOrganization } from "@/lib/organization";
 
 export const Route = createFileRoute("/$organizationSlug/projects/$projectId/settings")({ component: ProjectSettingsRoute });
 
+// fallow-ignore-next-line complexity -- route coordinates organization, project loading, and empty states
 function ProjectSettingsRoute() {
   const { organizationSlug, projectId } = Route.useParams();
   const { organization } = useOrganization();
