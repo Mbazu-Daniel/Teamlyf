@@ -60,6 +60,27 @@ export class AgentController {
     return this.agents.getAgentRuns(organizationId, agentId);
   }
 
+  @Get(":agentId/permissions")
+  @RequirePermission("agents", "read")
+  permissions(
+    @Param("orgId") organizationId: string,
+    @Param("agentId") agentId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.agents.getAgentPermissionPolicies(organizationId, member.id, agentId);
+  }
+
+  @Delete(":agentId/permissions/:tool")
+  @RequirePermission("agents", "update")
+  revokePermission(
+    @Param("orgId") organizationId: string,
+    @Param("agentId") agentId: string,
+    @Param("tool") tool: string,
+    @CurrentMember() member: SessionMember,
+  ) {
+    return this.agents.revokeAgentPermission(organizationId, member.id, agentId, tool);
+  }
+
   @Get("provider-configs")
   @RequirePermission("agents", "read")
   providers(@Param("orgId") organizationId: string) {

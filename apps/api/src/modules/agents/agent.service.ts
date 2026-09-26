@@ -1,7 +1,7 @@
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema, project, task, taskComment } from "@teamlyf/db";
+import { agent, agentPermissionPolicy, agentRun, aiProviderConfig, aiUsage, billingSchema, project, task, taskComment } from "@teamlyf/db";
 
 const { subscription } = billingSchema;
 import { and, count, eq } from "drizzle-orm";
@@ -223,6 +223,39 @@ export class AgentService {
       orderBy: (table, { desc }) => desc(table.createdAt),
       limit: 100,
     });
+  }
+
+  async getAgentPermissionPolicies(organizationId: string, memberId: string, agentId: string) {
+    await this.requireAgent(organizationId, agentId);
+    return this.db.query.agentPermissionPolicy.findMany({
+      where: and(
+        eq(agentPermissionPolicy.organizationId, organizationId),
+        eq(agentPermissionPolicy.memberId, memberId),
+        eq(agentPermissionPolicy.agentId, agentId),
+      ),
+      orderBy: (row, { desc }) => desc(row.updatedAt),
+    });
+  }
+
+  async revokeAgentPermission(
+    organizationId: string,
+    memberId: string,
+    agentId: string,
+    tool: string,
+  ) {
+    await this.requireAgent(organizationId, agentId);
+    const [deleted] = await this.db
+      .delete(agentPermissionPolicy)
+      .where(and(
+        eq(agentPermissionPolicy.organizationId, organizationId),
+        eq(agentPermissionPolicy.memberId, memberId),
+        eq(agentPermissionPolicy.agentId, agentId),
+        eq(agentPermissionPolicy.tool, tool),
+      ))
+      .returning({ id: agentPermissionPolicy.id });
+
+    if (!deleted) throw new NotFoundException("Agent permission not found");
+    return { id: deleted.id, tool, revoked: true };
   }
 
   async getAgentUsage(organizationId: string, memberId: string) {

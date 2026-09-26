@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { IconPlus, IconRobot, IconTrash, IconPlayerPause, IconPlayerPlay } from "@tabler/icons-react";
 import { agentsApi, type Agent } from "@/lib/api";
@@ -97,6 +98,7 @@ export function AgentsPage() {
                 agent={agent}
                 onToggle={(enabled) => updateMutation.mutate({ id: agent.id, enabled })}
                 onDelete={() => deleteMutation.mutate(agent.id)}
+                organizationSlug={organization.slug ?? ""}
               />
             ))}
           </div>
@@ -111,17 +113,18 @@ type AgentCardProps = {
   agent: Agent;
   onToggle: (enabled: boolean) => void;
   onDelete: () => void;
+  organizationSlug: string;
 };
 
 // fallow-ignore-next-line complexity -- agent card keeps status and action presentation together for a compact card surface
-function AgentCard({ agent, onToggle, onDelete }: AgentCardProps) {
+function AgentCard({ agent, onToggle, onDelete, organizationSlug }: AgentCardProps) {
   return (
     <article className="rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
+        <Link to="/$organizationSlug/ai/$agentId" params={{ organizationSlug, agentId: agent.id }} className="flex min-w-0 items-center gap-3 hover:underline">
           <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><IconRobot className="size-4" /></div>
           <div className="min-w-0"><h2 className="truncate text-sm font-semibold">{agent.name}</h2><p className="text-[11px] text-muted-foreground">{agent.enabled ? "Enabled" : "Disabled"}</p></div>
-        </div>
+        </Link>
         <div className="flex items-center gap-1">
           <button type="button" title={agent.enabled ? "Disable agent" : "Enable agent"} onClick={() => onToggle(!agent.enabled)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">{agent.enabled ? <IconPlayerPause className="size-3.5" /> : <IconPlayerPlay className="size-3.5" />}</button>
           <button type="button" title="Delete agent" onClick={onDelete} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><IconTrash className="size-3.5" /></button>
