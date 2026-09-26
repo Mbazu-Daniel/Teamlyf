@@ -10,7 +10,15 @@ import {
   IconSettings,
   IconUsers,
   IconCheck,
+  IconList,
 } from "@tabler/icons-react";
+
+export type NavChild = Readonly<{
+  id: string;
+  label: string;
+  to: string;
+  icon: TablerIcon;
+}>;
 
 export type NavItem = Readonly<{
   id: string;
@@ -20,6 +28,7 @@ export type NavItem = Readonly<{
   icon: TablerIcon;
   /** Landing-page features whose app routes are not implemented yet stay visual-only. */
   available?: boolean;
+  children?: readonly NavChild[];
 }>;
 
 export type NavSection = Readonly<{
@@ -35,7 +44,16 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     items: [
       { id: "home", label: "Overview", to: "", icon: IconHome },
       { id: "projects", label: "Projects", to: "projects", icon: IconLayoutKanban },
-      { id: "tasks", label: "Tasks", to: "tasks", icon: IconCheck },
+      {
+        id: "tasks",
+        label: "Tasks",
+        to: "tasks",
+        icon: IconCheck,
+        children: [
+          { id: "task-board", label: "Board", to: "tasks?view=board", icon: IconLayoutKanban },
+          { id: "task-list", label: "List", to: "tasks?view=list", icon: IconList },
+        ],
+      },
       { id: "chat", label: "Chat", to: "chat", icon: IconMessage, available: false },
       { id: "documents", label: "Documents", to: "documents", icon: IconFileText, available: false },
       { id: "notes", label: "Notes", to: "notes", icon: IconNotes, available: false },
@@ -55,8 +73,9 @@ export const NAV_ITEMS: readonly NavItem[] = NAV_SECTIONS.flatMap((section) => s
 export const NAV_HOME: NavItem = NAV_SECTIONS[0].items[0];
 
 export function isNavItemActive(pathname: string, to: string): boolean {
-  if (!to) return pathname.split("/").filter(Boolean).length === 1;
-  return pathname === "/" + to || pathname.endsWith("/" + to) || pathname.includes("/" + to + "/");
+  const path = to.split("?")[0];
+  if (!path) return pathname.split("/").filter(Boolean).length === 1;
+  return pathname === "/" + path || pathname.endsWith("/" + path) || pathname.includes("/" + path + "/");
 }
 
 export function findActiveNavItem(pathname: string): NavItem | null {
