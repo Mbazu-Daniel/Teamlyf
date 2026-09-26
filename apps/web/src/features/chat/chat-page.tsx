@@ -40,6 +40,7 @@ export function ChatPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [mobileChannels, setMobileChannels] = useState(false);
 
   const orgId = organization?.id;
 
@@ -183,7 +184,7 @@ export function ChatPage() {
           ) : (
             <>
               <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-2"><button type="button" className="rounded-md p-1.5 hover:bg-muted md:hidden" onClick={() => setMobileChannels(true)} aria-label="Open channels"><IconHash className="size-4" /></button><div className="min-w-0">
                   <div className="flex items-center gap-2"><IconHash className="size-4 text-muted-foreground" /><h1 className="truncate text-sm font-semibold">{activeChannel.name}</h1></div>
                   <p className="ml-6 text-[10px] text-muted-foreground">Team channel</p>
                 </div>
