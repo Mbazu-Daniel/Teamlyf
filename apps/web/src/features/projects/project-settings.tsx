@@ -113,6 +113,7 @@ function GeneralSettings({ organizationId, organizationSlug, project }: { organi
     onSuccess: async () => {
       setSaved(true);
       await queryClient.invalidateQueries({ queryKey: queryKeys.projects(organizationId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.project(organizationId, project.id) });
       window.setTimeout(() => setSaved(false), 1800);
     },
   });
