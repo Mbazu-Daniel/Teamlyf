@@ -27,6 +27,7 @@ import { AgentGithubToolsService } from "./agent-github-tools.service";
 @Injectable()
 export class AgentRuntimeService {
   private readonly runtimes = new Map<string, InMemoryAgentRuntime>();
+  private readonly workspaceRunners = new Map<string, SandboxWorkspaceCommandRunner>();
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
@@ -62,6 +63,8 @@ export class AgentRuntimeService {
       }).where(and(eq(agentRun.id, runId), eq(agentRun.organizationId, organizationId)));
       throw error;
     } finally {
+      await this.workspaceRunners.get(runId)?.stop();
+      this.workspaceRunners.delete(runId);
       this.events.close(runId);
     }
   }
@@ -114,8 +117,9 @@ export class AgentRuntimeService {
     const store = new AgentRuntimeStoreAdapter(repository, session.organizationId);
     const sandbox = new DockerAgentSandbox();
     const localRunner = new LocalWorkspaceCommandRunner();
+    const workspaceRunner = new SandboxWorkspaceCommandRunner(sandbox, localRunner);
     const workspaceExecutor = new WorkspaceToolExecutor({
-      commandRunner: new SandboxWorkspaceCommandRunner(sandbox, localRunner),
+      commandRunner: workspaceRunner,
       getWorkspace: (current) => current.workspace,
     });
     const registry = new AgentToolRegistry([...this.systemTools.registrations(), ...this.githubTools.registrations()]);
@@ -144,6 +148,7 @@ export class AgentRuntimeService {
     if (persisted) await runtime.recoverSession(session, sink);
     else await runtime.createSession(session, sink);
     this.runtimes.set(runId, runtime);
+    this.workspaceRunners.set(runId, workspaceRunner);
     return runtime;
   }
 
@@ -337,6 +342,13 @@ class SandboxWorkspaceCommandRunner implements import("@teamlyf/agents").Workspa
     private readonly sandbox: DockerAgentSandbox,
     private readonly localRunner: LocalWorkspaceCommandRunner,
   ) {}
+
+  async stop(): Promise<void> {
+    for (const root of this.started) {
+      await this.sandbox.stop({ repository: "", baseBranch: "", workingBranch: "", root }).catch(() => undefined);
+    }
+    this.started.clear();
+  }
 
   async run(
     workspace: import("@teamlyf/agents").WorkspaceHandle,
