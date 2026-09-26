@@ -53,7 +53,6 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       executor: this.factory.createExecutor(session),
       tools: this.factory.createTools?.(session),
       emit,
-      initialSequence: checkpoint ? checkpoint.sequence + 1 : 0,
       checkpoint: async (nextState) => {
         const checkpoint = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (checkpoint) await this.store?.createCheckpoint(checkpoint);
@@ -87,7 +86,9 @@ export class InMemoryAgentRuntime implements AgentRuntime {
       state,
       model: this.factory.createModel(session),
       executor: this.factory.createExecutor(session),
+      tools: this.factory.createTools?.(session),
       emit,
+      initialSequence: checkpoint ? checkpoint.sequence + 1 : 0,
       checkpoint: async (nextState) => {
         const latest = nextState.checkpoints[nextState.checkpoints.length - 1];
         if (latest) await this.store?.createCheckpoint(latest);
