@@ -1,2 +1,13 @@
-import { IconPlus, IconSearch, IconUsers } from "@tabler/icons-react";
-export function PeoplePage(){return <div className="mx-auto flex h-full w-full max-w-6xl flex-col p-5 sm:p-8"><header className="flex items-center justify-between gap-4"><div><h1 className="text-2xl font-semibold">People & HR</h1><p className="mt-1 text-sm text-muted-foreground">Manage your organization members and people operations.</p></div><button className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground"><IconPlus className="size-4"/> Invite member</button></header><div className="relative mt-6 max-w-md"><IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><input placeholder="Search people" className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm"/></div><section className="mt-5 rounded-xl border bg-card"><div className="flex items-center gap-3 border-b p-5"><div className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary"><IconUsers className="size-5"/></div><div><h2 className="font-semibold">People directory</h2><p className="text-xs text-muted-foreground">Members, roles and teams will appear here.</p></div></div><div className="p-10 text-center text-sm text-muted-foreground">No additional people to display.</div></section></div>}
+import { useState } from "react";
+import { IconLayoutGrid, IconList } from "@tabler/icons-react";
+import { HrmSidebar } from "./people/hrm-sidebar";
+import { EmployeeList } from "./people/employee-list";
+import { DepartmentTable } from "./people/department-table";
+import { LeaveTable } from "./people/leave-table";
+import { EmployeeCard, type Employee } from "./people/employee-card";
+
+export function PeoplePage({ organizationSlug }: { organizationSlug: string }) {
+  const [view, setView] = useState<"board" | "list">("board");
+  const employees: Employee[] = [];
+  return <div className="flex h-full min-h-0 gap-4 overflow-hidden p-3 md:p-4"><HrmSidebar organizationSlug={organizationSlug}/><main className="min-w-0 flex-1 overflow-y-auto"><div className="mx-auto max-w-[1440px]"><header className="mb-5 flex flex-wrap items-end justify-between gap-3"><div><h1 className="text-2xl font-semibold">People & HR</h1><p className="mt-1 text-sm text-muted-foreground">Employees, departments and leave management.</p></div><div className="flex items-center rounded-lg bg-muted p-1"><button onClick={()=>setView("board")} className={"rounded-md p-2 "+(view==="board"?"bg-background shadow-sm":"")}><IconLayoutGrid className="size-4"/></button><button onClick={()=>setView("list")} className={"rounded-md p-2 "+(view==="list"?"bg-background shadow-sm":"")}><IconList className="size-4"/></button></div></header>{view==="board" ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{employees.map(e=><EmployeeCard key={e.id} employee={e}/>)}</div> : <EmployeeList employees={employees}/>}<div className="mt-6"><DepartmentTable departments={[]}/></div><div className="mt-6"><LeaveTable requests={[]}/></div></div></main></div>;
+}
