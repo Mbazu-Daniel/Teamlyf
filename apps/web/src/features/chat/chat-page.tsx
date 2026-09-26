@@ -190,6 +190,7 @@ export function ChatPage({ organization }: { organization: Organization }) {
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <button className="rounded-md p-1.5 hover:bg-muted" aria-label="Members"><IconUsers className="size-4" /></button>
                 </div>
+              </div>
               </header>
 
               <div className="flex min-h-0 flex-1">
