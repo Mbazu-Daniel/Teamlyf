@@ -55,6 +55,29 @@ export class AgentLoop {
       }
       this.recoveredPermissionDecisions.delete(request.id);
       await this.applyPermissionDecision(request, decision);
+      const call: AgentToolCall = {
+        id: request.id,
+        name: request.tool,
+        arguments: request.metadata,
+      };
+      const result: AgentToolResult =
+        decision === "reject"
+          ? {
+              toolCallId: call.id,
+              name: call.name,
+              ok: false,
+              output: null,
+              error: "Permission denied by the user.",
+            }
+          : await this.options.executor.execute(this.options.state.session, call);
+      await this.emit("tool_result", { result });
+      this.options.state.messages.push({
+        role: "tool",
+        toolCallId: call.id,
+        name: call.name,
+        content: JSON.stringify(result),
+      });
+      await this.checkpoint("tool");
     }
     await this.runLoop();
   }
