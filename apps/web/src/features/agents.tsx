@@ -113,6 +113,7 @@ type AgentCardProps = {
   onDelete: () => void;
 };
 
+// fallow-ignore-next-line complexity -- agent card keeps status and action presentation together for a compact card surface
 function AgentCard({ agent, onToggle, onDelete }: AgentCardProps) {
   return (
     <article className="rounded-xl border bg-card p-4 transition-shadow hover:shadow-sm">
