@@ -1,4 +1,5 @@
-import type { AgentCheckpoint, AgentEvent, AgentRuntimeState, AgentSession } from "./contracts";
+import type { AgentCheckpoint, AgentEvent, AgentSession } from "./contracts";
+import type { AgentRuntimeState } from "./runtime";
 
 export interface AgentRuntimeStore {
   createSession(session: AgentSession): Promise<void>;
