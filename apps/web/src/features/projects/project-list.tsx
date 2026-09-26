@@ -18,7 +18,6 @@ const STATUS_OPTIONS = [
 ];
 
 export function ProjectListPage({
-  organizationName,
   organizationSlug,
   state,
 }: {
