@@ -84,9 +84,7 @@ export function ProjectSwitcher({ collapsed }: ProjectSwitcherProps) {
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          render={
-            <Link to="/$organizationSlug/projects" params={{ organizationSlug }} search={{ create: true }} />
-          }
+          render={<Link to="/$organizationSlug/projects" params={{ organizationSlug }} />}
         >
           <IconPlus aria-hidden="true" />
           Create project
