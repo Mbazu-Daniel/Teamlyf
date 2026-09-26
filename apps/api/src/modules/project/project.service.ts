@@ -69,7 +69,51 @@ export class ProjectService {
     return updated;
   }
 
-  async getGithubRepository(orgId: string, projectId: string) {\n    await this.access.requireProject(orgId, projectId);\n    return this.db.query.projectRepository.findFirst({\n      where: and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),\n    });\n  }\n\n  async connectGithubRepository(orgId: string, projectId: string, memberId: string, dto: ConnectGithubRepositoryDto) {\n    await this.access.requireProject(orgId, projectId);\n    const [connected] = await this.db\n      .insert(projectRepository)\n      .values({\n        organizationId: orgId,\n        projectId,\n        repositoryId: dto.repositoryId,\n        repositoryFullName: dto.repositoryFullName.trim(),\n        defaultBranch: dto.defaultBranch.trim(),\n        baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),\n        installationId: dto.installationId?.trim() || null,\n        connectedByMemberId: memberId,\n      })\n      .onConflictDoUpdate({\n        target: projectRepository.projectId,\n        set: {\n          repositoryId: dto.repositoryId,\n          repositoryFullName: dto.repositoryFullName.trim(),\n          defaultBranch: dto.defaultBranch.trim(),\n          baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),\n          installationId: dto.installationId?.trim() || null,\n          connectedByMemberId: memberId,\n          updatedAt: new Date(),\n        },\n      })\n      .returning();\n    return connected;\n  }\n\n  async disconnectGithubRepository(orgId: string, projectId: string) {\n    await this.access.requireProject(orgId, projectId);\n    await this.db.delete(projectRepository).where(\n      and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),\n    );\n  }\n\n  async deleteProject(orgId: string, projectId: string) {
+  async getGithubRepository(orgId: string, projectId: string) {
+    await this.access.requireProject(orgId, projectId);
+    return this.db.query.projectRepository.findFirst({
+      where: and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),
+    });
+  }
+
+  async connectGithubRepository(orgId: string, projectId: string, memberId: string, dto: ConnectGithubRepositoryDto) {
+    await this.access.requireProject(orgId, projectId);
+    const [connected] = await this.db
+      .insert(projectRepository)
+      .values({
+        organizationId: orgId,
+        projectId,
+        repositoryId: dto.repositoryId,
+        repositoryFullName: dto.repositoryFullName.trim(),
+        defaultBranch: dto.defaultBranch.trim(),
+        baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),
+        installationId: dto.installationId?.trim() || null,
+        connectedByMemberId: memberId,
+      })
+      .onConflictDoUpdate({
+        target: projectRepository.projectId,
+        set: {
+          repositoryId: dto.repositoryId,
+          repositoryFullName: dto.repositoryFullName.trim(),
+          defaultBranch: dto.defaultBranch.trim(),
+          baseBranch: dto.baseBranch?.trim() || dto.defaultBranch.trim(),
+          installationId: dto.installationId?.trim() || null,
+          connectedByMemberId: memberId,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return connected;
+  }
+
+  async disconnectGithubRepository(orgId: string, projectId: string) {
+    await this.access.requireProject(orgId, projectId);
+    await this.db.delete(projectRepository).where(
+      and(eq(projectRepository.organizationId, orgId), eq(projectRepository.projectId, projectId)),
+    );
+  }
+
+  async deleteProject(orgId: string, projectId: string) {
     await this.access.requireProject(orgId, projectId);
     await this.db
       .delete(project)
