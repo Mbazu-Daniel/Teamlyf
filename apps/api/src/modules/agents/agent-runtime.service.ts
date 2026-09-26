@@ -3,6 +3,9 @@ import { createDecipheriv, createHash, randomUUID } from "node:crypto";
 import type { Database } from "@teamlyf/db";
 import { AgentSessionRepository, agentRun, agentSession, aiProviderConfig } from "@teamlyf/db";
 import {
+  agentContextTypeSchema,
+  agentPermissionSchema,
+  agentWorkspaceSchema,
   AgentToolRegistry,
   DockerAgentSandbox,
   InMemoryAgentRuntime,
@@ -175,6 +178,7 @@ export class AgentRuntimeService {
     };
   }
 
+  // fallow-ignore-next-line complexity -- session creation normalizes persisted runtime context and workspace state.
   private async createSession(run: typeof agentRun.$inferSelect, input: Record<string, unknown>): Promise<AgentSession> {
     const contextType = isContextType(input.contextType) ? input.contextType : inferContextType(input);
     const contextId = typeof input.contextId === "string" ? input.contextId : undefined;
@@ -226,6 +230,7 @@ export class AgentRuntimeService {
     });
   }
 
+  // fallow-ignore-next-line complexity -- provider resolution validates organization credentials and provider constraints.
   private async resolveProvider(organizationId: string) {
     const config = await this.db.query.aiProviderConfig.findFirst({
       where: and(eq(aiProviderConfig.organizationId, organizationId), eq(aiProviderConfig.isActive, true)),
@@ -268,27 +273,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isWorkspace(value: unknown): value is NonNullable<AgentSession["workspace"]> {
-  if (!isRecord(value)) return false;
-  return (
-    typeof value.repository === "string" &&
-    typeof value.baseBranch === "string" &&
-    typeof value.workingBranch === "string" &&
-    typeof value.root === "string"
-  );
+  return agentWorkspaceSchema.safeParse(value).success;
 }
 
 function isContextType(value: unknown): value is AgentSession["context"]["type"] {
-  return (
-    value === "organization" ||
-    value === "project" ||
-    value === "task" ||
-    value === "chat" ||
-    value === "document" ||
-    value === "note" ||
-    value === "hr" ||
-    value === "call" ||
-    value === "custom"
-  );
+  return agentContextTypeSchema.safeParse(value).success;
 }
 
 function inferContextType(input: Record<string, unknown>): AgentSession["context"]["type"] {
