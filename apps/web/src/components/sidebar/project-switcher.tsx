@@ -23,7 +23,7 @@ export function ProjectSwitcher({ collapsed }: ProjectSwitcherProps) {
   const organizationSlug = organization?.slug || organization?.id || "";
 
   const { data: projects = [], isPending } = useQuery({
-    queryKey: [...queryKeys.projects, organizationId],
+    queryKey: organizationId ? queryKeys.projects(organizationId) : ["projects", "disabled"],
     queryFn: () => projectsApi.getProjects(organizationId!),
     enabled: Boolean(organizationId),
     staleTime: 30_000,
