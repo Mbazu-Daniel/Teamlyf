@@ -10,7 +10,7 @@ import {
 
 export type WorkspaceToolExecutorOptions = {
   commandRunner: WorkspaceCommandRunner;
-  getWorkspace: (session: AgentSession) => WorkspaceHandle;
+  getWorkspace: (session: AgentSession) => WorkspaceHandle | undefined;
 };
 
 export class WorkspaceToolExecutor implements AgentToolExecutor {
@@ -19,6 +19,7 @@ export class WorkspaceToolExecutor implements AgentToolExecutor {
   async execute(session: AgentSession, call: AgentToolCall): Promise<AgentToolResult> {
     try {
       const workspace = this.options.getWorkspace(session);
+      if (!workspace) throw new Error("This agent session has no code workspace.");
       const output = await this.executeTool(workspace, call);
       return { toolCallId: call.id, name: call.name, ok: true, output };
     } catch (error) {
