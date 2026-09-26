@@ -8,6 +8,7 @@ export { taskActivity } from "./task-activity";
 export { taskComment } from "./task-comment";
 export { milestone } from "./milestone";
 export { milestoneTask } from "./milestone-task";
+export { projectMember } from "./project-member";
 export { organizationReference, memberReference } from "./references";
 export {
   projectRelations,
@@ -20,4 +21,5 @@ export {
   taskCommentRelations,
   milestoneRelations,
   milestoneTaskRelations,
+  projectMemberRelations,
 } from "./relations";

@@ -20,15 +20,12 @@ type ProjectDetailPageProps = {
   onCloseTask: () => void;
 };
 
-function projectSlug(project: Project) {
-  return project.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
 // fallow-ignore-next-line complexity -- project detail coordinates board/list/milestone views and their shared task state
 export function ProjectDetailPage({ project, state, organizationId, organizationSlug, selectedTaskId, onSelectTask, onCloseTask }: ProjectDetailPageProps) {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [section, setSection] = useState<"tasks" | "milestones">("tasks");
+  const [showAddTask, setShowAddTask] = useState(false);
   const filteredTasks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return state.tasks;
@@ -37,9 +34,21 @@ export function ProjectDetailPage({ project, state, organizationId, organization
 
   return (
     <div className="flex min-w-0 h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <div className="flex flex-col border-b px-3 py-2">
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+      <header className="border-b px-4 py-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+              {project.emoji || project.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-sm font-semibold">{project.name}</h1>
+                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{project.identifier}</span>
+              </div>
+              {project.description && <p className="mt-0.5 truncate text-xs text-muted-foreground">{project.description}</p>}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center rounded-lg bg-secondary p-0.5">
               <button type="button" onClick={() => { setView("kanban"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "kanban" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconLayoutKanban className="mr-1.5 inline size-3.5" /> Board</button>
               <button type="button" onClick={() => { setView("list"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "list" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconList className="mr-1.5 inline size-3.5" /> List</button>
@@ -49,14 +58,57 @@ export function ProjectDetailPage({ project, state, organizationId, organization
           </div>
           <div className="flex items-center gap-2">
             {project.members?.length ? <div className="flex items-center -space-x-2">{project.members.slice(0, 5).map((member) => <div key={member.id} title={`${member.firstName ?? ""} ${member.lastName ?? ""}`.trim()} className="grid size-8 place-items-center rounded-full border-2 border-background bg-muted text-[10px] font-semibold">{((member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "")).toUpperCase() || "M"}</div>)}</div> : null}
-            <button type="button" className="grid size-8 place-items-center rounded-full border border-dashed hover:bg-accent" aria-label="Add project member"><IconPlus className="size-3.5" /></button>
-            <Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: projectSlug(project) }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
+
+<Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: project.identifier }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
             <button type="button" className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Copy project link" onClick={() => navigator.clipboard.writeText(window.location.href)}><IconLink className="size-3.5" /></button>
-            <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90" onClick={() => { state.setStatusId(state.statusId); }}><IconPlus className="mr-1.5 inline size-3.5" /> Add task</button>
+            <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90" onClick={() => { setSection("tasks"); setShowAddTask((value) => !value); }}><IconPlus className="mr-1.5 inline size-3.5" /> Add task</button>
           </div>
         </div>
-      </div>
-      {section === "tasks" ? (view === "kanban" ? <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} /> : <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />) : <div className="min-h-0 flex-1 overflow-y-auto p-4"><MilestonesSection milestones={state.milestones} tasks={state.tasks} loading={state.milestonesLoading} statuses={state.statuses} createMilestone={state.createMilestone} updateMilestone={state.updateMilestone} deleteMilestone={state.deleteMilestone} addTaskToMilestone={state.addTaskToMilestone} removeTaskFromMilestone={state.removeTaskFromMilestone} /></div>}
+      </header>
+      {showAddTask && section === "tasks" && (
+        <form
+          onSubmit={async (event) => {
+            const created = await state.createTask(event);
+            if (created) setShowAddTask(false);
+          }}
+          className="flex shrink-0 items-center gap-2 border-b bg-muted/20 px-3 py-2.5"
+        >
+          <input
+            autoFocus
+            value={state.name}
+            onChange={(event) => state.setName(event.target.value)}
+            placeholder="Task name"
+            className="h-9 min-w-0 flex-1 rounded-lg border bg-background px-3 text-xs outline-none focus:border-primary"
+          />
+          <select
+            value={state.statusId}
+            onChange={(event) => state.setStatusId(event.target.value)}
+            className="h-9 max-w-40 rounded-lg border bg-background px-2 text-xs outline-none"
+            aria-label="Task status"
+          >
+            {state.statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+          </select>
+          <button type="submit" disabled={state.loading || !state.name.trim() || !state.statusId} className="h-9 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+            {state.loading ? "Adding…" : "Add"}
+          </button>
+          <button type="button" onClick={() => setShowAddTask(false)} className="h-9 rounded-lg border px-3 text-xs font-medium hover:bg-muted">Cancel</button>
+        </form>
+      )}
+      <main className="min-h-0 flex-1 overflow-hidden">
+        {section === "tasks" ? (
+          <div className="h-full min-h-0 overflow-hidden p-3 md:p-4">
+            {view === "kanban" ? (
+              <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={(statusId) => { state.setStatusId(statusId); setShowAddTask(true); }} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
+            ) : (
+              <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
+            )}
+          </div>
+        ) : (
+          <div className="h-full min-h-0 overflow-y-auto p-4">
+            <MilestonesSection milestones={state.milestones} tasks={state.tasks} loading={state.milestonesLoading} statuses={state.statuses} createMilestone={state.createMilestone} updateMilestone={state.updateMilestone} deleteMilestone={state.deleteMilestone} addTaskToMilestone={state.addTaskToMilestone} removeTaskFromMilestone={state.removeTaskFromMilestone} />
+          </div>
+        )}
+      </main>
       <TaskDetailPanel organizationId={organizationId} projectId={project.id} taskId={selectedTaskId} statuses={state.statuses} onClose={onCloseTask} />
     </div>
   );

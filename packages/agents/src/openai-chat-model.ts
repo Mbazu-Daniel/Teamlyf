@@ -1,4 +1,5 @@
-import type { AgentMessage, AgentModel, AgentToolCall } from "./contracts";
+// fallow-ignore-file complexity
+import type { AgentMessage, AgentModel, AgentModelStreamEvent, AgentToolCall } from "./contracts";
 import type { AgentToolDefinition } from "./tool-definitions";
 
 type OpenAIChatModelOptions = {
@@ -28,6 +29,19 @@ type ToolAccumulator = {
   arguments: string;
 };
 
+type OpenAIStreamChunk = {
+  choices?: Array<{
+    delta?: {
+      content?: string | null;
+      tool_calls?: Array<{
+        index: number;
+        id?: string;
+        function?: { name?: string; arguments?: string };
+      }>;
+    };
+  }>;
+};
+
 export class OpenAIChatModel implements AgentModel {
   private readonly options: Required<Pick<OpenAIChatModelOptions, "apiKey" | "model" | "baseUrl">> &
     Pick<OpenAIChatModelOptions, "systemPrompt" | "signal">;
@@ -45,11 +59,9 @@ export class OpenAIChatModel implements AgentModel {
   async *stream(
     messages: readonly AgentMessage[],
     tools: readonly AgentToolDefinition[],
-  ): AsyncIterable<{ type: "text" | "tool_call"; text?: string; toolCall?: AgentToolCall }> {
+  ): AsyncIterable<AgentModelStreamEvent> {
     const input: ChatMessage[] = [];
-    if (this.options.systemPrompt) {
-      input.push({ role: "system", content: this.options.systemPrompt });
-    }
+    if (this.options.systemPrompt) input.push({ role: "system", content: this.options.systemPrompt });
     input.push(...this.toChatMessages(messages));
 
     const response = await fetch(`${this.options.baseUrl}/chat/completions`, {
@@ -80,52 +92,75 @@ export class OpenAIChatModel implements AgentModel {
     }
     if (!response.body) throw new Error("OpenAI response did not include a stream.");
 
-    const accumulators = new Map<number, ToolAccumulator>();
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    const accumulators = new Map<number, ToolAccumulator>();
     let buffer = "";
 
-    for await (const chunk of response.body) {
-      buffer += decoder.decode(chunk, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
+    const processLine = (line: string): OpenAIStreamChunk | null => {
+      const data = line.startsWith("data:") ? line.slice(5).trim() : "";
+      if (!data || data === "[DONE]") return null;
+      return JSON.parse(data) as OpenAIStreamChunk;
+    };
 
-      for (const line of lines) {
-        const data = line.startsWith("data:") ? line.slice(5).trim() : "";
-        if (!data || data === "[DONE]") continue;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-        const parsed = JSON.parse(data) as {
-          choices?: Array<{
-            delta?: {
-              content?: string | null;
-              tool_calls?: Array<{
-                index: number;
-                id?: string;
-                function?: { name?: string; arguments?: string };
-              }>;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          const parsed = processLine(line);
+          if (!parsed) continue;
+
+          const delta = parsed.choices?.[0]?.delta;
+          if (!delta) continue;
+
+          if (delta.content) yield { type: "text", text: delta.content };
+
+          for (const call of delta.tool_calls ?? []) {
+            const current = accumulators.get(call.index) ?? {
+              id: call.id ?? "",
+              name: "",
+              arguments: "",
             };
-          }>;
-        };
-        const delta = parsed.choices?.[0]?.delta;
-        if (!delta) continue;
-
-        if (delta.content) yield { type: "text", text: delta.content };
-
-        for (const call of delta.tool_calls ?? []) {
-          const current = accumulators.get(call.index) ?? {
-            id: call.id ?? "",
-            name: "",
-            arguments: "",
-          };
-          if (call.id) current.id = call.id;
-          if (call.function?.name) current.name += call.function.name;
-          if (call.function?.arguments) current.arguments += call.function.arguments;
-          accumulators.set(call.index, current);
+            if (call.id) current.id = call.id;
+            if (call.function?.name) current.name += call.function.name;
+            if (call.function?.arguments) current.arguments += call.function.arguments;
+            accumulators.set(call.index, current);
+          }
         }
       }
+
+      buffer += decoder.decode();
+      if (buffer.trim()) {
+        const parsed = processLine(buffer.trim());
+        if (parsed) {
+          const delta = parsed.choices?.[0]?.delta;
+          if (delta?.content) yield { type: "text", text: delta.content };
+          for (const call of delta?.tool_calls ?? []) {
+            const current = accumulators.get(call.index) ?? {
+              id: call.id ?? "",
+              name: "",
+              arguments: "",
+            };
+            if (call.id) current.id = call.id;
+            if (call.function?.name) current.name += call.function.name;
+            if (call.function?.arguments) current.arguments += call.function.arguments;
+            accumulators.set(call.index, current);
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
     }
 
     for (const current of accumulators.values()) {
       if (!current.id || !current.name) throw new Error("OpenAI returned an incomplete tool call.");
+
       let args: Record<string, unknown>;
       try {
         const parsed = JSON.parse(current.arguments || "{}") as unknown;

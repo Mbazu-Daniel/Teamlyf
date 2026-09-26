@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Organization } from "@/lib/api";
 import { OrganizationProvider } from "@/lib/organization";
-import { WorkspaceSwitcher } from "@/components/sidebar/workspace-switcher";
+import { OrganizationSwitcher } from "@/components/sidebar/organization-switcher";
 
 const ORG_A: Organization = { id: "org-a", name: "Acme Inc", slug: "acme" };
 const ORG_B: Organization = { id: "org-b", name: "Globex", slug: "globex" };
@@ -36,7 +36,7 @@ function renderSwitcher() {
   return render(
     <QueryClientProvider client={queryClient}>
       <OrganizationProvider>
-        <WorkspaceSwitcher collapsed={false} />
+        <OrganizationSwitcher collapsed={false} />
       </OrganizationProvider>
     </QueryClientProvider>,
   );
@@ -58,7 +58,7 @@ beforeEach(() => {
   mocks.getOrganizations.mockResolvedValue(mocks.workspaces);
 });
 
-describe("WorkspaceSwitcher", () => {
+describe("OrganizationSwitcher", () => {
   it("listsTheMembersWorkspaces_whenMenuOpened_includingTheCreateAffordance", async () => {
     const user = userEvent.setup();
     renderSwitcher();
@@ -67,7 +67,7 @@ describe("WorkspaceSwitcher", () => {
 
     expect(screen.getByRole("menuitem", { name: /Acme Inc/ })).toBeInTheDocument();
     expect(screen.getByRole("menuitem", { name: /Globex/ })).toBeInTheDocument();
-    expect(screen.getByRole("menuitem", { name: "Create workspace" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Organization settings" })).toBeInTheDocument();
   });
 
   it("persistsTheChoice_whenAnotherWorkspacePicked_updatesTheActiveWorkspace", async () => {
@@ -120,8 +120,8 @@ describe("WorkspaceSwitcher", () => {
     renderSwitcher();
 
     await openSwitcher(user);
-    await user.click(screen.getByRole("menuitem", { name: "Create workspace" }));
+    await user.click(screen.getByRole("menuitem", { name: "Organization settings" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/workspaces" });
+    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/acme/settings" });
   });
 });

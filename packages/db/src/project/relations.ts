@@ -9,8 +9,11 @@ import { taskActivity } from "./task-activity";
 import { taskComment } from "./task-comment";
 import { milestone } from "./milestone";
 import { milestoneTask } from "./milestone-task";
+import { projectMember } from "./project-member";
+import { member } from "../organization/member";
 
 export const projectRelations = relations(project, ({ many }) => ({
+  members: many(projectMember),
   statuses: many(status),
   labels: many(label),
   tasks: many(task),
@@ -72,4 +75,10 @@ export const milestoneRelations = relations(milestone, ({ one, many }) => ({
 export const milestoneTaskRelations = relations(milestoneTask, ({ one }) => ({
   milestone: one(milestone, { fields: [milestoneTask.milestoneId], references: [milestone.id] }),
   task: one(task, { fields: [milestoneTask.taskId], references: [task.id] }),
+}));
+
+
+export const projectMemberRelations = relations(projectMember, ({ one }) => ({
+  project: one(project, { fields: [projectMember.projectId], references: [project.id] }),
+  member: one(member, { fields: [projectMember.memberId], references: [member.id] }),
 }));

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { IconArrowsMaximize, IconArrowsMinimize, IconX, IconGripVertical } from "@tabler/icons-react";
+import { IconArrowsMaximize, IconArrowsMinimize, IconX, IconGripVertical, IconLink, IconShare2 } from "@tabler/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Status } from "@/lib/api";
 import { ErrorMessage, MutedMessage } from "./feedback";
@@ -34,7 +34,7 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
         <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={onClose} />
         <aside className="fixed inset-y-0 right-0 z-50 flex h-svh w-full flex-col border-l bg-background shadow-2xl">
           <div className="flex items-center justify-between border-b bg-background px-5 py-3">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task details</span>
+            <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{taskId.slice(0, 8)}</span></div>
             <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
               <IconX className="size-4" />
             </button>
@@ -104,7 +104,7 @@ function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId
           </button>
         )}
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task details</span>
+          <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{props.taskId.slice(0, 8)}</span></div>
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => setMaximized((value) => !value)} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={maximized ? "Restore" : "Maximize"}>
               {maximized ? <IconArrowsMinimize className="size-4" /> : <IconArrowsMaximize className="size-4" />}
@@ -134,26 +134,39 @@ function TaskDetailContent({
 
   return (
     <div className="space-y-6 p-5 sm:p-6">
-      <header>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{task ? `Task #${task.sequenceId}` : "Task"}</p>
-        <h2 className="mt-1 text-xl font-semibold tracking-tight">{task?.name ?? "Loading task..."}</h2>
-        {task?.description && <p className="mt-2 text-sm leading-6 text-muted-foreground">{task.description}</p>}
-      </header>
-
       {detail.loading && <Skeleton className="h-40 w-full" />}
       {detail.error && <ErrorMessage message={detail.error} />}
       {task && (
         <>
+          <section className="space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Task #{task.sequenceId}</p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight">{task.name}</h2>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button type="button" onClick={() => navigator.clipboard.writeText(buildTaskUrl(task.id))} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Copy task link"><IconLink className="size-4" /></button>
+                <button type="button" onClick={async () => { if (navigator.share) await navigator.share({ title: task.name, url: buildTaskUrl(task.id) }); else await navigator.clipboard.writeText(window.location.href); }} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Share task"><IconShare2 className="size-4" /></button>
+              </div>
+            </div>
+            <TaskDetailsForm detail={detail} />
+          </section>
+
           {detail.saveError && <ErrorMessage message={detail.saveError} />}
-          <TaskDetailsForm detail={detail} />
           <TaskProperties organizationId={organizationId} projectId={projectId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
           <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId} />
-          <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId!} />
+          <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId} />
           {detail.saving && <MutedMessage message="Saving your change..." />}
         </>
       )}
     </div>
   );
+}
+
+function buildTaskUrl(taskId: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("task", taskId);
+  return url.toString();
 }
 
 type TaskDetail = ReturnType<typeof useTaskDetail>;

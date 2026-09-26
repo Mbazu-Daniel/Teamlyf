@@ -13,21 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import { cn } from "@/lib/utils";
 
 function organizationInitial(name: string) {
   return name.slice(0, 1).toUpperCase();
 }
 
-type WorkspaceSwitcherProps = Readonly<{ collapsed: boolean }>;
+type OrganizationSwitcherProps = Readonly<{ collapsed: boolean }>;
 
-/**
- * Shows the active organization and lists the member's other organizations.
- * Picking one persists it for the signed-in user, and OrganizationProvider restores
- * it on the next login without forcing the organization picker again.
- */
-export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
+export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
@@ -38,19 +32,13 @@ export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
     staleTime: 30_000,
   });
 
-  // The shell only mounts once a organization exists; the guard keeps this honest.
-  // Bound once so `choose` and the trigger read a narrowed organization, not the union.
   if (!organization) return null;
   const activeOrganization = organization;
 
   function choose(next: Organization) {
     if (next.id === activeOrganization.id) return;
     selectOrganization(next);
-    // Every cached resource is keyed by organization id, so mounted pages
-    // refetch under the new organization; this stales whatever stays behind.
     void queryClient.invalidateQueries({ queryKey: queryKeys.organizations });
-    // A nested route (project detail) belongs to the old organization — land on
-    // the section root instead, and stay put when the current route still fits.
     const segments = pathname.split("/").filter(Boolean);
     const section = segments[1] ?? "";
     const target = section ? `/${next.slug || next.id}/${section}` : `/${next.slug || next.id}`;
@@ -77,10 +65,7 @@ export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
                 <span className="min-w-0 flex-1 text-left">
                   <span className="block truncate font-bold">{activeOrganization.name}</span>
                 </span>
-                <IconSelector
-                  className="size-4 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
+                <IconSelector className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               </>
             )}
           </button>
@@ -91,19 +76,19 @@ export function WorkspaceSwitcher({ collapsed }: WorkspaceSwitcherProps) {
           <DropdownMenuLabel>Organizations</DropdownMenuLabel>
         </DropdownMenuGroup>
         {isPending && <p className="px-3 py-2 text-sm text-muted-foreground">Loading...</p>}
-        {organizations?.map((organization) => (
-          <DropdownMenuItem key={organization.id} onClick={() => choose(organization)}>
+        {organizations?.map((item) => (
+          <DropdownMenuItem key={item.id} onClick={() => choose(item)}>
             <span className="grid size-6 shrink-0 place-items-center rounded-md bg-primary-500/15 text-[10px] font-bold text-primary-300">
-              {organizationInitial(organization.name)}
+              {organizationInitial(item.name)}
             </span>
-            <span className="min-w-0 flex-1 truncate">{organization.name}</span>
-            {organization.id === activeOrganization.id && <IconCheck className="text-primary-300" />}
+            <span className="min-w-0 flex-1 truncate">{item.name}</span>
+            {item.id === activeOrganization.id && <IconCheck className="text-primary-300" />}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => void navigate({ to: "/workspaces" })}>
+        <DropdownMenuItem onClick={() => void navigate({ to: "/$organizationSlug/settings", params: { organizationSlug: activeOrganization.slug ?? activeOrganization.id } })}>
           <IconPlus />
-          Create organization
+          Organization settings
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

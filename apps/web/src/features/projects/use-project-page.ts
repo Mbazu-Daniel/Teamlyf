@@ -25,7 +25,7 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
     enabled,
     retry: false,
   });
-  const project = projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ?? null;
+  const project = projectsQuery.data?.find((item) => item.identifier === projectSlug) ?? projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ?? null;
   const projectId = project?.id ?? "";
   const statusesKey = queryKeys.statuses(organizationKey, projectId);
   const tasksKey = queryKeys.tasks(organizationKey, projectId);
@@ -149,10 +149,11 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
   const statuses = statusesQuery.data ?? [];
   const selectedStatusId = resolveStatusId(statusId, statuses);
 
-  function createTask(event: FormEvent) {
+  async function createTask(event: FormEvent) {
     event.preventDefault();
-    if (!organizationId || !isTaskFormValid(name, selectedStatusId)) return;
-    createTaskMutation.mutate({ name: name.trim(), statusId: selectedStatusId });
+    if (!organizationId || !isTaskFormValid(name, selectedStatusId)) return false;
+    await createTaskMutation.mutateAsync({ name: name.trim(), statusId: selectedStatusId });
+    return true;
   }
 
   function moveTask(task: ProjectTask, nextStatusId: string) {
