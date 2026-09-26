@@ -40,8 +40,14 @@ export function ProjectCard({
       >
         <div className="relative h-20 w-full shrink-0 overflow-hidden">
           <div className={`absolute inset-0 bg-gradient-to-br ${preset} transition-transform duration-500 group-hover:scale-105`}>
-            <div className="absolute -left-10 -top-10 size-40 rounded-full bg-white/20 blur-3xl" />
-            <div className="absolute -bottom-5 -right-5 size-32 rounded-full bg-black/10 blur-2xl" />
+            {project.coverImageURL ? (
+              <img src={project.coverImageURL} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <>
+                <div className="absolute -left-10 -top-10 size-40 rounded-full bg-white/20 blur-3xl" />
+                <div className="absolute -bottom-5 -right-5 size-32 rounded-full bg-black/10 blur-2xl" />
+              </>
+            )}
           </div>
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/10 opacity-60 transition-opacity group-hover:opacity-80" />
 
