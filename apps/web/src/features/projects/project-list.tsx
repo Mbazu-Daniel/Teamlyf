@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { IconFilter, IconLayoutGrid, IconList, IconPlus, IconArrowLeft, IconSettings } from "@tabler/icons-react";
+import { IconFilter, IconLayoutGrid, IconList, IconPlus, IconArrowLeft, IconSettings, IconSearch } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
 import { ProjectCard } from "./project-card";
 import { ErrorMessage, MutedMessage } from "./feedback";
@@ -28,15 +28,16 @@ export function ProjectListPage({
 }) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const filteredProjects = useMemo(
-    () => state.projects.filter((project: Project) => statusFilter === "all" || project.status === statusFilter),
-    [state.projects, statusFilter],
+    () => state.projects.filter((project: Project) => (statusFilter === "all" || project.status === statusFilter) && (!searchQuery.trim() || `${project.name} ${project.identifier} ${project.description ?? ""}`.toLowerCase().includes(searchQuery.trim().toLowerCase()))),
+    [state.projects, statusFilter, searchQuery],
   );
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 bg-background/80 px-4 py-2 backdrop-blur-sm">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b bg-background/95 px-5 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <div className="flex items-center rounded-lg bg-secondary p-1">
             <button type="button" onClick={() => setViewMode("board")} className={`inline-flex h-8 items-center gap-2 rounded-md px-3 text-xs font-medium ${viewMode === "board" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
@@ -46,6 +47,7 @@ export function ProjectListPage({
               <IconList className="size-3.5" /> List
             </button>
           </div>
+          <div className="relative w-48"><IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search projects..." className="h-9 w-full rounded-lg border bg-background pl-8 pr-3 text-xs outline-none focus:border-primary" /></div>
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-9 w-40 rounded-md border bg-background px-3 text-xs">
             <option value="all"><IconFilter /> All projects</option>
             {STATUS_OPTIONS.slice(1).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
@@ -66,7 +68,7 @@ export function ProjectListPage({
 
       {state.error && <div className="px-4 pt-4"><ErrorMessage message={state.error} /></div>}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-5 py-5">
         {state.projectsLoading ? (
           <div className="flex h-40 items-center justify-center"><MutedMessage message="Fetching projects..." /></div>
         ) : filteredProjects.length === 0 ? (
@@ -82,7 +84,7 @@ export function ProjectListPage({
             </div>
           </div>
         ) : viewMode === "board" ? (
-          <div className="grid grid-cols-1 gap-5 pb-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 pb-8 md:grid-cols-2 lg:grid-cols-3">
             {filteredProjects.map((project) => <ProjectCard key={project.id} project={project} organizationSlug={organizationSlug} />)}
           </div>
         ) : (
