@@ -4,7 +4,7 @@ import type { Database } from "@teamlyf/db";
 import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema, project, task, taskComment } from "@teamlyf/db";
 
 const { subscription } = billingSchema;
-import { and, count, eq, isNull } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
