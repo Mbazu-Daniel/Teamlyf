@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import type { Database } from "../index";
+import { agentCheckpoint } from "./agent-checkpoint";
 import { agentEvent } from "./agent-event";
 import { agentSession } from "./agent-session";
 
@@ -42,6 +43,37 @@ export class AgentSessionRepository {
     },
   ): Promise<void> {
     await this.db.update(agentSession).set(update).where(eq(agentSession.runId, runId));
+  }
+
+  async createCheckpoint(checkpoint: {
+    id: string;
+    organizationId: string;
+    sessionId: string;
+    sequence: number;
+    reason: "tool" | "message" | "manual";
+    state: Record<string, unknown>;
+    createdAt: Date;
+  }): Promise<void> {
+    await this.db.insert(agentCheckpoint).values(checkpoint);
+  }
+
+  async loadLatestCheckpoint(sessionId: string) {
+    const rows = await this.db
+      .select()
+      .from(agentCheckpoint)
+      .where(eq(agentCheckpoint.sessionId, sessionId))
+      .orderBy(desc(agentCheckpoint.sequence))
+      .limit(1);
+    const checkpoint = rows[0];
+    if (!checkpoint) return undefined;
+    return {
+      id: checkpoint.id,
+      sessionId: checkpoint.sessionId,
+      sequence: checkpoint.sequence,
+      reason: checkpoint.reason as "tool" | "message" | "manual",
+      state: checkpoint.state as Record<string, unknown>,
+      createdAt: checkpoint.createdAt,
+    };
   }
 
   async appendEvent(event: {
