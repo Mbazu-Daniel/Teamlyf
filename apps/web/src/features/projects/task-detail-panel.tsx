@@ -40,7 +40,7 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <TaskDetailContent organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} mobile />
+            <TaskDetailContent organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} />
           </div>
         </aside>
       </>
