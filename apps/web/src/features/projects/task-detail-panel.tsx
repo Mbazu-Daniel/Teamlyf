@@ -33,7 +33,7 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
       <>
         <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={onClose} />
         <aside className="fixed inset-y-0 right-0 z-50 flex h-svh w-full flex-col border-l bg-background shadow-2xl">
-          <div className="flex items-center justify-between border-b px-5 py-3">
+          <div className="flex items-center justify-between border-b bg-background px-5 py-3">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task details</span>
             <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
               <IconX className="size-4" />
@@ -87,7 +87,7 @@ function DesktopTaskPanel(props: TaskDetailPanelProps) {
       <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={props.onClose} />
       <aside
         style={{ width: maximized ? "100%" : `${width}px` }}
-        className="fixed right-0 top-0 z-50 flex h-svh flex-col border-l bg-background shadow-2xl"
+        className="fixed right-0 top-0 z-50 flex h-svh flex-col border-l border-border bg-background shadow-2xl"
       >
         {!maximized && (
           <button
@@ -133,7 +133,7 @@ function TaskDetailContent({
   const task = detail.task;
 
   return (
-    <div className="space-y-5 p-5">
+    <div className="space-y-6 p-5 sm:p-6">
       <header>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{task ? `Task #${task.sequenceId}` : "Task"}</p>
         <h2 className="mt-1 text-xl font-semibold tracking-tight">{task?.name ?? "Loading task..."}</h2>
@@ -175,7 +175,7 @@ function TaskDetailsForm({ detail }: { detail: TaskDetail }) {
   }
 
   return (
-    <form onSubmit={save} className="space-y-3 rounded-xl border bg-card p-4">
+    <form onSubmit={save} className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
       <input value={name} onChange={(event) => setName(event.target.value)} className="w-full border-0 bg-transparent px-0 text-lg font-semibold outline-none" aria-label="Task name" />
       <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} placeholder="Add a description..." className="w-full resize-none rounded-lg border bg-background p-3 text-sm outline-none focus:border-primary" />
       <button type="submit" disabled={detail.saving || !name.trim()} className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
