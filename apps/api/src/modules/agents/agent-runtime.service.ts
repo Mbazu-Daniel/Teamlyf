@@ -137,7 +137,9 @@ export class AgentRuntimeService {
       createTools: () => getAgentToolsForContext(session.context.type),
     }, store);
 
-    const sink = (event: AgentEvent) => this.events.publish(event);\n    if (persisted) await runtime.recoverSession(session, sink);\n    else await runtime.createSession(session, sink);
+    const sink = (event: AgentEvent) => this.events.publish(event);
+    if (persisted) await runtime.recoverSession(session, sink);
+    else await runtime.createSession(session, sink);
     this.runtimes.set(runId, runtime);
     return runtime;
   }
