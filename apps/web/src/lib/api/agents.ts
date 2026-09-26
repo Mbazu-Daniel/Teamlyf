@@ -11,7 +11,7 @@ export type Agent = {
 };
 
 export type CreateAgentInput = { name: string; description?: string };
-export type UpdateAgentInput = { name?: string; description?: string; enabled?: boolean };
+export type UpdateAgentInput = { name?: string; description?: string; enabled?: boolean };\nexport type AgentRun = { id: string; organizationId: string; agentId: string; memberId: string; status: "queued" | "running" | "completed" | "failed" | "cancelled"; input: unknown; output: unknown; errorCode: string | null; errorMessage: string | null; createdAt: string; updatedAt: string };
 
 export const agentsApi = {
   list(organizationId: string) {
@@ -34,7 +34,7 @@ export const agentsApi = {
       method: "DELETE",
     });
   },
-  run(organizationId: string, agentId: string, input?: unknown) {
+  runs(organizationId: string, agentId: string) {\n    return client.request<AgentRun[]>(`/organization/${organizationId}/agents/${agentId}/runs`);\n  },\n  run(organizationId: string, agentId: string, input?: unknown) {
     return client.request(`/organization/${organizationId}/agents/${agentId}/runs`, {
       method: "POST",
       body: JSON.stringify(input === undefined ? {} : { input }),
