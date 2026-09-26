@@ -134,3 +134,4 @@ export function ProjectCard({
       </Link>
     </div>
   );
+}
