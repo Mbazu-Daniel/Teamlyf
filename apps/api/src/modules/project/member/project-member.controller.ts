@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import { OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
@@ -43,7 +43,7 @@ export class ProjectMemberController {
   removeMember(
     @Param("orgId") orgId: string,
     @Param("projectId") projectId: string,
-    @Param("memberId") memberId: string,
+    @Param("memberId", ParseUUIDPipe) memberId: string,
   ) {
     return this.projectMemberService.removeMember(orgId, projectId, memberId);
   }
