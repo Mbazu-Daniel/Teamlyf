@@ -1,4 +1,4 @@
-import { IconCalendar, IconCopy, IconDots, IconFlag, IconLayers, IconPin, IconPlus, IconTarget, IconTrash } from "@tabler/icons-react";
+import { IconCalendar, IconCopy, IconDots, IconFlag, IconMove, IconPin, IconTarget, IconTrash } from "@tabler/icons-react";
 import type { ProjectTask, Status } from "@/lib/api";
 
 const priorityTone: Record<string, string> = { urgent: "text-destructive", high: "text-orange-500", medium: "text-amber-500", low: "text-blue-500", none: "text-muted-foreground" };
@@ -25,7 +25,7 @@ export function TaskCard({ task, statuses, onMove, onSelect, onDelete, onDuplica
             <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border bg-popover p-1.5 shadow-xl">
               <button type="button" onClick={() => onSelect(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent">Edit</button>
               {onDuplicate && <button type="button" onClick={() => onDuplicate(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconCopy className="size-3.5" />Duplicate</button>}
-              <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconLayers className="size-3.5" />Convert to subtask</button>
+              <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconMove className="size-3.5" />Convert to subtask</button>
               <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs hover:bg-accent"><IconPin className="size-3.5" />Pin task to dashboard</button>
               <div className="my-1 border-t" />
               <button type="button" onClick={() => onDelete?.(task)} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-destructive hover:bg-destructive/10"><IconTrash className="size-3.5" />Delete</button>
