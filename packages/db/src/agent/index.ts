@@ -6,3 +6,4 @@ export { agentEvent } from "./agent-event";
 export { agentSessionStatus } from "./session-status";
 export { AgentSessionRepository } from "./agent-session-repository";
 export { agentCheckpoint } from "./agent-checkpoint";
+export { agentPermissionPolicy } from "./agent-permission-policy";
