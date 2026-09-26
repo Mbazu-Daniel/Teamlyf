@@ -46,8 +46,10 @@ export class AgentLoop {
         await this.emit("permission_requested", { request, permissionId: request.id });
         return;
       }
+
       this.recoveredPermissionDecisions.delete(request.id);
       await this.applyPermissionDecision(request, decision);
+
       const call: AgentToolCall = {
         id: request.id,
         name: request.tool,
