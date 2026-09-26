@@ -72,7 +72,8 @@ export class InMemoryAgentRuntime implements AgentRuntime {
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
           ...(isPendingPermission(checkpoint.state.pendingPermission)
-            ? { pendingPermission: checkpoint.state.pendingPermission as AgentPermissionRequest }\n            : {}),
+            ? { pendingPermission: checkpoint.state.pendingPermission as AgentPermissionRequest }
+            : {}),
           allowedTools: mergeAllowedTools(isAllowedTools(checkpoint.state.allowedTools), persistedAllowedTools),
           interrupted: false,
         }
