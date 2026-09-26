@@ -1,4 +1,4 @@
-import { agentEventTypes, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentToolCall, type AgentToolResult } from "./contracts";
+import { agentEventTypes, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentToolCall, type AgentToolResult } from "./contracts";
 import type { AgentModel, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import { agentToolDefinitions, type AgentToolDefinition } from "./tool-definitions";
 
@@ -209,7 +209,7 @@ export class AgentLoop {
       this.alwaysAllowedTools.add(request.tool);
       this.options.state.allowedTools = [...this.alwaysAllowedTools].filter(
         (tool): tool is import("./contracts").AgentToolName =>
-          import("./contracts").agentToolNames.includes(tool as import("./contracts").AgentToolName),
+          agentToolNames.includes(tool as import("./contracts").AgentToolName),
       );
     }
   }
