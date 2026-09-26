@@ -58,6 +58,7 @@ export class AgentSystemToolsService {
     return row;
   }
 
+  // fallow-ignore-next-line complexity -- task filtering combines optional project, status and text constraints.
   private async listTasks(session: AgentSession, call: AgentToolCall) {
     const projectId = this.stringArg(call, "projectId") ?? session.projectId;
     if (!projectId) throw new Error("projectId is required");
@@ -74,6 +75,7 @@ export class AgentSystemToolsService {
       .where(and(...conditions)).orderBy(desc(task.updatedAt)).limit(100);
   }
 
+  // fallow-ignore-next-line complexity -- task updates normalize multiple optional fields and enforce organization ownership.
   private async updateTask(session: AgentSession, call: AgentToolCall) {
     const taskId = this.stringArg(call, "taskId")!;
     const target = await this.db.query.task.findFirst({
@@ -144,6 +146,7 @@ export class AgentSystemToolsService {
     return row;
   }
 
+  // fallow-ignore-next-line complexity -- note updates validate ownership and normalize optional fields.
   private async updateNote(session: AgentSession, call: AgentToolCall) {
     const noteId = this.stringArg(call, "noteId")!;
     const target = await this.db.query.note.findFirst({
