@@ -15,7 +15,8 @@ import type { TaskDetail } from "./use-task-detail";
 const PRIORITIES: readonly TaskPriority[] = ["urgent", "high", "medium", "low", "none"];
 
 type TaskPropertiesProps = {
-  organizationId: string;\n  task: TaskDetail;
+  organizationId: string;
+  task: TaskDetail;
   statuses: Status[];
   members: OrganizationMember[];
   membersLoading: boolean;
