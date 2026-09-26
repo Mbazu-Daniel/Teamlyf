@@ -23,7 +23,7 @@ export type AgentRuntimeState = {
 
 export interface AgentRuntime {
   createSession(session: AgentSession, sink: AgentRuntimeEventSink): Promise<void>;
-  sendMessage(runId: string, message: string): Promise<void>;
+  sendMessage(runId: string, message: string): Promise<"completed" | "interrupted">;
   interrupt(runId: string): Promise<void>;
   resume(runId: string): Promise<void>;
   resolvePermission(
