@@ -98,7 +98,8 @@ export class WorkspaceToolExecutor implements AgentToolExecutor {
         return this.runGit(workspace, ["switch", stringArg(call, "branch")]);
 
       case "git_commit":
-        return this.runGit(workspace, ["commit", "-am", stringArg(call, "message")]);
+        return this.runGit(workspace, ["add", "-A"]);
+        await this.runGit(workspace, ["commit", "-m", stringArg(call, "message")]);
 
       case "git_push":
         return this.runGit(workspace, ["push", "--set-upstream", "origin", workspace.workingBranch]);
@@ -117,6 +118,15 @@ function stringArg(call: AgentToolCall, key: string): string {
   const value = call.arguments[key];
   if (typeof value !== "string" || !value.trim()) {
     throw new Error(`Tool argument '${key}' must be a non-empty string`);
+  }
+  return value;
+}
+
+function stringArrayArg(call: AgentToolCall, key: string): string[] {
+  const value = call.arguments[key];
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
+    throw new Error("Tool argument '" + key + "' must be an array of strings");
   }
   return value;
 }
