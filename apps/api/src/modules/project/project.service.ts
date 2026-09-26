@@ -54,19 +54,6 @@ export class ProjectService {
     });
   }
 
-  private createDefaultStatuses(projectId: string) {
-    return this.db.insert(status).values(
-      DEFAULT_STATUSES.map((item) => ({
-        projectId,
-        name: item.name,
-        color: item.color,
-        group: item.group,
-        sequence: item.sequence,
-        default: item.default ?? false,
-      })),
-    );
-  }
-
   async getProjects(orgId: string) {
     const projects = await this.db.query.project.findMany({
       where: eq(project.organizationId, orgId),
