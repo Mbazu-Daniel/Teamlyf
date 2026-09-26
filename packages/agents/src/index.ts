@@ -4,3 +4,4 @@ export * from "./tool-definitions";
 export * from "./agent-loop";
 export * from "./workspace";
 export * from "./local-workspace";
+export * from "./workspace-tool-executor";
