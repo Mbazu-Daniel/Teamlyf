@@ -1,6 +1,6 @@
 import { API_URL, client } from "./client";
 
-type AgentRuntimeEvent = {
+export type AgentEvent = {
   id: string;
   sessionId: string;
   runId: string;
