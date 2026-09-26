@@ -1,14 +1,13 @@
+export type AgentToolDefinition = {
+  name: string;
+  description?: string;
+  parameters: Record<string, unknown>;
+};
+
 export type AgentMessage =
   | { role: "user" | "assistant" | "system"; content: string }
-  | {
-      role: "assistant_tool_call";
-      toolCall: AgentToolCall;
-    }
-  | {
-      role: "tool";
-      toolCallId: string;
-      content: string;
-    };
+  | { role: "assistant_tool_call"; toolCall: AgentToolCall }
+  | { role: "tool"; toolCallId: string; content: string };
 
 export type AgentToolCall = {
   id: string;
@@ -26,9 +25,3 @@ export interface AgentModel {
     tools: readonly AgentToolDefinition[],
   ): AsyncIterable<AgentModelStreamEvent>;
 }
-
-export type AgentToolDefinition = {
-  name: string;
-  description?: string;
-  parameters: Record<string, unknown>;
-};
