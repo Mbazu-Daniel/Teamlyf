@@ -146,7 +146,7 @@ function TaskDetailContent({
         <>
           {detail.saveError && <ErrorMessage message={detail.saveError} />}
           <TaskDetailsForm detail={detail} />
-          <TaskProperties organizationId={organizationId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
+          <TaskProperties organizationId={organizationId} projectId={projectId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
           <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId} />
           <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId!} />
           {detail.saving && <MutedMessage message="Saving your change..." />}
