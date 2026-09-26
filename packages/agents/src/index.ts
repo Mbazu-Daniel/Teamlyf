@@ -2,6 +2,7 @@ export * from "./contracts";
 export * from "./runtime";
 export * from "./runtime-store";
 export * from "./tool-definitions";
+export * from "./tool-registry";
 export * from "./agent-loop";
 export * from "./agent-runtime";
 export * from "./workspace";
