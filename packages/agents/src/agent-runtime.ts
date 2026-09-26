@@ -1,5 +1,5 @@
 import { AgentLoop } from "./agent-loop";
-import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentSession } from "./contracts";
+import { agentPermissionSchema, agentToolNames, type AgentEvent, type AgentPermissionDecision, type AgentPermissionRequest, type AgentSession } from "./contracts";
 import type { AgentModel, AgentResumeStatus, AgentRuntime, AgentRuntimeEventSink, AgentRuntimeState, AgentToolExecutor } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 import type { AgentRuntimeStore } from "./runtime-store";
@@ -187,7 +187,7 @@ function mergeAllowedTools(
   return [...new Set([...checkpointTools, ...persistedTools])];
 }
 
-function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
+function isPendingPermission(value: unknown): AgentPermissionRequest | undefined {
   const parsed = agentPermissionSchema.safeParse(value);
   return parsed.success ? parsed.data : undefined;
 }
