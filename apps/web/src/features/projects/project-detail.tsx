@@ -25,6 +25,7 @@ export function ProjectDetailPage({ project, state, organizationId, organization
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [section, setSection] = useState<"tasks" | "milestones">("tasks");
+  const [showAddTask, setShowAddTask] = useState(false);
   const filteredTasks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) return state.tasks;
@@ -48,10 +49,39 @@ export function ProjectDetailPage({ project, state, organizationId, organization
             <button type="button" className="grid size-8 place-items-center rounded-full border border-dashed hover:bg-accent" aria-label="Add project member"><IconPlus className="size-3.5" /></button>
             <Link to="/$organizationSlug/projects/$projectId/settings" params={{ organizationSlug, projectId: project.identifier }} className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Project settings"><IconSettings className="size-3.5" /></Link>
             <button type="button" className="grid size-8 place-items-center rounded-md border hover:bg-accent" aria-label="Copy project link" onClick={() => navigator.clipboard.writeText(window.location.href)}><IconLink className="size-3.5" /></button>
-            <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90" onClick={() => { state.setStatusId(state.statusId); }}><IconPlus className="mr-1.5 inline size-3.5" /> Add task</button>
+            <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90" onClick={() => { setSection("tasks"); setShowAddTask((value) => !value); }}><IconPlus className="mr-1.5 inline size-3.5" /> Add task</button>
           </div>
         </div>
       </div>
+      {showAddTask && section === "tasks" && (
+        <form
+          onSubmit={(event) => {
+            state.createTask(event);
+            setShowAddTask(false);
+          }}
+          className="flex shrink-0 items-center gap-2 border-b bg-muted/20 px-3 py-2.5"
+        >
+          <input
+            autoFocus
+            value={state.name}
+            onChange={(event) => state.setName(event.target.value)}
+            placeholder="Task name"
+            className="h-9 min-w-0 flex-1 rounded-lg border bg-background px-3 text-xs outline-none focus:border-primary"
+          />
+          <select
+            value={state.statusId}
+            onChange={(event) => state.setStatusId(event.target.value)}
+            className="h-9 max-w-40 rounded-lg border bg-background px-2 text-xs outline-none"
+            aria-label="Task status"
+          >
+            {state.statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+          </select>
+          <button type="submit" disabled={state.loading || !state.name.trim() || !state.statusId} className="h-9 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+            {state.loading ? "Adding…" : "Add"}
+          </button>
+          <button type="button" onClick={() => setShowAddTask(false)} className="h-9 rounded-lg border px-3 text-xs font-medium hover:bg-muted">Cancel</button>
+        </form>
+      )}
       {section === "tasks" ? (view === "kanban" ? <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={state.setStatusId} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} /> : <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />) : <div className="min-h-0 flex-1 overflow-y-auto p-4"><MilestonesSection milestones={state.milestones} tasks={state.tasks} loading={state.milestonesLoading} statuses={state.statuses} createMilestone={state.createMilestone} updateMilestone={state.updateMilestone} deleteMilestone={state.deleteMilestone} addTaskToMilestone={state.addTaskToMilestone} removeTaskFromMilestone={state.removeTaskFromMilestone} /></div>}
       <TaskDetailPanel organizationId={organizationId} projectId={project.id} taskId={selectedTaskId} statuses={state.statuses} onClose={onCloseTask} />
     </div>
