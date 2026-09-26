@@ -64,12 +64,16 @@ export function TaskProperties({
 }
 
 function AssigneePicker({
+  organizationId,
+  projectId,
   task,
   members,
   membersLoading,
   updateTask,
-}: Pick<TaskPropertiesProps, "task" | "members" | "membersLoading" | "updateTask">) {
-  const { organizationId } = task;
+}: Pick<TaskPropertiesProps, "task" | "members" | "membersLoading" | "updateTask"> & {
+  organizationId: string;
+  projectId: string;
+}) {
   const { data: agents, isPending: agentsLoading } = useQuery({
     queryKey: ["agents", organizationId],
     queryFn: () => agentsApi.list(organizationId),
