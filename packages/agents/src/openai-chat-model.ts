@@ -1,4 +1,5 @@
-import type { AgentMessage, AgentModel, AgentToolCall } from "./contracts";
+import type { AgentMessage, AgentToolCall } from "./contracts";
+import type { AgentModel } from "./runtime";
 import type { AgentToolDefinition } from "./tool-definitions";
 
 type OpenAIChatModelOptions = {
