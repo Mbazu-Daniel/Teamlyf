@@ -34,7 +34,7 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
         <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={onClose} />
         <aside className="fixed inset-y-0 right-0 z-50 flex h-svh w-full flex-col border-l bg-background shadow-2xl">
           <div className="flex items-center justify-between border-b bg-background px-5 py-3">
-            <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{props.taskId.slice(0, 8)}</span></div>
+            <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{taskId.slice(0, 8)}</span></div>
             <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
               <IconX className="size-4" />
             </button>
