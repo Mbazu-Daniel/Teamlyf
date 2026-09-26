@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { useQueries, useQuery } from "@tanstack/react-query";
-import { IconLayoutKanban, IconList, IconPlus, IconSearch } from "@tabler/icons-react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { useOrganization } from "@/lib/organization";
 import { projectsApi, statusesApi, type ProjectTask, type Status } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
@@ -10,11 +11,18 @@ import { TaskDetailPanel } from "@/features/projects/task-detail-panel";
 
 export function TasksPage() {
   const { organization } = useOrganization();
-  const organizationId = organization?.id;
+  const { searchStr } = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [view, setView] = useState<"board" | "list">("board");
   const [search, setSearch] = useState("");
   const [selectedTask, setSelectedTask] = useState<{ projectId: string; taskId: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [taskName, setTaskName] = useState("");
+  const [taskStatusId, setTaskStatusId] = useState("");
+
+  const view = new URLSearchParams(searchStr).get("view") === "list" ? "list" : "board";
+  const organizationId = organization?.id;
 
   const projectsQuery = useQuery({
     queryKey: queryKeys.projects(organizationId ?? ""),
@@ -66,41 +74,172 @@ export function TasksPage() {
     );
   }, [search, tasks]);
 
+  const tasksKey = queryKeys.tasks(organizationId ?? "", projectId);
+
+  const createTaskMutation = useMutation({
+    mutationFn: () => projectsApi.createTask(organizationId!, projectId, {
+      name: taskName.trim(),
+      statusId: taskStatusId || statuses[0]?.id || "",
+    }),
+    onSuccess: (task) => {
+      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]);
+      setTaskName("");
+      setCreating(false);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  const moveTaskMutation = useMutation({
+    mutationFn: ({ taskId, statusId }: { taskId: string; statusId: string }) =>
+      projectsApi.moveTask(organizationId!, projectId, taskId, statusId),
+    onMutate: async ({ taskId, statusId }) => {
+      await queryClient.cancelQueries({ queryKey: tasksKey });
+      const previous = queryClient.getQueryData<ProjectTask[]>(tasksKey);
+      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) =>
+        (current ?? []).map((task) => task.id === taskId ? { ...task, statusId } : task),
+      );
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) queryClient.setQueryData(tasksKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: string) => projectsApi.deleteTask(organizationId!, projectId, taskId),
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({ queryKey: tasksKey });
+      const previous = queryClient.getQueryData<ProjectTask[]>(tasksKey);
+      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) =>
+        (current ?? []).filter((task) => task.id !== taskId),
+      );
+      return { previous };
+    },
+    onError: (_error, _taskId, context) => {
+      if (context?.previous) queryClient.setQueryData(tasksKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  const duplicateTaskMutation = useMutation({
+    mutationFn: (task: ProjectTask) =>
+      projectsApi.createTask(organizationId!, projectId, {
+        name: task.name + " (copy)",
+        statusId: task.statusId,
+      }),
+    onSuccess: (task) => {
+      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
+  });
+
+  function openCreate() {
+    setTaskStatusId(statuses[0]?.id ?? "");
+    setCreating(true);
+  }
+
+  function createTask() {
+    if (!organizationId || !projectId || !taskName.trim() || !(taskStatusId || statuses[0]?.id)) return;
+    createTaskMutation.mutate();
+  }
 
   if (!organizationId) return null;
 
   return (
-    <div className="flex min-w-0 h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <div className="flex flex-col border-b px-3 py-2">
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-lg bg-secondary p-0.5">
-              <button type="button" onClick={() => setView("board")} className={`h-8 rounded-md px-2.5 text-xs font-medium ${view === "board" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-                <IconLayoutKanban className="mr-1.5 inline size-3.5" /> Board
-              </button>
-              <button type="button" onClick={() => setView("list")} className={`h-8 rounded-md px-2.5 text-xs font-medium ${view === "list" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-                <IconList className="mr-1.5 inline size-3.5" /> List
-              </button>
-            </div>
-            <select value={projectId} onChange={(event) => setSelectedProjectId(event.target.value)} className="h-8 max-w-52 rounded-lg border bg-secondary px-2 text-xs">
-              {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-            </select>
-            <div className="relative w-44 sm:w-56">
-              <IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search tasks…" className="h-8 w-full rounded-lg border bg-secondary pl-8 text-xs outline-none focus:bg-background" />
-            </div>
+    <div className="flex min-w-0 h-full w-full flex-col overflow-hidden bg-card">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:px-5">
+        <div className="flex min-w-0 items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-semibold tracking-tight">Tasks</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {selectedProject?.name ?? "Select a project"} · {filteredTasks.length} task{filteredTasks.length === 1 ? "" : "s"}
+            </p>
           </div>
-          <button type="button" className="h-8 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground">
-            <IconPlus className="mr-1.5 inline size-3.5" /> Add task
+          <button
+            type="button"
+            onClick={openCreate}
+            disabled={!projectId || statuses.length === 0}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            <IconPlus className="size-3.5" /> Add task
           </button>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={projectId}
+            onChange={(event) => setSelectedProjectId(event.target.value)}
+            className="h-8 max-w-56 rounded-md border bg-background px-2 text-xs"
+            aria-label="Project"
+          >
+            {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+          </select>
+          <div className="relative min-w-48 flex-1 sm:max-w-sm">
+            <IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search tasks"
+              className="h-8 w-full rounded-md border bg-background pl-8 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary/30"
+            />
+          </div>
+        </div>
+
+        {creating && (
+          <form
+            onSubmit={(event) => { event.preventDefault(); createTask(); }}
+            className="flex flex-wrap items-center gap-2 rounded-lg border bg-background p-2"
+          >
+            <input
+              value={taskName}
+              onChange={(event) => setTaskName(event.target.value)}
+              placeholder="Task name"
+              className="h-8 min-w-56 flex-1 rounded-md border px-2.5 text-xs outline-none focus:ring-1 focus:ring-primary/30"
+              autoFocus
+              required
+            />
+            <select
+              value={taskStatusId || statuses[0]?.id || ""}
+              onChange={(event) => setTaskStatusId(event.target.value)}
+              className="h-8 rounded-md border bg-background px-2 text-xs"
+            >
+              {statuses.map((status: Status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+            </select>
+            <button
+              type="submit"
+              disabled={createTaskMutation.isPending || !taskName.trim()}
+              className="h-8 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              {createTaskMutation.isPending ? "Creating..." : "Create"}
+            </button>
+            <button type="button" onClick={() => setCreating(false)} className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted" aria-label="Cancel">
+              <IconX className="size-4" />
+            </button>
+          </form>
+        )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
         {view === "board" ? (
-          <KanbanBoard statuses={statuses} tasks={filteredTasks} onMove={() => undefined} onSelect={(task) => setSelectedTask({ projectId, taskId: task.id })} onAddTask={() => undefined} />
+          <KanbanBoard
+            statuses={statuses}
+            tasks={filteredTasks}
+            onMove={(task, statusId) => moveTaskMutation.mutate({ taskId: task.id, statusId })}
+            onSelect={(task) => setSelectedTask({ projectId, taskId: task.id })}
+            onAddTask={openCreate}
+            onDelete={(task) => deleteTaskMutation.mutate(task.id)}
+            onDuplicate={(task) => duplicateTaskMutation.mutate(task)}
+          />
         ) : (
-          <TaskList tasks={filteredTasks} statuses={statuses} onMove={() => undefined} onSelect={(task) => setSelectedTask({ projectId, taskId: task.id })} />
+          <TaskList
+            tasks={filteredTasks}
+            statuses={statuses}
+            onMove={(task, statusId) => moveTaskMutation.mutate({ taskId: task.id, statusId })}
+            onSelect={(task) => setSelectedTask({ projectId, taskId: task.id })}
+            onDelete={(task) => deleteTaskMutation.mutate(task.id)}
+            onDuplicate={(task) => duplicateTaskMutation.mutate(task)}
+          />
         )}
       </div>
 
