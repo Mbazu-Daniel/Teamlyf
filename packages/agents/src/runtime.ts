@@ -21,11 +21,13 @@ export type AgentRuntimeState = {
   interrupted: boolean;
 };
 
+export type AgentResumeStatus = "completed" | "interrupted" | "waiting_for_permission";
+
 export interface AgentRuntime {
   createSession(session: AgentSession, sink: AgentRuntimeEventSink): Promise<void>;
   sendMessage(runId: string, message: string): Promise<"completed" | "interrupted">;
   interrupt(runId: string): Promise<void>;
-  resume(runId: string): Promise<void>;
+  resume(runId: string): Promise<AgentResumeStatus>;
   resolvePermission(
     runId: string,
     requestId: string,
