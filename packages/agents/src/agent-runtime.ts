@@ -65,7 +65,7 @@ export class InMemoryAgentRuntime implements AgentRuntime {
           session,
           messages: Array.isArray(checkpoint.state.messages) ? checkpoint.state.messages as AgentRuntimeState["messages"] : [],
           checkpoints: [checkpoint],
-          pendingPermission: undefined,
+          pendingPermission: isPendingPermission(checkpoint.state.pendingPermission) ? checkpoint.state.pendingPermission : undefined,
           interrupted: false,
         }
       : { session, messages: [], checkpoints: [], interrupted: false };
@@ -128,4 +128,20 @@ export class InMemoryAgentRuntime implements AgentRuntime {
     if (!entry) throw new Error(`Agent runtime not found for run ${runId}`);
     return entry;
   }
+}
+
+
+function isPendingPermission(value: unknown): AgentRuntimeState["pendingPermission"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const candidate = value as Record<string, unknown>;
+  if (
+    typeof candidate.id !== "string" ||
+    typeof candidate.tool !== "string" ||
+    typeof candidate.scope !== "string" ||
+    typeof candidate.reason !== "string" ||
+    typeof candidate.metadata !== "object" ||
+    candidate.metadata === null ||
+    Array.isArray(candidate.metadata)
+  ) return undefined;
+  return candidate as AgentRuntimeState["pendingPermission"];
 }
