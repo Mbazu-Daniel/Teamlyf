@@ -104,7 +104,7 @@ function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId
           </button>
         )}
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{taskId.slice(0, 8)}</span></div>
+          <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{props.taskId.slice(0, 8)}</span></div>
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => setMaximized((value) => !value)} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={maximized ? "Restore" : "Maximize"}>
               {maximized ? <IconArrowsMinimize className="size-4" /> : <IconArrowsMaximize className="size-4" />}
