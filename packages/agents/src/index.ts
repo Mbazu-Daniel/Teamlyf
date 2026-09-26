@@ -9,3 +9,4 @@ export * from "./local-workspace";
 export * from "./workspace-tool-executor";
 export * from "./sandbox";
 export * from "./docker-sandbox";
+export * from "./openai-chat-model";
