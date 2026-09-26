@@ -54,7 +54,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
           { id: "task-list", label: "List", to: "tasks?view=list", icon: IconList },
         ],
       },
-      { id: "chat", label: "Chat", to: "chat", icon: IconMessage, available: false },
+      { id: "chat", label: "Chat", to: "chat", icon: IconMessage },
       { id: "documents", label: "Documents", to: "documents", icon: IconFileText, available: false },
       { id: "notes", label: "Notes", to: "notes", icon: IconNotes, available: false },
       { id: "people", label: "People & HR", to: "people", icon: IconUsers, available: false },
