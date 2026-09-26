@@ -1,11 +1,7 @@
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { dirname, relative } from "node:path";
-import type {
-  AgentSession,
-  AgentToolCall,
-  AgentToolExecutor,
-  AgentToolResult,
-} from "./runtime";
+import type { AgentToolExecutor } from "./runtime";
+import type { AgentSession, AgentToolCall, AgentToolResult } from "./contracts";
 import {
   resolveWorkspacePath,
   type WorkspaceCommandRunner,
@@ -83,6 +79,7 @@ export class WorkspaceToolExecutor implements AgentToolExecutor {
         return this.options.commandRunner.run(
           workspace,
           stringArg(call, "command"),
+          stringArrayArg(call, "args"),
         );
 
       case "git_status":
@@ -98,8 +95,8 @@ export class WorkspaceToolExecutor implements AgentToolExecutor {
         return this.runGit(workspace, ["switch", stringArg(call, "branch")]);
 
       case "git_commit":
-        return this.runGit(workspace, ["add", "-A"]);
-        await this.runGit(workspace, ["commit", "-m", stringArg(call, "message")]);
+        await this.runGit(workspace, ["add", "-A"]);
+        return this.runGit(workspace, ["commit", "-m", stringArg(call, "message")]);
 
       case "git_push":
         return this.runGit(workspace, ["push", "--set-upstream", "origin", workspace.workingBranch]);
