@@ -15,7 +15,11 @@ export type AgentLoopOptions = {
   model: AgentModel;
   executor: AgentToolExecutor;
   emit: (event: AgentEvent) => Promise<void> | void;
-  checkpoint?: (state: AgentRuntimeState, reason: AgentRuntimeState["checkpoints"][number]["reason"]) => Promise<void>;
+  checkpoint?: (
+    state: AgentRuntimeState,
+    reason: AgentRuntimeState["checkpoints"][number]["reason"],
+  ) => Promise<void>;
+  initialSequence?: number;
 };
 
 type PendingPermission = {
@@ -24,11 +28,13 @@ type PendingPermission = {
 };
 
 export class AgentLoop {
-  private sequence = 0;
+  private sequence: number;
   private readonly pendingPermissions = new Map<string, PendingPermission>();
   private readonly alwaysAllowedTools = new Set<string>();
 
-  constructor(private readonly options: AgentLoopOptions) {}
+  constructor(private readonly options: AgentLoopOptions) {
+    this.sequence = options.initialSequence ?? 0;
+  }
 
   async run(initialMessage: string): Promise<void> {
     this.options.state.messages.push({ role: "user", content: initialMessage });
@@ -38,6 +44,7 @@ export class AgentLoop {
     while (!this.options.state.interrupted) {
       let toolUsed = false;
       let assistantText = "";
+      const toolCalls = [];
 
       for await (const chunk of this.options.model.stream(
         this.options.state.messages,
@@ -48,11 +55,19 @@ export class AgentLoop {
           await this.emit("assistant_message", { text: chunk.text });
         }
 
-        if (chunk.type !== "tool_call" || !chunk.toolCall) continue;
+        if (chunk.type === "tool_call" && chunk.toolCall) {
+          toolUsed = true;
+          toolCalls.push(chunk.toolCall);
+          await this.emit("tool_call", { toolCall: chunk.toolCall });
+        }
+      }
 
-        toolUsed = true;
-        const call = chunk.toolCall;
-        await this.emit("tool_call", { toolCall: call });
+      if (assistantText) {
+        this.options.state.messages.push({ role: "assistant", content: assistantText });
+      }
+
+      for (const call of toolCalls) {
+        this.options.state.messages.push({ role: "assistant_tool_call", toolCall: call });
 
         const definition = agentToolDefinitions.find((item) => item.name === call.name);
         if (definition?.requiresPermission && !this.alwaysAllowedTools.has(call.name)) {
@@ -60,7 +75,7 @@ export class AgentLoop {
             id: call.id,
             tool: call.name,
             scope: call.name,
-            reason: "Agent requested a workspace-changing operation.",
+            reason: "Agent requested an operation that can change data or execute code.",
             metadata: call.arguments,
           };
 
@@ -70,6 +85,12 @@ export class AgentLoop {
           const decision = await this.waitForPermission(request);
           this.options.state.pendingPermission = undefined;
 
+          await this.emit("permission_resolved", {
+            permissionId: request.id,
+            decision,
+            tool: call.name,
+          });
+
           if (decision === "reject") {
             const result: AgentToolResult = {
               toolCallId: call.id,
@@ -78,45 +99,33 @@ export class AgentLoop {
               output: null,
               error: "Permission denied by the user.",
             };
-            await this.emit("permission_resolved", {
-              permissionId: request.id,
-              decision,
-              tool: call.name,
-            });
             await this.emit("tool_result", { result });
             this.options.state.messages.push({
-              role: "assistant",
-              content: JSON.stringify({ toolCall: call, result }),
+              role: "tool",
+              toolCallId: call.id,
+              name: call.name,
+              content: JSON.stringify(result),
             });
+            await this.checkpoint("tool");
             continue;
           }
 
-          if (decision === "always") {
-            this.alwaysAllowedTools.add(call.name);
-          }
-
-          await this.emit("permission_resolved", {
-            permissionId: request.id,
-            decision,
-            tool: call.name,
-          });
+          if (decision === "always") this.alwaysAllowedTools.add(call.name);
         }
 
         const result = await this.options.executor.execute(this.options.state.session, call);
         await this.emit("tool_result", { result });
         this.options.state.messages.push({
-          role: "assistant",
-          content: JSON.stringify({ toolCall: call, result }),
+          role: "tool",
+          toolCallId: call.id,
+          name: call.name,
+          content: JSON.stringify(result),
         });
         await this.checkpoint("tool");
       }
 
-      if (assistantText) {
-        this.options.state.messages.push({ role: "assistant", content: assistantText });
-        await this.checkpoint("message");
-      }
-
       if (!toolUsed) {
+        await this.checkpoint("message");
         await this.emit("run_completed", { reason: "model_completed" });
         return;
       }
@@ -127,10 +136,7 @@ export class AgentLoop {
 
   resolvePermission(requestId: string, decision: AgentPermissionDecision): void {
     const pending = this.pendingPermissions.get(requestId);
-    if (!pending) {
-      throw new Error(`No pending permission request found for ${requestId}`);
-    }
-
+    if (!pending) throw new Error(`No pending permission request found for ${requestId}`);
     this.pendingPermissions.delete(requestId);
     pending.resolve(decision);
   }
@@ -141,9 +147,12 @@ export class AgentLoop {
     });
   }
 
-  private async checkpoint(reason: AgentRuntimeState["checkpoints"][number]["reason"]): Promise<void> {
+  private async checkpoint(
+    reason: AgentRuntimeState["checkpoints"][number]["reason"],
+  ): Promise<void> {
     const checkpoint = {
       id: crypto.randomUUID(),
+      organizationId: this.options.state.session.organizationId,
       sessionId: this.options.state.session.id,
       sequence: this.options.state.checkpoints.length,
       reason,
@@ -156,7 +165,11 @@ export class AgentLoop {
     };
     this.options.state.checkpoints.push(checkpoint);
     await this.options.checkpoint?.(this.options.state, reason);
-    await this.emit("checkpoint_created", { checkpointId: checkpoint.id, sequence: checkpoint.sequence, reason });
+    await this.emit("checkpoint_created", {
+      checkpointId: checkpoint.id,
+      sequence: checkpoint.sequence,
+      reason,
+    });
   }
 
   private async emit(type: AgentEvent["type"], payload: Record<string, unknown>): Promise<void> {

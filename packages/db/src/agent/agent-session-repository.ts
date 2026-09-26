@@ -10,8 +10,10 @@ export type AgentSessionRecord = {
   runId: string;
   agentId: string;
   memberId: string;
-  projectId: string;
-  taskId: string;
+  projectId?: string;
+  taskId?: string;
+  contextType: string;
+  contextId?: string;
   workspaceRoot?: string;
   workingBranch?: string;
   metadata?: Record<string, unknown>;
@@ -29,6 +31,8 @@ export class AgentSessionRepository {
       memberId: session.memberId,
       projectId: session.projectId,
       taskId: session.taskId,
+      contextType: session.contextType,
+      contextId: session.contextId,
       workspaceRoot: session.workspaceRoot,
       workingBranch: session.workingBranch,
       metadata: session.metadata,
@@ -68,6 +72,7 @@ export class AgentSessionRepository {
     if (!checkpoint) return undefined;
     return {
       id: checkpoint.id,
+      organizationId: checkpoint.organizationId,
       sessionId: checkpoint.sessionId,
       sequence: checkpoint.sequence,
       reason: checkpoint.reason as "tool" | "message" | "manual",
