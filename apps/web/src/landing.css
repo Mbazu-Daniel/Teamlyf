@@ -14,6 +14,7 @@
   --landing-muted: var(--text-300);
   --landing-line: color-mix(in oklab, var(--primary-500) 18%, var(--background-700));
   --landing-primary: var(--primary-500);
+  --landing-primary-foreground: var(--primary-foreground);
   --landing-primary-soft: color-mix(in oklab, var(--primary-500) 16%, var(--background-900));
   --landing-magenta: var(--secondary-500);
   --landing-magenta-soft: color-mix(in oklab, var(--secondary-500) 15%, var(--background-900));
@@ -36,7 +37,7 @@
 .landing-page footer,
 .landing-page header { background-color: transparent; }
 .landing-nav { background: color-mix(in oklab, var(--landing-bg) 86%, transparent) !important; backdrop-filter: blur(18px); }
-.landing-dark-button { background: var(--landing-primary); color: var(--text-50); box-shadow: 0 10px 24px -16px color-mix(in oklab, var(--landing-primary) 80%, transparent); transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease; }
+.landing-dark-button { background: var(--landing-primary); color: var(--landing-primary-foreground); box-shadow: 0 10px 24px -16px color-mix(in oklab, var(--landing-primary) 80%, transparent); transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease; }
 .landing-dark-button:hover { transform: translateY(-2px); background: var(--primary-400); box-shadow: 0 16px 28px -18px color-mix(in oklab, var(--landing-primary) 80%, transparent); }
 .landing-hero { position: relative; background: radial-gradient(circle at 50% 14%, color-mix(in oklab, var(--landing-primary) 15%, transparent), transparent 38%), var(--landing-bg) !important; }
 .landing-orb { position: absolute; border-radius: 999px; filter: blur(55px); pointer-events: none; opacity: 0.65; }
@@ -77,7 +78,7 @@
 .landing-icon-magenta { background: var(--landing-magenta-soft); color: var(--secondary-300); }
 .landing-icon-lime { background: var(--landing-lime-soft); color: var(--landing-lime); }
 .landing-feature-core { position: absolute; z-index: 4; left: 56%; top: 50%; display: flex; width: 112px; height: 112px; transform: translate(-50%, -50%); align-items: center; justify-content: center; gap: 5px; flex-direction: column; border: 1px solid color-mix(in oklab, var(--landing-primary) 35%, var(--landing-line)); border-radius: 50%; background: var(--landing-surface); color: var(--landing-ink); box-shadow: 0 24px 70px -35px color-mix(in oklab, var(--landing-primary) 75%, transparent); }
-.landing-feature-core-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: linear-gradient(135deg, var(--landing-primary), var(--landing-magenta)); color: var(--text-50); font-size: 16px; font-weight: 800; }
+.landing-feature-core-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 10px; background: linear-gradient(135deg, var(--landing-primary), var(--landing-magenta)); color: var(--landing-primary-foreground); font-size: 16px; font-weight: 800; }
 .landing-feature-projects { left: 47%; top: 5%; animation-delay: -1s; }
 .landing-feature-chat { left: 76%; top: 23%; animation-delay: -2s; }
 .landing-feature-documents { left: 80%; top: 58%; animation-delay: -3s; }

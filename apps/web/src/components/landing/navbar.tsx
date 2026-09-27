@@ -15,7 +15,7 @@ export function Navbar() {
         className="mx-auto flex h-[72px] max-w-6xl items-center px-4 sm:px-6"
       >
         <Link to="/" className="flex items-center gap-2.5" aria-label="Teamlyf home">
-          <span className="grid size-8 place-items-center rounded-[10px] bg-[var(--landing-primary)] text-sm font-bold text-[var(--text-50)]">
+          <span className="grid size-8 place-items-center rounded-[10px] bg-[var(--landing-primary)] text-sm font-bold text-[var(--landing-primary-foreground)]">
             T
           </span>
           <span className="text-base font-bold tracking-[-0.02em] text-[var(--landing-ink)]">

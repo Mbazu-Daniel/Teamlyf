@@ -133,6 +133,7 @@
 }
 
 html.light {
+  --primary-foreground: #ffffff;
   --sidebar: color-mix(in oklab, var(--background-50) 88%, transparent);
   --sidebar-foreground: var(--text-800);
   --sidebar-primary: var(--primary-500);
