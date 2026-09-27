@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@livekit/components-react": "^2.9.24",
+    "@livekit/components-styles": "^1.2.0",
     "@tabler/icons-react": "^3.46.0",
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.103.2",
@@ -17,8 +19,13 @@
     "@tanstack/react-start": "^1.168.56",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "emoji-picker-react": "^4.20.6",
+    "livekit-client": "^2.22.3",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-resizable-panels": "^4.12.4",
+    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.5"

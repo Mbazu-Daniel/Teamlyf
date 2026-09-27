@@ -1,15 +1,11 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, MaxLength } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
+/** Body of `POST /organization/:orgId/calls/token` — parity with the pre-refactor endpoint. */
 export class CreateCallTokenDto {
-  @ApiProperty({ maxLength: 120 })
   @IsString()
-  @MaxLength(120)
   roomName!: string;
 
-  @ApiPropertyOptional({ maxLength: 120 })
   @IsOptional()
   @IsString()
-  @MaxLength(120)
   participantName?: string;
 }

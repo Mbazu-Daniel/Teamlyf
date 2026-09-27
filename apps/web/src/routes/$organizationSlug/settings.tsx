@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { IconBuilding, IconCreditCard, IconLock, IconShield, IconSettings } from "@tabler/icons-react";
+import { IconBuilding, IconCreditCard, IconLock, IconShield } from "@tabler/icons-react";
 
 export const Route = createFileRoute("/$organizationSlug/settings")({ component: SettingsLayout });
 
@@ -14,16 +14,8 @@ function SettingsLayout() {
   const { organizationSlug } = Route.useParams();
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-[var(--app-page-background)]">
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-[1280px] flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="shrink-0">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <IconSettings className="size-3.5" />
-            Organization settings
-          </div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Settings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage your organization, access, security and billing.</p>
-        </header>
+    <div className="flex h-full min-h-0 w-full flex-col bg-(--app-page-background)">
+      <div className="mx-auto flex h-full min-h-0 w-full `max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
 
         <div className="mt-6 grid min-h-0 flex-1 gap-5 overflow-hidden lg:grid-cols-[220px_minmax(0,1fr)]">
           <nav className="overflow-y-auto rounded-[16px] border border-border/60 bg-white p-2 shadow-sm dark:bg-card">

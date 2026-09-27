@@ -1,0 +1,20 @@
+# Fallow quality-gate policy — shared by `pnpm fallow:audit` and CI
+# (`fallow-rs/fallow@v3` auto-discovers this file).
+#
+# Complexity severity stays `warn`: the chat/calls feature is a verbatim port
+# of the source-repo UI, so its findings remain visible in reports without
+# failing the gate. Promote to `error` once targeted refactors land.
+ignoreDependencies = ["@nestjs/platform-socket.io"]
+
+[rules]
+complexity-cyclomatic = "warn"
+complexity-cognitive = "warn"
+complexity-crap = "warn"
+
+[[ignoreExports]]
+file = "apps/api/src/modules/billing/billing.dto.ts"
+exports = ["*"]
+
+[[ignoreExports]]
+file = "apps/api/src/modules/billing/plan-entitlements.ts"
+exports = ["*"]

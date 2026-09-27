@@ -1,3 +1,4 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { IconX } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
@@ -31,12 +32,29 @@ function DialogOverlay({ className, ...props }: Omit<DialogPrimitive.Backdrop.Pr
   );
 }
 
+const dialogContentVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+      flush: "p-0",
+      compact: "p-4",
+    },
+  },
+  defaultVariants: { variant: "default" },
+});
+
 type DialogContentProps = Omit<DialogPrimitive.Popup.Props, "className"> & {
   className?: string;
   showCloseButton?: boolean;
-};
+} & VariantProps<typeof dialogContentVariants>;
 
-function DialogContent({ className, children, showCloseButton = true, ...props }: DialogContentProps) {
+function DialogContent({
+  className,
+  children,
+  showCloseButton = true,
+  variant = "default",
+  ...props
+}: DialogContentProps) {
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -46,6 +64,7 @@ function DialogContent({ className, children, showCloseButton = true, ...props }
           "fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-lg max-h-[calc(100%-2rem)] gap-4 overflow-y-auto rounded-2xl border bg-card p-6 text-card-foreground shadow-lg outline-none duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 sm:max-w-lg",
           "-translate-x-1/2 -translate-y-1/2",
           className,
+          dialogContentVariants({ variant }),
         )}
         {...props}
       >

@@ -7,6 +7,9 @@ import { taskAssignee } from "./task-assignee";
 import { taskLabel } from "./task-label";
 import { taskActivity } from "./task-activity";
 import { taskComment } from "./task-comment";
+import { taskAttachment } from "./task-attachment";
+import { taskRelation } from "./task-relation";
+import { taskSubscriber } from "./task-subscriber";
 import { milestone } from "./milestone";
 import { milestoneTask } from "./milestone-task";
 import { projectMember } from "./project-member";
@@ -41,6 +44,10 @@ export const taskRelations = relations(task, ({ one, many }) => ({
   taskLabels: many(taskLabel),
   taskActivities: many(taskActivity),
   taskComments: many(taskComment),
+  taskAttachments: many(taskAttachment),
+  outgoingRelations: many(taskRelation, { relationName: "outgoing_task_relations" }),
+  incomingRelations: many(taskRelation, { relationName: "incoming_task_relations" }),
+  subscribers: many(taskSubscriber),
   milestoneTasks: many(milestoneTask),
 }));
 
@@ -67,6 +74,28 @@ export const taskCommentRelations = relations(taskComment, ({ one, many }) => ({
   replies: many(taskComment, { relationName: "comment_thread" }),
 }));
 
+export const taskAttachmentRelations = relations(taskAttachment, ({ one }) => ({
+  task: one(task, { fields: [taskAttachment.taskId], references: [task.id] }),
+}));
+
+export const taskRelationRelations = relations(taskRelation, ({ one }) => ({
+  sourceTask: one(task, {
+    fields: [taskRelation.sourceTaskId],
+    references: [task.id],
+    relationName: "outgoing_task_relations",
+  }),
+  targetTask: one(task, {
+    fields: [taskRelation.targetTaskId],
+    references: [task.id],
+    relationName: "incoming_task_relations",
+  }),
+}));
+
+export const taskSubscriberRelations = relations(taskSubscriber, ({ one }) => ({
+  task: one(task, { fields: [taskSubscriber.taskId], references: [task.id] }),
+  member: one(member, { fields: [taskSubscriber.memberId], references: [member.id] }),
+}));
+
 export const milestoneRelations = relations(milestone, ({ one, many }) => ({
   project: one(project, { fields: [milestone.projectId], references: [project.id] }),
   milestoneTasks: many(milestoneTask),
@@ -77,8 +106,8 @@ export const milestoneTaskRelations = relations(milestoneTask, ({ one }) => ({
   task: one(task, { fields: [milestoneTask.taskId], references: [task.id] }),
 }));
 
-
 export const projectMemberRelations = relations(projectMember, ({ one }) => ({
   project: one(project, { fields: [projectMember.projectId], references: [project.id] }),
   member: one(member, { fields: [projectMember.memberId], references: [member.id] }),
 }));
+

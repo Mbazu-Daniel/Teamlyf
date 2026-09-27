@@ -46,8 +46,8 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
   const [tab, setTab] = useState<"general" | "members" | "states">("general");
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-[var(--app-page-background)]">
-      <div className="mx-auto flex min-h-0 w-full max-w-[1180px] flex-1 flex-col p-3 md:p-5">
+    <div className="flex h-full min-h-0 w-full flex-col bg-(--app-page-background)">
+      <div className="mx-auto flex min-h-0 w-full max-w-295 flex-1 flex-col p-3 md:p-5">
         <div className="mb-4">
           <Link
             to="/$organizationSlug/projects/$projectId"

@@ -7,6 +7,7 @@ export const channel = pgTable("channel", {
   id: uuid("id").primaryKey().$defaultFn(generateId),
   organizationId: uuid("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  description: text("description"),
   kind: text("kind").notNull().default("channel"),
   isPrivate: boolean("is_private").notNull().default(false),
   createdById: uuid("created_by_id").references(() => member.id, { onDelete: "set null" }),

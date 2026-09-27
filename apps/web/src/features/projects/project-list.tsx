@@ -90,13 +90,9 @@ export function ProjectListPage({
   const isFilterActive = statusFilter !== "all" || debouncedSearch.length > 0;
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-[var(--app-page-background)]">
+    <div className="flex h-full min-h-0 w-full flex-col bg-(--app-page-background)">
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-4 p-3 pb-6 md:p-4">
-          <div>
-            <h1 className="text-lg font-semibold tracking-tight">Projects</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">Projects in this organization</p>
-          </div>
+        <div className="mx-auto flex w-full max-w-360 flex-col gap-4 p-3 pb-6 md:p-4">
           <section className="border-b border-border/60 pb-3">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
@@ -186,11 +182,11 @@ export function ProjectListPage({
 
           <section>
             {state.projectsLoading ? (
-              <div className="flex min-h-[420px] items-center justify-center">
+              <div className="flex min-h-105 items-center justify-center">
                 <MutedMessage message="Fetching projects…" />
               </div>
             ) : projects.length === 0 ? (
-              <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+              <div className="flex min-h-105 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
                 <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/10">
                   <IconLayoutGrid className="size-7 text-primary" />
                 </div>

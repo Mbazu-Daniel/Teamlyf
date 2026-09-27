@@ -48,4 +48,12 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
 
 export type Organization = { id: string; name: string; slug?: string };
 
+/**
+ * Storage capability URLs arrive relative to the API base URL, so they follow
+ * whatever origin `VITE_API_URL` points at. Absolute URLs pass through.
+ */
+export function resolveApiPath(path: string) {
+  return /^https?:\/\//.test(path) ? path : API_URL + path;
+}
+
 export const client = { request };

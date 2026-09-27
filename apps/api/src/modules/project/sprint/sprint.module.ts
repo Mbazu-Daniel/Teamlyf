@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common";
-import { ProjectModule } from "../project.module";
+import { ProjectSharedModule } from "../project-shared.module";
 import { SprintController } from "./sprint.controller";
 import { SprintService } from "./sprint.service";
 
 @Module({
-  imports: [ProjectModule],
+  imports: [ProjectSharedModule],
   controllers: [SprintController],
   providers: [SprintService],
   exports: [SprintService],

@@ -21,6 +21,12 @@ export default defineConfig(({ mode }) => {
           target: apiTarget,
           changeOrigin: true,
         },
+        // Socket.IO long-poll + websocket upgrade for the chat gateway.
+        "/socket.io": {
+          target: apiTarget,
+          changeOrigin: true,
+          ws: true,
+        },
       },
     },
     resolve: {

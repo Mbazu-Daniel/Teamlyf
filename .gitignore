@@ -6,7 +6,12 @@ dist/
 .env
 .env.*
 !.env.example
+*.bat
+*.log
 apps/web/src/routeTree.gen.ts
+
+# Storage seam: files uploaded through capability URLs in local dev
+.uploads/
 
 # Local-only agent / docs / tooling (work on disk; not for GitHub)
 *.md

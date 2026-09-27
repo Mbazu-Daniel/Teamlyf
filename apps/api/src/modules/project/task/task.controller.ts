@@ -102,7 +102,13 @@ export class TaskController {
     @Body("assignedToId") assignedToId: string,
     @CurrentMember() member: SessionMember,
   ) {
-    return this.taskService.updateTask(orgId, projectId, taskId, { assignedToId }, member.id);
+    return this.taskService.updateTask(
+      orgId,
+      projectId,
+      taskId,
+      { assignees: [{ kind: "member", id: assignedToId }] },
+      member.id,
+    );
   }
 
   @Patch("reorder")

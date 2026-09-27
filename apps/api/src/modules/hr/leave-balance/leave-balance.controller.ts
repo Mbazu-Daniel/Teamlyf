@@ -8,7 +8,7 @@ import { LeaveBalanceService } from "./leave-balance.service";
 @ApiTags("HR leave balances")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
-@Controller("organization/:orgId/hr/leave-balances")
+@Controller("organization/:orgId/leave-balances")
 export class LeaveBalanceController {
   constructor(private readonly balances: LeaveBalanceService) {}
 
