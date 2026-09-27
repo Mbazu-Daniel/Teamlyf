@@ -20,6 +20,12 @@ export const queryKeys = {
     ["organizations", organizationId, "projects", projectId, "tasks", taskId] as const,
   labels: (organizationId: string, projectId: string) =>
     ["organizations", organizationId, "projects", projectId, "labels"] as const,
+  departments: (organizationId: string) => ["organizations", organizationId, "departments"] as const,
+  memberProfiles: (organizationId: string) =>
+    ["organizations", organizationId, "member-profiles"] as const,
+  leaveRequests: (organizationId: string) => ["organizations", organizationId, "leave"] as const,
+  leaveBalances: (organizationId: string) => ["organizations", organizationId, "leave-balances"] as const,
+  leavePolicies: (organizationId: string) => ["organizations", organizationId, "policies"] as const,
   milestones: (organizationId: string, projectId: string) =>
     ["organizations", organizationId, "projects", projectId, "milestones"] as const,
   comments: (organizationId: string, projectId: string, taskId: string) =>

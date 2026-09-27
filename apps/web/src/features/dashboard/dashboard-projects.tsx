@@ -1,52 +1,80 @@
 import { Link } from "@tanstack/react-router";
-import type { Project } from "@/lib/api";
-import { projectProgress, projectStatus } from "./dashboard-home-utils";
+import { IconLayoutKanban } from "@tabler/icons-react";
 import { DashboardPanel } from "./dashboard-panel";
+import type { ProjectRollup } from "./dashboard-metrics";
 
-export function DashboardProjects({ organizationSlug, projects }: { organizationSlug: string; projects: Project[] }) {
+/**
+ * Project progress is counted from tasks: a project row carries no status or
+ * progress column, so its tasks and their status categories are the signal.
+ */
+export function DashboardProjects({
+  organizationSlug,
+  rollups,
+  loading,
+}: {
+  organizationSlug: string;
+  rollups: readonly ProjectRollup[];
+  loading: boolean;
+}) {
+  const visible = rollups.slice(0, 5);
+
   return (
     <DashboardPanel
       title="Projects"
-      description="Progress from completed vs total tasks"
-      action={<Link to="/$organizationSlug/projects" params={{ organizationSlug }} className="text-sm font-medium text-primary underline-offset-4 hover:underline">View all</Link>}
+      description="Completed tasks out of all tasks."
+      action={
+        <Link
+          to="/$organizationSlug/projects"
+          params={{ organizationSlug }}
+          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+        >
+          View all
+        </Link>
+      }
     >
-      {projects.length ? (
-        <ul className="space-y-3">
-          {projects.slice(0, 4).map((project) => {
-            const progress = projectProgress(project);
-            const status = projectStatus(project.status);
-            return (
-              <li key={project.id}>
-                <Link
-                  to="/$organizationSlug/projects/$projectId"
-                  params={{ organizationSlug, projectId: project.identifier }}
-                  className="group block rounded-[12px] border border-border/60 px-4 py-3.5 transition-colors hover:border-primary/30 hover:bg-primary/5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold tracking-[-0.02em] group-hover:text-primary">{project.name}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span className={status.className}>{status.label}</span>
-                        <span className="text-xs text-muted-foreground">{progress.total ? `${progress.done}/${progress.total} tasks` : "No tasks yet"}</span>
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-xs font-semibold tabular-nums">{progress.total ? `${progress.percent}%` : "—"}</span>
-                  </div>
-                  {progress.total ? (
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={progress.percent} aria-valuemin={0} aria-valuemax={100} aria-label={`${project.name} progress`}>
-                      <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${Math.min(100, Math.max(0, progress.percent))}%` }} />
-                    </div>
-                  ) : null}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className="rounded-[12px] border border-dashed border-border px-5 py-12 text-center">
-          <p className="text-sm font-medium">No projects yet</p>
-          <p className="mt-1 text-xs text-muted-foreground">Create a project to track task progress.</p>
+      {loading ? (
+        <p className="text-sm text-muted-foreground">Loading projects…</p>
+      ) : visible.length === 0 ? (
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <IconLayoutKanban className="size-5 text-muted-foreground" aria-hidden="true" />
+          <p className="mt-3 text-sm font-medium">No projects yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">Create a project to start tracking tasks.</p>
         </div>
+      ) : (
+        <ul className="space-y-1">
+          {visible.map((rollup) => (
+            <li key={rollup.project.id}>
+              <Link
+                to="/$organizationSlug/projects/$projectId"
+                params={{ organizationSlug, projectId: rollup.project.identifier }}
+                className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-muted/60"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium group-hover:text-primary">
+                    {rollup.project.emoji ? `${rollup.project.emoji} ` : ""}
+                    {rollup.project.name}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {rollup.total ? `${rollup.done} of ${rollup.total} done` : "No tasks yet"}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
+                  {rollup.percent}%
+                </span>
+                <span
+                  className="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuenow={rollup.percent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${rollup.project.name} progress`}
+                >
+                  <span className="block h-full rounded-full bg-primary" style={{ width: `${rollup.percent}%` }} />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </DashboardPanel>
   );

@@ -25,8 +25,12 @@ export type ProjectTask = {
   description: string | null;
   priority: string;
   statusId: string;
+  parentId?: string | null;
   startDate: string | null;
   targetDate: string | null;
+  /** Written by the API when the task lands in a status of the `done` group. */
+  completedAt?: string | null;
+  createdAt?: string;
   taskAssignees?: Array<{ id: string; kind: "member" | "agent"; memberId: string | null; agentId: string | null }>;
   taskLabels?: Array<{ id: string; taskId: string; labelId: string }>;
   milestoneTasks?: Array<{ id: string; milestoneId: string; taskId: string }>;
