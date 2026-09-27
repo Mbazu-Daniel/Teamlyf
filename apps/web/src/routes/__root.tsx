@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import styles from "../styles.css?url";
 import { OrganizationProvider } from "../lib/organization";
+import { GlobalCallEventsBridge } from "../features/chat/data/global-call-events-bridge";
 import { initializeTheme } from "../lib/theme";
 import { NotFound } from "../components/not-found";
 
@@ -59,7 +60,9 @@ function RootComponent() {
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <OrganizationProvider>
-          <Outlet />
+          <GlobalCallEventsBridge>
+            <Outlet />
+          </GlobalCallEventsBridge>
         </OrganizationProvider>
         <Toaster richColors position="top-right" theme="system" closeButton />
       </QueryClientProvider>

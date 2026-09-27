@@ -20,14 +20,32 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/15 text-destructive hover:bg-destructive/25 focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        soft: "border border-[var(--button-soft-border)] bg-[var(--button-soft-bg)] text-[var(--button-soft-foreground)] shadow-[0_18px_30px_-20px_var(--button-soft-shadow)] hover:bg-[var(--button-soft-hover)] active:translate-y-px",
+        "outline-destructive": "border-border hover:bg-muted text-destructive bg-input/40",
+        "primary-button":
+          "text-primary-foreground shadow-lg shadow-primary-500/25 bg-primary-button hover:bg-primary-button/90",
+        "primary-button-white":
+          "shadow-lg shadow-primary-500/25 bg-primary-button text-white hover:bg-primary-button/90",
+        "outline-primary":
+          "bg-transparent border-primary-button/30 text-primary-button hover:bg-primary-button/10 rounded-lg",
+        "ghost-muted": "hover:text-foreground rounded-md text-muted-foreground hover:bg-muted",
+        "soft-body":
+          "border border-[var(--button-soft-border)] bg-[var(--button-soft-bg)] shadow-[0_18px_30px_-20px_var(--button-soft-shadow)] hover:bg-[var(--button-soft-hover)] active:translate-y-px font-body-md text-body-md",
+        "ghost-primary":
+          "rounded-md text-primary-button hover:bg-primary-button hover:text-white transition-colors",
+        "danger-ghost": "text-muted-foreground hover:text-foreground hover:bg-red-50",
       },
       size: {
         default: "h-10 px-5 text-sm",
         sm: "h-8 gap-1.5 px-4 text-sm [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-12 px-7 text-base",
+        app: "h-10 px-6 py-2.5 text-sm font-bold",
         icon: "size-10",
         "icon-sm": "size-8",
         "icon-lg": "size-12",
+        xs: "h-8 px-4 [&_svg:not([class*='size-'])]:size-3.5 gap-2 text-xs",
+        "sm-relaxed": "h-8 px-4 text-sm [&_svg:not([class*='size-'])]:size-3.5 gap-2",
+        "app-wide": "h-10 py-2.5 text-sm font-bold px-8",
       },
     },
     defaultVariants: {

@@ -1,4 +1,4 @@
-export { client } from "./client";
+export { client, resolveApiPath } from "./client";
 export type { Organization } from "./client";
 export { ApiError } from "./errors";
 export * from "./auth";
@@ -11,4 +11,6 @@ export * from "./labels";
 export * from "./milestones";
 export * from "./comments";
 export * from "./task-activity";
+export * from "./attachments";
+export * from "./task-relation";
 export * from "./notes";

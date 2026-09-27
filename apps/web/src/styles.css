@@ -93,6 +93,60 @@
   --border: var(--background-700);
   --input: var(--background-700);
   --ring: var(--primary-400);
+
+  /* Chat / sidebar surfaces — source app tokens remapped onto this palette. */
+  --sidebar: color-mix(in oklab, var(--background-900) 92%, transparent);
+  --sidebar-foreground: var(--text-100);
+  --sidebar-primary: var(--primary-500);
+  --sidebar-primary-foreground: var(--text-50);
+  --sidebar-accent: var(--background-800);
+  --sidebar-accent-foreground: var(--text-50);
+  --sidebar-border: var(--background-700);
+  --sidebar-ring: var(--primary-400);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --skeleton-width: 6rem;
+
+  --primary-button: var(--primary-500);
+  --chat-primary-bg: var(--background-950);
+  --chat-sidebar-hover: var(--background-800);
+
+  --button-soft-bg: var(--primary-500);
+  --button-soft-foreground: var(--text-50);
+  --button-soft-border: color-mix(in oklab, var(--primary-500) 86%, transparent);
+  --button-soft-hover: var(--primary-600);
+  --button-soft-shadow: rgb(0 0 0 / 0.32);
+
+  --app-page-background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--primary-500) 18%, transparent) 0%, transparent 34%),
+    linear-gradient(140deg, var(--background-950) 0%, var(--background-900) 45%, var(--background-950) 100%);
+  --app-panel-border: color-mix(in oklab, var(--background-700) 62%, transparent);
+}
+
+html.light {
+  --sidebar: color-mix(in oklab, var(--background-50) 88%, transparent);
+  --sidebar-foreground: var(--text-800);
+  --sidebar-primary: var(--primary-500);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--background-100);
+  --sidebar-accent-foreground: var(--text-900);
+  --sidebar-border: var(--background-200);
+  --sidebar-ring: var(--primary-500);
+
+  --primary-button: var(--primary-500);
+  --chat-primary-bg: var(--background-50);
+  --chat-sidebar-hover: var(--background-100);
+
+  --button-soft-bg: var(--primary-500);
+  --button-soft-foreground: #ffffff;
+  --button-soft-border: color-mix(in oklab, var(--primary-500) 82%, transparent);
+  --button-soft-hover: var(--primary-600);
+  --button-soft-shadow: rgb(11 28 48 / 0.24);
+
+  --app-page-background:
+    radial-gradient(circle at top right, color-mix(in oklab, var(--primary-500) 8%, transparent) 0%, transparent 38%),
+    linear-gradient(140deg, var(--background-50) 0%, var(--background-100) 48%, var(--background-200) 100%);
+  --app-panel-border: color-mix(in oklab, var(--background-200) 95%, transparent);
 }
 
 @theme inline {
@@ -109,6 +163,14 @@
   --text-4xl: 3.158rem;
   --text-5xl: 4.21rem;
   --text-6xl: 5.611rem;
+
+  /* Typography sizes used by the ported chat UI (source: Montserrat scale). */
+  --font-body-md: var(--font-body);
+  --text-caption-xs: 0.6875rem;
+  --text-caption-xs--line-height: 1rem;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5rem;
+  --text-body-md--font-weight: 400;
 
   --font-sans: "Ubuntu", system-ui, sans-serif;
   --font-heading: "Ubuntu", system-ui, sans-serif;
@@ -132,6 +194,19 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-primary-button: var(--primary-button);
+  --color-chat-primary-bg: var(--chat-primary-bg);
+  --color-chat-sidebar-hover: var(--chat-sidebar-hover);
 
   --color-text-50: var(--text-50);
   --color-text-100: var(--text-100);

@@ -1,13 +1,38 @@
 import type { InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+type InputSize = "default" | "search";
+type InputDecor = "default" | "flat" | "filled";
+
+const inputSizeClasses: Record<InputSize, string> = {
+  default: "",
+  search: "pl-9 text-sm",
+};
+
+const inputDecorClasses: Record<InputDecor, string> = {
+  default: "",
+  flat: "bg-background shadow-none",
+  filled: "border-slate-200 bg-slate-50/80 shadow-none",
+};
+
+function Input({
+  className,
+  type,
+  size = "default",
+  decor = "default",
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
+  size?: InputSize;
+  decor?: InputDecor;
+}) {
   return (
     <input
       data-slot="input"
       type={type}
       className={cn(
         "flex h-10 w-full min-w-0 rounded-full border border-input bg-transparent px-4 text-base placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        inputDecorClasses[decor],
+        inputSizeClasses[size],
         className,
       )}
       {...props}
