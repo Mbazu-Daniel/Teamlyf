@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { EnvModule } from "./common/config/env.module";
 import { DbModule } from "./common/db/db.module";
+import { RedisModule } from "./common/redis/redis.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { DocumentModule } from "./modules/documents/document.module";
 import { InvitationModule } from "./modules/invitation/invitation.module";
@@ -19,6 +20,7 @@ import { RealtimeModule } from "./modules/chat/realtime/realtime.module";
   imports: [
     EnvModule,
     DbModule,
+    RedisModule,
     AuthModule,
     DocumentModule,
     RbacModule,

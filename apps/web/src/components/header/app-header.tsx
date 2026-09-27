@@ -1,14 +1,28 @@
 import { useLocation } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { IconMenu2 } from "@tabler/icons-react";
 import { getBreadcrumbs } from "./breadcrumbs";
 import { UserFooter } from "@/components/sidebar/user-footer";
+import { useOrganization } from "@/lib/organization";
+import { projectsApi } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 type AppHeaderProps = Readonly<{ onToggle: () => void }>;
 
 /** Path-derived breadcrumbs. Organization selection stays on the left; account controls stay on the right. */
 export function AppHeader({ onToggle }: AppHeaderProps) {
   const { pathname } = useLocation();
-  const crumbs = getBreadcrumbs(pathname);
+  const { organization } = useOrganization();
+  const organizationId = organization?.id ?? "";
+  // Project URLs show the project's name rather than its slug. Same cache key as
+  // the projects pages, so it costs nothing extra there and nothing at all elsewhere.
+  const projectsQuery = useQuery({
+    queryKey: queryKeys.projects(organizationId),
+    queryFn: () => projectsApi.getProjects(organizationId),
+    enabled: Boolean(organizationId) && pathname.includes("/projects/"),
+    retry: false,
+  });
+  const crumbs = getBreadcrumbs(pathname, projectsQuery.data ?? []);
 
   return (
     <header className="app-topbar sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border px-3 sm:px-5">

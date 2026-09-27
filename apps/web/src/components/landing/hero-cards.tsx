@@ -43,7 +43,7 @@ export function HeroCards() {
           <SidebarItem label="Chat" />
           <SidebarItem label="Documents" />
           <SidebarItem label="Notes" />
-          <SidebarItem label="People & HR" />
+          <SidebarItem label="HR" />
           <SidebarItem label="Calls" />
           <SidebarItem label="AI agents" />
         </aside>

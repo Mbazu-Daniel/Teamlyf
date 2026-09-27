@@ -1,19 +1,24 @@
 import { useEffect } from "react";
-import { getSocket } from "@/lib/socket";
+import { disconnectSocket, getSocket } from "@/lib/socket";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useTenantStore } from "@/lib/store/tenant-store";
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
-  const { accessToken } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const { tenantId } = useTenantStore();
+
   useEffect(() => {
-    const socket = getSocket(accessToken as string, tenantId!);
+    if (!isAuthenticated || !tenantId) {
+      disconnectSocket();
+      return;
+    }
+    const socket = getSocket(null, tenantId);
     socket.connect();
 
     return () => {
       socket.disconnect();
     };
-  }, [tenantId, accessToken]);
+  }, [isAuthenticated, tenantId]);
 
   return <>{children}</>;
 }

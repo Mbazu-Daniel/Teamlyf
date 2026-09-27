@@ -1,87 +1,16 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { ProjectTask } from "@/lib/api";
-import { ProjectDetailPage, parseTaskSearch, useProjectPage } from "@/features/projects";
-import { useOrganization } from "@/lib/organization";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { parseTaskSearch } from "@/features/projects";
 
 export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
   validateSearch: parseTaskSearch,
-  component: ProjectRoute,
+  component: ProjectLayout,
 });
 
-// fallow-ignore-next-line complexity -- route component coordinates project selection, URL state and project-page composition
-function ProjectRoute() {
-  const params = Route.useParams();
-  const projectId = params.projectId;
-  const organizationSlug = params.organizationSlug;
-  const { task: selectedTaskId } = Route.useSearch();
-  const { organization } = useOrganization();
-  const state = useProjectPage(organization?.id, projectId);
-  const selectedTask = selectedTaskId
-    ? state.tasks.find((task) => task.id === selectedTaskId)
-    : undefined;
-  const navigate = useNavigate({ from: "/$organizationSlug/projects/$projectId" });
-
-  const openTask = (task: ProjectTask) => {
-    void navigate({ search: (prev) => ({ ...prev, task: task.id }) });
-  };
-
-  const closeTask = () => {
-    void navigate({ search: (prev) => ({ ...prev, task: undefined }) });
-  };
-
-  return (
-    <ProjectRouteContent
-      organization={organization}
-      organizationSlug={organizationSlug}
-      state={state}
-      selectedTaskId={selectedTask?.id ?? null}
-      openTask={openTask}
-      closeTask={closeTask}
-    />
-  );
-}
-
-function ProjectRouteContent({
-  organization,
-  organizationSlug,
-  state,
-  selectedTaskId,
-  openTask,
-  closeTask,
-}: {
-  organization: ReturnType<typeof useOrganization>["organization"];
-  organizationSlug: string;
-  state: ReturnType<typeof useProjectPage>;
-  selectedTaskId: string | null;
-  openTask: (task: ProjectTask) => void;
-  closeTask: () => void;
-}) {
-  if (!organization) {
-    return (
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        <h1 className="text-2xl font-semibold">Project</h1>
-        <p className="mt-2 text-muted-foreground">Select an organization first.</p>
-      </main>
-    );
-  }
-
-  if (!state.project) {
-    return (
-      <main className="mx-auto max-w-6xl px-6 py-12">
-        <p className="text-sm text-muted-foreground">{state.error ?? "Loading project..."}</p>
-      </main>
-    );
-  }
-
-  return (
-    <ProjectDetailPage
-      project={state.project}
-      state={state}
-      organizationId={organization.id}
-      organizationSlug={organizationSlug}
-      selectedTaskId={selectedTaskId}
-      onSelectTask={openTask}
-      onCloseTask={closeTask}
-    />
-  );
+/**
+ * Project screens are children — `/tasks` for the board and list, `/settings`
+ * for configuration. This route only hosts them, so the URL and the breadcrumb
+ * agree on where the user is; it renders no chrome of its own.
+ */
+function ProjectLayout() {
+  return <Outlet />;
 }

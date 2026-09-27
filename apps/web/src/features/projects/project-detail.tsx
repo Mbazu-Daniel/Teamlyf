@@ -6,6 +6,7 @@ import { KanbanBoard } from "./board";
 import { MilestonesSection } from "./milestones";
 import { TaskDetailPanel } from "./task-detail-panel";
 import { TaskList } from "./task-list";
+import type { TaskView } from "./task-search";
 import { cn } from "@/lib/utils";
 
 type ProjectPageState = Omit<ReturnType<typeof import("./hooks").useProjectPage>, "project">;
@@ -16,13 +17,15 @@ type ProjectDetailPageProps = {
   organizationId: string;
   organizationSlug: string;
   selectedTaskId: string | null;
+  /** The active board/list view. URL state, so the view is shareable. */
+  view: TaskView;
+  onViewChange: (view: TaskView) => void;
   onSelectTask: (task: ProjectTask) => void;
   onCloseTask: () => void;
 };
 
 // fallow-ignore-next-line complexity -- project detail coordinates board/list/milestone views and their shared task state
-export function ProjectDetailPage({ project, state, organizationId, organizationSlug, selectedTaskId, onSelectTask, onCloseTask }: ProjectDetailPageProps) {
-  const [view, setView] = useState<"kanban" | "list">("kanban");
+export function ProjectDetailPage({ project, state, organizationId, organizationSlug, selectedTaskId, view, onViewChange, onSelectTask, onCloseTask }: ProjectDetailPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [section, setSection] = useState<"tasks" | "milestones">("tasks");
   const [showAddTask, setShowAddTask] = useState(false);
@@ -50,8 +53,8 @@ export function ProjectDetailPage({ project, state, organizationId, organization
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center rounded-lg bg-secondary p-0.5">
-              <button type="button" onClick={() => { setView("kanban"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "kanban" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconLayoutKanban className="mr-1.5 inline size-3.5" /> Board</button>
-              <button type="button" onClick={() => { setView("list"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "list" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconList className="mr-1.5 inline size-3.5" /> List</button>
+              <button type="button" onClick={() => { onViewChange("board"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "board" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconLayoutKanban className="mr-1.5 inline size-3.5" /> Board</button>
+              <button type="button" onClick={() => { onViewChange("list"); setSection("tasks"); }} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "list" && section === "tasks" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}><IconList className="mr-1.5 inline size-3.5" /> List</button>
               <button type="button" onClick={() => setSection("milestones")} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", section === "milestones" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")}>Milestones</button>
             </div>
             {section === "tasks" && <div className="relative w-44 sm:w-56"><IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" /><input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search tasks…" className="h-8 w-full rounded-lg border-border bg-secondary pl-8 text-xs shadow-none outline-none transition-all focus:bg-background" /></div>}
@@ -97,10 +100,10 @@ export function ProjectDetailPage({ project, state, organizationId, organization
       <main className="min-h-0 flex-1 overflow-hidden">
         {section === "tasks" ? (
           <div className="h-full min-h-0 overflow-hidden p-3 md:p-4">
-            {view === "kanban" ? (
+            {view === "board" ? (
               <KanbanBoard statuses={state.statuses} tasks={filteredTasks} onMove={state.moveTask} onSelect={onSelectTask} onAddTask={(statusId) => { state.setStatusId(statusId); setShowAddTask(true); }} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
             ) : (
-              <TaskList tasks={filteredTasks} statuses={state.statuses} onMove={state.moveTask} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} onAddTask={state.setStatusId} />
+              <TaskList groups={[{ id: "all", rows: filteredTasks.map((task) => ({ task, status: state.statuses.find((status) => status.id === task.statusId) })) }]} onSelect={onSelectTask} onDelete={(task) => state.deleteTask(task.id)} onDuplicate={state.duplicateTask} />
             )}
           </div>
         ) : (

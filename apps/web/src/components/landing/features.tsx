@@ -1,6 +1,5 @@
 import type { Icon as TablerIcon } from "@tabler/icons-react";
 import {
-  IconFileText,
   IconLayoutKanban,
   IconMessage,
   IconNotes,
@@ -17,9 +16,8 @@ const features: Array<{
 }> = [
   { title: "Projects", icon: IconLayoutKanban, tone: "landing-icon-violet", position: "landing-feature-projects" },
   { title: "Chat", icon: IconMessage, tone: "landing-icon-blue", position: "landing-feature-chat" },
-  { title: "Documents", icon: IconFileText, tone: "landing-icon-magenta", position: "landing-feature-documents" },
   { title: "Notes", icon: IconNotes, tone: "landing-icon-lime", position: "landing-feature-notes" },
-  { title: "People & HR", icon: IconUsers, tone: "landing-icon-violet", position: "landing-feature-people" },
+  { title: "HR", icon: IconUsers, tone: "landing-icon-violet", position: "landing-feature-people" },
   { title: "Calls", icon: IconPhone, tone: "landing-icon-blue", position: "landing-feature-calls" },
   { title: "AI agents", icon: IconRobot, tone: "landing-icon-magenta", position: "landing-feature-ai" },
 ];

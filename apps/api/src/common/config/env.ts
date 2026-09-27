@@ -17,6 +17,7 @@ const apiEnvSchema = z.object({
       { message: "must be one or more comma-separated URLs" },
     ),
   DATABASE_URL: z.string().nonempty(),
+  REDIS_URL: z.string().url().optional(),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.string().url().default("http://localhost:3101").transform((url) => url.replace(/\/+$/, "")),
   GOOGLE_CLIENT_ID: z.string().optional(),

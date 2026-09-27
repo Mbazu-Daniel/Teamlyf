@@ -1,5 +1,5 @@
 import type { Icon as TablerIcon } from "@tabler/icons-react";
-import { IconBell, IconCalendar, IconCheck, IconFileText, IconHome, IconLayoutKanban, IconList, IconMessage, IconNotes, IconPhone, IconSettings, IconUsers } from "@tabler/icons-react";
+import { IconBell, IconCalendar, IconCheck, IconHome, IconLayoutKanban, IconList, IconMessage, IconNotes, IconPhone, IconSettings, IconUsers } from "@tabler/icons-react";
 
 export type NavChild = Readonly<{ id:string; label:string; to:string; icon:TablerIcon }>;
 export type NavItem = Readonly<{ id:string; label:string; to:string; icon:TablerIcon; available?:boolean; children?:readonly NavChild[] }>;
@@ -11,10 +11,11 @@ export const NAV_SECTIONS: readonly NavSection[] = [{
   {id:"projects",label:"Projects",to:"projects",icon:IconLayoutKanban},
   {id:"tasks",label:"Tasks",to:"tasks",icon:IconCheck,children:[{id:"task-board",label:"Board",to:"tasks?view=board",icon:IconLayoutKanban},{id:"task-list",label:"List",to:"tasks?view=list",icon:IconList}]},
   {id:"chat",label:"Chat",to:"chats",icon:IconMessage},
-  {id:"documents",label:"Documents",to:"documents",icon:IconFileText,available:false},
+  // Documents is temporarily hidden from navigation. The route and page remain intact.
+  // {id:"documents",label:"Documents",to:"documents",icon:IconFileText,available:false},
   {id:"notes",label:"Notes",to:"notes",icon:IconNotes},
   {id:"schedule",label:"Schedule",to:"schedule",icon:IconCalendar},
-  {id:"people",label:"People & HR",to:"people",icon:IconUsers},
+  {id:"people",label:"HR",to:"people",icon:IconUsers},
   {id:"calls",label:"Calls",to:"chats/calls",icon:IconPhone},
   {id:"notifications",label:"Notifications",to:"notifications",icon:IconBell},
   // AI agents are temporarily hidden from navigation. The implementation remains intact.

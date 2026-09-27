@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { IconCheck, IconFileText, IconMessage, IconRobot, IconUsers } from "@tabler/icons-react";
+import { IconCheck, IconMessage, IconRobot, IconUsers } from "@tabler/icons-react";
 
 function ProductWindow({ children }: { children: ReactNode }) {
   return (
@@ -59,10 +59,6 @@ function OrganizationMock() {
           <div className="flex items-center justify-between"><span className="text-xs font-semibold">AI agent</span><IconRobot className="size-4 text-[var(--landing-muted)]" /></div>
           <div className="mt-5 rounded-xl bg-[var(--landing-soft)] p-3 text-[10px] leading-4 text-[var(--landing-muted)]">Summarize this week’s project activity and list the unresolved tasks.</div>
           <div className="mt-3 flex items-center gap-1.5 text-[10px] font-semibold"><IconCheck className="size-3" /> Ready for the team</div>
-        </div>
-        <div className="landing-demo-card sm:col-span-2">
-          <div className="flex items-center justify-between"><span className="text-xs font-semibold">Shared knowledge</span><IconFileText className="size-4 text-[var(--landing-muted)]" /></div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-3"><span className="rounded-lg bg-[var(--landing-soft)] p-2 text-[10px]">Launch brief</span><span className="rounded-lg bg-[var(--landing-soft)] p-2 text-[10px]">Product notes</span><span className="rounded-lg bg-[var(--landing-soft)] p-2 text-[10px]">Meeting notes</span></div>
         </div>
       </div>
     </ProductWindow>

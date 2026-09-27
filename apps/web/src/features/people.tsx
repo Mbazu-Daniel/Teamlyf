@@ -11,7 +11,7 @@ export function PeoplePage({ organizationSlug }: { organizationSlug: string }) {
       <main className="min-w-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[1440px]">
           <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
-            <div><h1 className="text-2xl font-semibold">People & HR</h1><p className="mt-1 text-sm text-muted-foreground">Employees, departments and leave management.</p></div>
+            <div><h1 className="text-2xl font-semibold">HR</h1><p className="mt-1 text-sm text-muted-foreground">Employees, departments and leave management.</p></div>
             <div className="flex items-center rounded-lg bg-muted p-1">
               <button type="button" aria-label="Board view" aria-pressed={view === "board"} onClick={() => setView("board")} className={"rounded-md p-2 " + (view === "board" ? "bg-background shadow-sm" : "")}><IconLayoutGrid className="size-4" /></button>
               <button type="button" aria-label="List view" aria-pressed={view === "list"} onClick={() => setView("list")} className={"rounded-md p-2 " + (view === "list" ? "bg-background shadow-sm" : "")}><IconList className="size-4" /></button>

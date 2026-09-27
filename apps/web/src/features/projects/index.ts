@@ -12,3 +12,6 @@ export { parseTaskSearch } from "./task-search";
 export { useProjectPage, useProjects } from "./hooks";
 export { TaskComments } from "./task-comments";
 export { TaskActivity } from "./task-activity";
+export { buildMyTasksRows } from "./use-my-tasks";
+export { dateGroupOf, groupRowsByDate, isDateGroupId, rescheduleDateFor } from "./task-groups";
+export { GroupedBoard } from "./board";

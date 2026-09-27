@@ -5,7 +5,7 @@ allowBuilds:
   esbuild: true
   "@nestjs/core": true
   pnpm: true
-  "@node-rs/argon2": true
+  argon2: true
   "@scarf/scarf": false
   "@prisma/client": false
   better-sqlite3: false

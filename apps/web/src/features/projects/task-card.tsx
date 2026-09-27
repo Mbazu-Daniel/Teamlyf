@@ -7,7 +7,8 @@ const priorityTone: Record<string, string> = { urgent: "text-destructive", high:
 export function TaskCard({ task, statuses, onMove, onSelect, onDelete, onDuplicate }: {
   task: ProjectTask;
   statuses: Status[];
-  onMove: (task: ProjectTask, statusId: string) => void;
+  /** Omitted where a card cannot pick a status, so the select is never rendered dead. */
+  onMove?: (task: ProjectTask, statusId: string) => void;
   onSelect: (task: ProjectTask) => void;
   onDelete?: (task: ProjectTask) => void;
   onDuplicate?: (task: ProjectTask) => void;
@@ -27,9 +28,11 @@ export function TaskCard({ task, statuses, onMove, onSelect, onDelete, onDuplica
         {task.targetDate && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1"><IconCalendar className="size-3" />{new Date(task.targetDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>}
         {(task.milestoneTasks?.length ?? 0) > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1"><IconTarget className="size-3" />{task.milestoneTasks?.length}</span>}
       </div>
-      <select value={task.statusId} onChange={(event) => onMove(task, event.target.value)} onClick={(event) => event.stopPropagation()} className="mt-3 w-full rounded-lg border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary" aria-label={`Status for ${task.name}`}>
-        {statuses.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-      </select>
+      {onMove && (
+        <select value={task.statusId} onChange={(event) => onMove(task, event.target.value)} onClick={(event) => event.stopPropagation()} className="mt-3 w-full rounded-lg border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary" aria-label={`Status for ${task.name}`}>
+          {statuses.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        </select>
+      )}
     </article>
   );
 }
