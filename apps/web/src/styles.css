@@ -118,8 +118,17 @@
   --button-soft-shadow: rgb(0 0 0 / 0.32);
 
   --app-page-background:
-    radial-gradient(circle at top right, color-mix(in oklab, var(--primary-500) 18%, transparent) 0%, transparent 34%),
-    linear-gradient(140deg, var(--background-950) 0%, var(--background-900) 45%, var(--background-950) 100%);
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklab, var(--primary-500) 18%, transparent) 0%,
+      transparent 34%
+    ),
+    linear-gradient(
+      140deg,
+      var(--background-950) 0%,
+      var(--background-900) 45%,
+      var(--background-950) 100%
+    );
   --app-panel-border: color-mix(in oklab, var(--background-700) 62%, transparent);
 }
 
@@ -144,9 +153,63 @@ html.light {
   --button-soft-shadow: rgb(11 28 48 / 0.24);
 
   --app-page-background:
-    radial-gradient(circle at top right, color-mix(in oklab, var(--primary-500) 8%, transparent) 0%, transparent 38%),
-    linear-gradient(140deg, var(--background-50) 0%, var(--background-100) 48%, var(--background-200) 100%);
+    radial-gradient(
+      circle at top right,
+      color-mix(in oklab, var(--primary-500) 8%, transparent) 0%,
+      transparent 38%
+    ),
+    linear-gradient(
+      140deg,
+      var(--background-50) 0%,
+      var(--background-100) 48%,
+      var(--background-200) 100%
+    );
   --app-panel-border: color-mix(in oklab, var(--background-200) 95%, transparent);
+}
+
+html[data-theme-palette="ocean"] {
+  --primary-50: oklch(0.97 0.018 230);
+  --primary-100: oklch(0.93 0.046 230);
+  --primary-200: oklch(0.86 0.09 230);
+  --primary-300: oklch(0.77 0.14 230);
+  --primary-400: oklch(0.68 0.17 230);
+  --primary-500: oklch(0.59 0.18 230);
+  --primary-600: oklch(0.51 0.16 230);
+  --primary-700: oklch(0.43 0.135 230);
+  --secondary-400: oklch(0.69 0.15 195);
+  --secondary-500: oklch(0.6 0.17 195);
+  --accent-400: oklch(0.81 0.14 170);
+  --accent-500: oklch(0.75 0.15 170);
+}
+
+html[data-theme-palette="rose"] {
+  --primary-50: oklch(0.97 0.02 345);
+  --primary-100: oklch(0.93 0.052 345);
+  --primary-200: oklch(0.86 0.1 345);
+  --primary-300: oklch(0.78 0.15 345);
+  --primary-400: oklch(0.69 0.19 345);
+  --primary-500: oklch(0.61 0.22 345);
+  --primary-600: oklch(0.53 0.2 345);
+  --primary-700: oklch(0.45 0.17 345);
+  --secondary-400: oklch(0.72 0.18 20);
+  --secondary-500: oklch(0.64 0.2 20);
+  --accent-400: oklch(0.82 0.15 70);
+  --accent-500: oklch(0.76 0.17 70);
+}
+
+html[data-theme-palette="forest"] {
+  --primary-50: oklch(0.97 0.018 150);
+  --primary-100: oklch(0.93 0.046 150);
+  --primary-200: oklch(0.86 0.09 150);
+  --primary-300: oklch(0.78 0.13 150);
+  --primary-400: oklch(0.69 0.16 150);
+  --primary-500: oklch(0.6 0.17 150);
+  --primary-600: oklch(0.52 0.15 150);
+  --primary-700: oklch(0.44 0.13 150);
+  --secondary-400: oklch(0.68 0.13 105);
+  --secondary-500: oklch(0.6 0.15 105);
+  --accent-400: oklch(0.82 0.16 85);
+  --accent-500: oklch(0.76 0.18 85);
 }
 
 @theme inline {
@@ -317,7 +380,9 @@ html.light {
   }
 
   .crisp-card {
-    transition: transform var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+    transition:
+      transform var(--dur-short) var(--ease-out),
+      border-color var(--dur-short) var(--ease-out);
   }
 
   .crisp-card:hover {
@@ -337,9 +402,21 @@ html.light {
     height: 44rem;
     pointer-events: none;
     background:
-      radial-gradient(40% 52% at 50% 4%, color-mix(in oklab, var(--primary-500) 30%, transparent), transparent 68%),
-      radial-gradient(34% 44% at 20% 26%, color-mix(in oklab, var(--secondary-500) 18%, transparent), transparent 72%),
-      radial-gradient(32% 40% at 80% 22%, color-mix(in oklab, var(--accent-500) 12%, transparent), transparent 74%);
+      radial-gradient(
+        40% 52% at 50% 4%,
+        color-mix(in oklab, var(--primary-500) 30%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        34% 44% at 20% 26%,
+        color-mix(in oklab, var(--secondary-500) 18%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(
+        32% 40% at 80% 22%,
+        color-mix(in oklab, var(--accent-500) 12%, transparent),
+        transparent 74%
+      );
     mask-image: linear-gradient(to bottom, black 40%, transparent 94%);
     -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 94%);
   }
@@ -351,11 +428,27 @@ html.light {
 }
 
 @keyframes reveal {
-  to { opacity: 1; transform: none; }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .reveal-y {
   transform: translateY(8px);
+}
+
+.theme-swatch-violet {
+  background: linear-gradient(135deg, #7c3aed, #d946ef);
+}
+.theme-swatch-ocean {
+  background: linear-gradient(135deg, #0284c7, #14b8a6);
+}
+.theme-swatch-rose {
+  background: linear-gradient(135deg, #db2777, #f97316);
+}
+.theme-swatch-forest {
+  background: linear-gradient(135deg, #059669, #84cc16);
 }
 
 .auth-float {
@@ -363,7 +456,9 @@ html.light {
 }
 
 @keyframes auth-float {
-  to { translate: 0 -10px; }
+  to {
+    translate: 0 -10px;
+  }
 }
 
 .auth-aura {
@@ -374,14 +469,24 @@ html.light {
   height: 24rem;
   translate: -50% -55%;
   border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in oklab, var(--primary-500) 30%, transparent), transparent 70%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--primary-500) 30%, transparent),
+    transparent 70%
+  );
   pointer-events: none;
   animation: auth-aura 9s ease-in-out infinite alternate;
 }
 
 @keyframes auth-aura {
-  from { opacity: 0.45; scale: 0.95; }
-  to { opacity: 1; scale: 1.06; }
+  from {
+    opacity: 0.45;
+    scale: 0.95;
+  }
+  to {
+    opacity: 1;
+    scale: 1.06;
+  }
 }
 
 .auth-rotator {
@@ -394,20 +499,43 @@ html.light {
   animation: auth-line 12s ease-in-out infinite;
 }
 
-.auth-line:first-child { opacity: 1; }
-.auth-line:nth-child(2) { animation-delay: -8s; }
-.auth-line:nth-child(3) { animation-delay: -4s; }
+.auth-line:first-child {
+  opacity: 1;
+}
+.auth-line:nth-child(2) {
+  animation-delay: -8s;
+}
+.auth-line:nth-child(3) {
+  animation-delay: -4s;
+}
 
 @keyframes auth-line {
-  0% { opacity: 0; translate: 0 6px; }
-  2% { opacity: 1; translate: 0 0; }
-  31% { opacity: 1; translate: 0 0; }
-  33.33% { opacity: 0; translate: 0 -6px; }
-  100% { opacity: 0; translate: 0 6px; }
+  0% {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  2% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  31% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  33.33% {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 6px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 150ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 150ms !important;
