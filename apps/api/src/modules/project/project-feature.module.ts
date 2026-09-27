@@ -7,8 +7,10 @@ import { CommentModule } from "./comment/comment.module";
 import { MilestoneModule } from "./milestone/milestone.module";
 import { ProjectMemberModule } from "./member/project-member.module";
 import { SprintModule } from "./sprint/sprint.module";
+import { AttachmentModule } from "./attachment/attachment.module";
+import { RelationModule } from "./relation/relation.module";
 
 @Module({
-  imports: [ProjectModule, StatusModule, LabelModule, TaskModule, CommentModule, MilestoneModule, ProjectMemberModule, SprintModule],
+  imports: [ProjectModule, StatusModule, LabelModule, TaskModule, CommentModule, MilestoneModule, ProjectMemberModule, SprintModule, AttachmentModule, RelationModule],
 })
 export class ProjectFeatureModule {}

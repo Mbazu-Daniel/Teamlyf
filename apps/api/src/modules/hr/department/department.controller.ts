@@ -8,7 +8,7 @@ import { DepartmentService } from "./department.service";
 @ApiTags("HR departments")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
-@Controller("organization/:orgId/hr/departments")
+@Controller("organization/:orgId/departments")
 export class DepartmentController {
   constructor(private readonly departments: DepartmentService) {}
 

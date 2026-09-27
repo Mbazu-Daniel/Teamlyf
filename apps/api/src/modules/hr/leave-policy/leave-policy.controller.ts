@@ -8,7 +8,7 @@ import { LeavePolicyService } from "./leave-policy.service";
 @ApiTags("HR leave policies")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
-@Controller("organization/:orgId/hr/policies")
+@Controller("organization/:orgId/policies")
 export class LeavePolicyController {
   constructor(private readonly policies: LeavePolicyService) {}
 

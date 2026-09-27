@@ -9,7 +9,7 @@ import { LeaveRequestService } from "./leave-request.service";
 @ApiTags("HR leave requests")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
-@Controller("organization/:orgId/hr/leave")
+@Controller("organization/:orgId/leave")
 export class LeaveRequestController {
   constructor(private readonly leaveRequests: LeaveRequestService) {}
 

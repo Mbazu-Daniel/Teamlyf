@@ -9,7 +9,7 @@ import { MemberProfileService } from "./member-profile.service";
 @ApiTags("HR profiles")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
-@Controller("organization/:orgId/hr")
+@Controller("organization/:orgId")
 export class MemberProfileController {
   constructor(private readonly profiles: MemberProfileService) {}
 
