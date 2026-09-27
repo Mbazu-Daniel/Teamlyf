@@ -30,6 +30,12 @@ const apiEnvSchema = z.object({
   AGENT_ENCRYPTION_SECRET: z.string().optional(),
   AGENT_MANAGED_API_KEY: z.string().optional(),
   AGENT_OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
+  // Storage seam (apps/api/src/common/storage): capability URLs are signed with
+  // the dedicated secret when present and the auth secret otherwise.
+  STORAGE_SIGNING_SECRET: z.string().min(32).optional(),
+  STORAGE_LOCAL_DIR: z.string().default(".uploads"),
+  STORAGE_URL_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  STORAGE_MAX_UPLOAD_BYTES: z.coerce.number().int().positive().default(25 * 1024 * 1024),
 });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

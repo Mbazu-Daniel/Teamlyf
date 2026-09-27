@@ -8,7 +8,7 @@ import { hashPassword, verifyPassword } from "../helpers/hash-password";
 import type { CreateAuthOptions } from "../types/index";
 import { ac, admin, member, owner } from "../better-auth/permissions";
 
-export const API_VERSION_PATH = "/api/v1";
+const API_VERSION_PATH = "/api/v1";
 
 function resolveSocialProviders(google: CreateAuthOptions["google"]) {
   if (google === undefined) return undefined;
