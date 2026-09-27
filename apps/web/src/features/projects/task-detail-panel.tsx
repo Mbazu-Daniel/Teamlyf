@@ -4,8 +4,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Status } from "@/lib/api";
 import { ErrorMessage, MutedMessage } from "./feedback";
 import { TaskActivity } from "./task-activity";
+import { TaskAttachments } from "./task-attachments";
 import { TaskComments } from "./task-comments";
 import { TaskProperties } from "./task-detail-properties";
+import { TaskRelations } from "./task-relations";
 import { useTaskDetail } from "./use-task-detail";
 
 export type TaskDetailPanelProps = {
@@ -154,8 +156,10 @@ function TaskDetailContent({
 
           {detail.saveError && <ErrorMessage message={detail.saveError} />}
           <TaskProperties organizationId={organizationId} projectId={projectId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
+          <TaskRelations organizationId={organizationId} projectId={projectId} taskId={taskId} members={detail.members} membersLoading={detail.membersLoading} />
           <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId} />
           <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId} />
+          <TaskAttachments organizationId={organizationId} projectId={projectId} taskId={taskId} />
           {detail.saving && <MutedMessage message="Saving your change..." />}
         </>
       )}

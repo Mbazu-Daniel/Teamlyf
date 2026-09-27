@@ -68,7 +68,23 @@ const FIELD_LABELS: Record<string, string> = {
  * set keep their own wording (humanized) instead of rendering as raw ids.
  */
 function describeActivity(activity: ActivityEntry): string {
-  if (activity.verb === "created") return "created this task";
+  // Relation rows reuse "created/deleted" verbs but link two tasks, so they
+  // need their own sentence instead of "created this task".
+  if (activity.field === "relation") {
+    const type = humanize(
+      (activity.verb === "created" ? activity.newValue : activity.oldValue) ?? "",
+    );
+    const withType = type ? ` (${type})` : "";
+    if (activity.verb === "created") return `added relation${withType}`;
+    if (activity.verb === "deleted") return `removed relation${withType}`;
+    return `${humanize(activity.verb)} relation${withType}`;
+  }
+  if (activity.field === "subscriber") {
+    if (activity.verb === "created") return "added a subscriber";
+    if (activity.verb === "deleted") return "removed a subscriber";
+    return `${humanize(activity.verb)} subscriber`;
+  }
+  if (activity.verb === "created" && !activity.field) return "created this task";
 
   const subject = activity.field
     ? (FIELD_LABELS[activity.field] ?? humanize(activity.field))
