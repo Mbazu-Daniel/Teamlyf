@@ -15,8 +15,9 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklab,var(--secondary)_88%,var(--foreground))]",
         outline: "border-border bg-transparent text-foreground hover:bg-muted",
-        "auth-outline": "rounded-xl border-border bg-card text-foreground hover:bg-muted",
-        auth: "rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary-500/20 hover:bg-primary-600",
+        "auth-outline":
+          "rounded-[var(--radius)] border-border bg-card text-foreground hover:bg-muted",
+        auth: "rounded-[var(--radius)] bg-primary text-primary-foreground shadow-lg shadow-primary-500/20 hover:bg-primary-600",
         ink: "bg-text-50 text-background-950 shadow-lg shadow-black/40 hover:bg-text-100",
         ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
         destructive:

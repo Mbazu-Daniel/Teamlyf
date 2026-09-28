@@ -458,8 +458,16 @@ html[data-theme-palette="forest"] {
 }
 
 .auth-form-pane {
-  background: var(--card);
-  box-shadow: -18px 0 42px -30px color-mix(in oklab, var(--foreground) 30%, transparent);
+  --background: #f8f9ff;
+  --foreground: #0b1c30;
+  --card: #ffffff;
+  --muted: #f3f5f8;
+  --muted-foreground: #667085;
+  --border: #d9e0e9;
+  --input: #d9e0e9;
+  background: #ffffff;
+  color: var(--foreground);
+  box-shadow: -18px 0 42px -30px rgb(11 28 48 / 0.14);
 }
 
 .auth-form-heading {
@@ -475,7 +483,7 @@ html[data-theme-palette="forest"] {
   height: 2rem;
   translate: 0 -50%;
   place-items: center;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
   color: var(--muted-foreground);
   transition: color 150ms ease, background-color 150ms ease;
 }
@@ -483,8 +491,7 @@ html[data-theme-palette="forest"] {
 .auth-password-toggle:hover { background: var(--muted); color: var(--foreground); }
 .auth-password-toggle:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
-.auth-form-kicker,
-.auth-showcase-kicker {
+.auth-form-kicker {
   color: var(--primary);
   font-size: 0.6875rem;
   font-weight: 800;
@@ -534,21 +541,6 @@ html[data-theme-palette="forest"] {
   animation-delay: -8s;
 }
 
-.auth-showcase-title {
-  max-width: 11ch;
-  font-size: clamp(2.35rem, 4vw, 4rem);
-  font-weight: 600;
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-}
-
-.auth-showcase-copy {
-  max-width: 34rem;
-  color: var(--muted-foreground);
-  font-size: 1rem;
-  line-height: 1.7;
-}
-
 .auth-showcase-visual {
   position: relative;
   display: grid;
@@ -582,33 +574,6 @@ html[data-theme-palette="forest"] {
   border-style: dashed;
   opacity: 0.75;
   animation: auth-ring-turn 18s linear infinite reverse;
-}
-
-.auth-showcase-badge {
-  position: absolute;
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--border));
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--card) 82%, transparent);
-  padding: 0.55rem 0.75rem;
-  color: var(--foreground);
-  font-size: 0.75rem;
-  font-weight: 700;
-  box-shadow: 0 14px 32px -22px color-mix(in oklab, var(--foreground) 50%, transparent);
-  backdrop-filter: blur(12px);
-}
-
-.auth-showcase-badge-top {
-  top: 10%;
-  right: 1%;
-}
-
-.auth-showcase-badge-bottom {
-  bottom: 8%;
-  left: 0;
 }
 
 @keyframes auth-illustration-float {
