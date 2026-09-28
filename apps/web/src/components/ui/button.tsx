@@ -15,6 +15,8 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklab,var(--secondary)_88%,var(--foreground))]",
         outline: "border-border bg-transparent text-foreground hover:bg-muted",
+        "auth-outline": "rounded-xl border-border bg-card text-foreground hover:bg-muted",
+        auth: "rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary-500/20 hover:bg-primary-600",
         ink: "bg-text-50 text-background-950 shadow-lg shadow-black/40 hover:bg-text-100",
         ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
         destructive:
@@ -39,6 +41,7 @@ const buttonVariants = cva(
         default: "h-10 px-5 text-sm",
         sm: "h-8 gap-1.5 px-4 text-sm [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-12 px-7 text-base",
+        auth: "h-12 px-6 text-[15px]",
         app: "h-10 px-6 py-2.5 text-sm font-bold",
         icon: "size-10",
         "icon-sm": "size-8",

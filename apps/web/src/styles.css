@@ -452,85 +452,158 @@ html[data-theme-palette="forest"] {
   background: linear-gradient(135deg, #059669, #84cc16);
 }
 
-.auth-float {
-  animation: auth-float 7s ease-in-out infinite alternate;
+.auth-shell {
+  background: var(--background);
+  color: var(--foreground);
 }
 
-@keyframes auth-float {
-  to {
-    translate: 0 -10px;
-  }
+.auth-form-pane {
+  background: var(--card);
+  box-shadow: -18px 0 42px -30px color-mix(in oklab, var(--foreground) 30%, transparent);
 }
 
-.auth-aura {
+.auth-form-heading {
+  margin-top: 3.5rem;
+}
+
+.auth-form-kicker,
+.auth-showcase-kicker {
+  color: var(--primary);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.auth-showcase {
+  background:
+    radial-gradient(circle at 85% 12%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 35%),
+    linear-gradient(145deg, color-mix(in oklab, var(--primary) 7%, var(--background)), var(--background));
+  color: var(--foreground);
+}
+
+.auth-showcase-grid {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 24rem;
-  height: 24rem;
-  translate: -50% -55%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--primary-500) 30%, transparent),
-    transparent 70%
-  );
+  inset: 0;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--primary) 11%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--primary) 11%, transparent) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.auth-showcase-glow {
+  position: absolute;
+  border-radius: 999px;
   pointer-events: none;
-  animation: auth-aura 9s ease-in-out infinite alternate;
+  filter: blur(14px);
+  animation: auth-glow-drift 16s ease-in-out infinite alternate;
 }
 
-@keyframes auth-aura {
-  from {
-    opacity: 0.45;
-    scale: 0.95;
-  }
-  to {
-    opacity: 1;
-    scale: 1.06;
-  }
+.auth-showcase-glow-one {
+  top: 26%;
+  right: -7rem;
+  width: 22rem;
+  height: 22rem;
+  background: color-mix(in oklab, var(--primary) 13%, transparent);
 }
 
-.auth-rotator {
-  display: grid;
-}
-
-.auth-line {
-  grid-area: 1 / 1;
-  opacity: 0;
-  animation: auth-line 12s ease-in-out infinite;
-}
-
-.auth-line:first-child {
-  opacity: 1;
-}
-.auth-line:nth-child(2) {
+.auth-showcase-glow-two {
+  bottom: -4rem;
+  left: -6rem;
+  width: 17rem;
+  height: 17rem;
+  background: color-mix(in oklab, var(--accent) 22%, transparent);
   animation-delay: -8s;
 }
-.auth-line:nth-child(3) {
-  animation-delay: -4s;
+
+.auth-showcase-title {
+  max-width: 11ch;
+  font-size: clamp(2.35rem, 4vw, 4rem);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
 }
 
-@keyframes auth-line {
-  0% {
-    opacity: 0;
-    translate: 0 6px;
-  }
-  2% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  31% {
-    opacity: 1;
-    translate: 0 0;
-  }
-  33.33% {
-    opacity: 0;
-    translate: 0 -6px;
-  }
-  100% {
-    opacity: 0;
-    translate: 0 6px;
-  }
+.auth-showcase-copy {
+  max-width: 34rem;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.auth-showcase-visual {
+  position: relative;
+  display: grid;
+  min-height: 20rem;
+  place-items: center;
+}
+
+.auth-showcase-illustration {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 25rem);
+  filter: drop-shadow(0 30px 30px color-mix(in oklab, var(--primary) 16%, transparent));
+  animation: auth-illustration-float 8s ease-in-out infinite alternate;
+}
+
+.auth-showcase-ring {
+  position: absolute;
+  border: 1px solid color-mix(in oklab, var(--primary) 24%, transparent);
+  border-radius: 999px;
+}
+
+.auth-showcase-ring-outer {
+  width: 19rem;
+  height: 19rem;
+  animation: auth-ring-turn 26s linear infinite;
+}
+
+.auth-showcase-ring-inner {
+  width: 13rem;
+  height: 13rem;
+  border-style: dashed;
+  opacity: 0.75;
+  animation: auth-ring-turn 18s linear infinite reverse;
+}
+
+.auth-showcase-badge {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--card) 82%, transparent);
+  padding: 0.55rem 0.75rem;
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 14px 32px -22px color-mix(in oklab, var(--foreground) 50%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.auth-showcase-badge-top {
+  top: 10%;
+  right: 1%;
+}
+
+.auth-showcase-badge-bottom {
+  bottom: 8%;
+  left: 0;
+}
+
+@keyframes auth-illustration-float {
+  to { transform: translateY(-11px) rotate(1deg); }
+}
+
+@keyframes auth-ring-turn {
+  to { transform: rotate(1turn); }
+}
+
+@keyframes auth-glow-drift {
+  to { transform: translate3d(-20px, 18px, 0) scale(1.12); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -548,9 +621,9 @@ html[data-theme-palette="forest"] {
     animation: none;
   }
 
-  .auth-float,
-  .auth-aura,
-  .auth-line {
+  .auth-showcase-glow,
+  .auth-showcase-illustration,
+  .auth-showcase-ring {
     animation: none;
   }
 }

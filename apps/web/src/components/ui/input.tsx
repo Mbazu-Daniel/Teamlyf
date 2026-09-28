@@ -2,7 +2,7 @@ import type { InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 type InputSize = "default" | "search";
-type InputDecor = "default" | "flat" | "filled";
+type InputDecor = "default" | "flat" | "filled" | "auth";
 
 const inputSizeClasses: Record<InputSize, string> = {
   default: "",
@@ -13,6 +13,7 @@ const inputDecorClasses: Record<InputDecor, string> = {
   default: "",
   flat: "bg-background shadow-none",
   filled: "border-slate-200 bg-slate-50/80 shadow-none",
+  auth: "h-12 rounded-xl border-border bg-background px-4 text-[15px] shadow-sm shadow-black/[0.02] focus-visible:border-primary/60 focus-visible:bg-card",
 };
 
 function Input({

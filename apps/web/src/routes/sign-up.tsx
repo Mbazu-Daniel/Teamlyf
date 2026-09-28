@@ -51,7 +51,7 @@ function SignUp() {
           </p>
         )}
 
-        <Button className="w-full" size="lg" type="submit" disabled={pending}>
+        <Button className="w-full" variant="auth" size="auth" type="submit" disabled={pending}>
           {pending ? "Creating your account..." : "Create your account"}
         </Button>
       </form>
@@ -60,7 +60,10 @@ function SignUp() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/sign-in" className="font-bold text-foreground underline-offset-4 hover:underline">
+        <Link
+          to="/sign-in"
+          className="font-bold text-foreground underline-offset-4 hover:underline"
+        >
           Sign in
         </Link>
       </p>

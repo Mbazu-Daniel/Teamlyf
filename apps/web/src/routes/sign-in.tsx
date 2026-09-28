@@ -49,7 +49,7 @@ function SignIn() {
           </p>
         )}
 
-        <Button className="w-full" size="lg" type="submit" disabled={pending}>
+        <Button className="w-full" variant="auth" size="auth" type="submit" disabled={pending}>
           {pending ? "Signing in..." : "Sign in"}
         </Button>
 
@@ -67,7 +67,10 @@ function SignIn() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         New to Teamlyf?{" "}
-        <Link to="/sign-up" className="font-bold text-foreground underline-offset-4 hover:underline">
+        <Link
+          to="/sign-up"
+          className="font-bold text-foreground underline-offset-4 hover:underline"
+        >
           Create an account
         </Link>
       </p>

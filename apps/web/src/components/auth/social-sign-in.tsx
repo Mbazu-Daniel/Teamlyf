@@ -19,7 +19,8 @@ const NOT_CONFIGURED =
  * else is the API's own message and is more useful than ours.
  */
 function socialSignInError(reason: unknown): string {
-  if (reason instanceof ApiError && (reason.status === 404 || reason.status === 405)) return NOT_CONFIGURED;
+  if (reason instanceof ApiError && (reason.status === 404 || reason.status === 405))
+    return NOT_CONFIGURED;
   const detail = reason instanceof Error ? reason.message : "";
   return detail || "Google sign-in is not available.";
 }
@@ -56,13 +57,20 @@ export function SocialSignIn() {
 
   return (
     <div>
-      <div className="my-6 flex items-center gap-4" aria-hidden="true">
+      <div className="my-7 flex items-center gap-4" aria-hidden="true">
         <span className="h-px flex-1 bg-border" />
         <span className="text-sm text-muted-foreground">or</span>
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      <Button type="button" variant="outline" className="w-full" onClick={start} disabled={pending}>
+      <Button
+        type="button"
+        variant="auth-outline"
+        size="auth"
+        className="w-full"
+        onClick={start}
+        disabled={pending}
+      >
         <img src={GOOGLE_MARK} alt="" width={16} height={16} className="size-4" />
         {pending ? "Opening Google..." : "Continue with Google"}
       </Button>

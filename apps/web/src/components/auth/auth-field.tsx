@@ -10,7 +10,7 @@ type AuthFieldProps = Readonly<{
   minLength?: number;
 }>;
 
-/** Label + pill input. The label wraps the field so the hit target includes the text. */
+/** Label + relaxed auth input. The label keeps its text and control one target. */
 export function AuthField({
   label,
   name,
@@ -20,10 +20,11 @@ export function AuthField({
   minLength,
 }: AuthFieldProps) {
   return (
-    <label className="block text-sm font-bold">
+    <label className="block text-sm font-semibold text-foreground">
       {label}
       <Input
-        className="mt-1.5"
+        className="mt-2"
+        decor="auth"
         name={name}
         type={type}
         placeholder={placeholder}
