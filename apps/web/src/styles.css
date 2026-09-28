@@ -466,6 +466,23 @@ html[data-theme-palette="forest"] {
   margin-top: 3.5rem;
 }
 
+.auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.7rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  translate: 0 -50%;
+  place-items: center;
+  border-radius: 0.5rem;
+  color: var(--muted-foreground);
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.auth-password-toggle:hover { background: var(--muted); color: var(--foreground); }
+.auth-password-toggle:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
 .auth-form-kicker,
 .auth-showcase-kicker {
   color: var(--primary);
