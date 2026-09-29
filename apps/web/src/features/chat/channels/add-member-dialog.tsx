@@ -83,14 +83,14 @@ export default function AddMemberDialogContent({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-col gap-3 px-4 pt-1">
+      <div className="flex flex-col gap-4 px-5 pt-12 sm:px-6">
         <div className="relative">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search by name or email…"
             size="search"
             decor="filled"
-            className="h-9"
+            className=""
             value={searchMember}
             onChange={(e) => setSearchMember(e.target.value)}
             autoFocus
@@ -134,7 +134,7 @@ export default function AddMemberDialogContent({
         )}
       </div>
 
-      <div className="flex-1 space-y-0.5 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-5 py-4 sm:px-6">
         {filteredUsers.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
             {searchMember.trim()
@@ -149,7 +149,7 @@ export default function AddMemberDialogContent({
                 key={user.id}
                 type="button"
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors",
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors",
                   isSelected
                     ? "bg-primary/5"
                     : "hover:bg-slate-50",
@@ -178,7 +178,7 @@ export default function AddMemberDialogContent({
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2 border-t px-4 py-3">
+      <div className="flex items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
         <span className="text-xs text-muted-foreground">
           {selected.length} selected
         </span>
@@ -186,7 +186,7 @@ export default function AddMemberDialogContent({
           <Button
             size="sm"
             variant="outline"
-            className="h-8"
+            className=""
             onClick={onClose}
             disabled={isPending}
           >
@@ -196,7 +196,7 @@ export default function AddMemberDialogContent({
             disabled={isPending || selected.length === 0}
             size="sm"
             variant="primary-button-white"
-            className="h-8"
+            className=""
             onClick={() => onConfirm(selected)}
           >
             {isPending

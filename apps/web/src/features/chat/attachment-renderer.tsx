@@ -1,7 +1,8 @@
 
-import { IconPlayerPlay, IconX } from "@tabler/icons-react";
+import { IconPlayerPlay } from "@tabler/icons-react";
 import { useState } from "react";
 import { CachedImage } from "@/components/media/cached-image";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { mediaCacheKey } from "@/lib/media/media-cache-key";
 
 interface Attachment {
@@ -154,36 +155,21 @@ export function AttachmentRenderer({ attachments }: AttachmentRendererProps) {
         })}
       </div>
 
-      {lightboxUrl && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
-          onClick={() => setLightboxUrl(null)}
-        >
-          <button
-            type="button"
-            className="absolute top-4 right-4 text-white p-2 hover:text-gray-300"
-            onClick={() => setLightboxUrl(null)}
-          >
-            <IconX size={24} />
-          </button>
-
-          {lightboxUrl.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) ? (
-            <video
-              src={lightboxUrl}
-              controls
-              autoPlay
-              className="rounded-md max-h-[90vh] object-contain"
-            />
-          ) : (
+      <Dialog open={Boolean(lightboxUrl)} onOpenChange={(open) => !open && setLightboxUrl(null)}>
+        <DialogContent variant="media" className="w-auto max-w-[90vw] sm:max-w-[90vw]">
+          <DialogTitle className="sr-only">Attachment preview</DialogTitle>
+          {lightboxUrl?.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) ? (
+            <video src={lightboxUrl} controls autoPlay className="max-h-[85svh] max-w-[85vw] rounded-[12px] object-contain shadow-2xl" />
+          ) : lightboxUrl ? (
             <CachedImage
               src={lightboxUrl}
               cacheKey={mediaCacheKey(lightboxUrl)}
               alt="Preview"
-              className="rounded-md max-h-[90vh] max-w-[90vw] object-contain"
+              className="max-h-[85svh] max-w-[85vw] rounded-[12px] object-contain shadow-2xl"
             />
-          )}
-        </div>
-      )}
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

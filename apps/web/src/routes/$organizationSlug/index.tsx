@@ -23,5 +23,5 @@ function OrganizationDashboard() {
     return <main className="mx-auto max-w-6xl px-6 py-12"><h1 className="text-2xl font-semibold">Dashboard</h1><p className="mt-2 text-sm text-destructive">{state.error}</p></main>;
   }
 
-  return <DashboardPage organizationName={organization.name} organizationSlug={organizationSlug} projects={state.projects} />;
+  return <DashboardPage organizationId={organization.id} organizationName={organization.name} organizationSlug={organizationSlug} projects={state.projects} />;
 }

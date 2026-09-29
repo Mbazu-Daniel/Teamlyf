@@ -65,7 +65,7 @@ export function EmptyChat({ selectedUser }: EmptyChatProps) {
 
         {/* Empty state message */}
         <div className="flex min-h-0 flex-1 px-4 py-4 sm:px-6 md:py-6">
-          <div className="relative flex h-full w-full flex-col items-center justify-start overflow-hidden rounded-[16px] border border-dashed border-[var(--app-panel-border)] bg-[linear-gradient(180deg,#ffffff_0%,#f7f8ff_100%)] px-6 py-12 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+          <div className="relative flex h-full w-full flex-col items-center justify-start overflow-y-auto rounded-[16px] border border-dashed border-[var(--app-panel-border)] bg-gradient-to-b from-card to-primary/5 px-6 py-12 text-center">
             <div className="relative z-10 max-w-xl pt-8 md:pt-12">
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[linear-gradient(135deg,rgba(70,72,212,0.14),rgba(132,85,239,0.18))] shadow-[0_20px_44px_-32px_rgba(70,72,212,0.4)]">
                 <IconMessage className="h-9 w-9 text-primary" />
@@ -82,7 +82,7 @@ export function EmptyChat({ selectedUser }: EmptyChatProps) {
                 <Button
                   size="app-wide"
                   variant="soft-body"
-                  className="h-12 md:hidden"
+                  className="md:hidden"
                   onClick={() => setIsChatSidebarOpen(true)}
                 >
                   Open Chat Menu
@@ -124,7 +124,7 @@ export function EmptyChat({ selectedUser }: EmptyChatProps) {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-sm sm:text-base truncate">{[selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(" ")}</p>
+          <p className="font-medium text-sm truncate">{[selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(" ")}</p>
           <p className="text-xs sm:text-sm text-muted-foreground truncate">@{selectedUser.firstName.toLowerCase()}</p>
         </div>
       </div>
@@ -154,7 +154,7 @@ export function EmptyChat({ selectedUser }: EmptyChatProps) {
 
       {/* Message Input - responsive padding */}
       <div className="border-t px-3 sm:px-4 py-3 sm:py-4 shrink-0">
-        <div className="flex items-center gap-2 rounded-xl border bg-white px-2 sm:px-3 py-2">
+        <div className="flex items-center gap-2 rounded-[14px] border border-border/70 bg-card px-3 py-3">
           <input
             className="flex-1 bg-transparent text-sm outline-none"
             onChange={(e) => setNewMessage(e.target.value)}

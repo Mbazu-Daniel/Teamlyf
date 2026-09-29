@@ -55,9 +55,11 @@ pnpm db:up
 
 Run database migrations:
 ```bash
-pnpm db:generate
 pnpm db:migrate
 ```
+
+Use the committed migrations for a new or existing database. `db:generate` is
+for authoring a new schema change, not for setting up the application.
 
 Start the development server:
 ```bash
@@ -76,6 +78,10 @@ pnpm fallow:audit
 ```
 
 ## Features
+
+See [functional parity delivery and verification](docs/functional-parity/README.md)
+for the implemented workflows, local verification commands and remaining
+provider-dependent work.
 
 ### Human Resources Management
 Teamlyf includes a dedicated HR module that tracks employee profiles, leave policies, and time-off balances. Team members can request time off, and managers can review, approve, or reject these requests seamlessly. Balances are calculated dynamically based on policy allowances and approved time off.

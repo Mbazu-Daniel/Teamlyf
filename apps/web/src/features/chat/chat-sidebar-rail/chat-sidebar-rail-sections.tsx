@@ -47,10 +47,10 @@ export function ChannelsSection({
             key={item.id}
             onClick={() => onChannelClick(item.id)}
             className={cn(
-              "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
+              "flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-[13px] transition-colors",
               isActive("channel", item.id)
-                ? "bg-primary-button/10 text-primary-button font-semibold"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "bg-primary text-primary-foreground font-semibold"
+                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
             )}
           >
             <div
@@ -117,10 +117,10 @@ export function DirectMessagesSection({
                 onChatClick(item.otherMember.id);
               }}
               className={cn(
-                "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors",
-                isActive("chat", item.otherMember.id)
-                  ? "bg-primary-button/10 text-primary-button font-semibold"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              "flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left text-[13px] transition-colors",
+              isActive("chat", item.otherMember.id)
+                ? "bg-primary text-primary-foreground font-semibold"
+                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
               )}
             >
               <div

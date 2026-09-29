@@ -14,11 +14,11 @@ export function ChatSidebarRail() {
   const rail = useChatSidebarRail();
 
   return (
-    <div className="flex h-full min-h-0 flex-col border-r border-border/60 bg-card/50">
-      <div className="shrink-0 p-2 space-y-2">
-        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-2 transition-all focus-within:border-primary/30 focus-within:ring-1 focus-within:ring-primary/20">
+    <div className="flex h-full min-h-0 flex-col border-r border-border/70 bg-card/70">
+      <div className="shrink-0 space-y-3 border-b border-border/70 p-3">
+        <div className="flex h-control items-center gap-2 rounded-[10px] border border-border/80 bg-background px-3 transition focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
           <svg
-            className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+            className="h-4 w-4 shrink-0 text-muted-foreground"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -31,11 +31,11 @@ export function ChatSidebarRail() {
             type="text"
             value={rail.searchQuery}
             onChange={(e) => rail.setSearchQuery(e.target.value)}
-            placeholder="Search..."
-            className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/60"
+            placeholder="Search chats…"
+            className="min-w-0 flex-1 bg-transparent text-sm font-normal outline-none placeholder:text-muted-foreground/60"
           />
         </div>
-        <div className="flex items-center gap-1">
+        <div className="grid grid-cols-3 gap-1.5">
           <QuickActionButton
             label="Threads"
             icon={IconMessage}
@@ -60,7 +60,7 @@ export function ChatSidebarRail() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-1.5 space-y-4">
+      <div className="scrollbar-hidden flex-1 min-h-0 overflow-y-auto space-y-5 px-2 py-4">
         <ChannelsSection
           channels={rail.filteredChannels}
           isLoading={rail.isLoading}
@@ -83,12 +83,12 @@ export function ChatSidebarRail() {
         />
       </div>
 
-      <div className="shrink-0 border-t border-border/60 p-2">
+      <div className="shrink-0 border-t border-border/70 p-2.5">
         <button
           onClick={() =>
             rail.router.push(`/${rail.subdomain}/settings?section=profile`)
           }
-          className="flex w-full items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-muted"
+          className="flex w-full items-center gap-2.5 rounded-[10px] p-2 transition-colors hover:bg-muted/70"
         >
           <Avatar rounded="md" className="h-7 w-7">
             <AvatarFallback
@@ -109,7 +109,7 @@ export function ChatSidebarRail() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 text-left min-w-0">
-            <p className="truncate text-xs font-semibold text-foreground">
+            <p className="truncate text-[13px] font-semibold text-foreground">
               {rail.user?.name || rail.user?.email || "User"}
             </p>
             <p className="truncate text-[10px] text-muted-foreground">

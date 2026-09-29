@@ -34,15 +34,15 @@ export function ChatViewHeader({
   const subdomain = useTenantStore((state) => state.subdomain);
 
   return (
-    <div className="border-b px-3 sm:px-4 h-14 flex items-center gap-3 shrink-0 shadow-sm bg-background z-10">
+    <div className="z-10 flex h-16 shrink-0 items-center gap-3 border-b border-border/70 bg-background px-4 sm:px-5">
       <button
-        className="p-1.5 hover:bg-muted rounded-md md:hidden"
+        className="rounded-[8px] p-2 transition hover:bg-muted md:hidden"
         onClick={() => router.push(`/${subdomain}/chats`)}
       >
         <IconChevronLeft className="h-5 w-5" />
       </button>
 
-      <Avatar className="h-8 w-8 shrink-0">
+      <Avatar className="h-9 w-9 shrink-0">
         <AvatarImage src={conversation?.otherMember?.avatar || channel?.avatar} alt={chatTitle} />
         <AvatarFallback
           rounded="md"
@@ -57,11 +57,11 @@ export function ChatViewHeader({
       </Avatar>
 
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm truncate leading-tight">
+        <p className="truncate text-sm font-semibold leading-tight tracking-[-0.01em]">
           {fmt(chatTitle)}
         </p>
         {chatSubtitle && (
-          <p className="text-xs text-muted-foreground truncate leading-tight">{chatSubtitle}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">{chatSubtitle}</p>
         )}
       </div>
 
