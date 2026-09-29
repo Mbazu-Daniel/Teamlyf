@@ -15,6 +15,8 @@ import { channel, channelMember } from "@teamlyf/db";
 import { and, eq } from "drizzle-orm";
 import { AuthService } from "../../auth/auth.service";
 import { CallsService } from "../../calls/calls.service";
+import { OrganizationPermissionService } from "../../rbac/organization-permission.service";
+import { authorizeSocketPackets } from "./socket-authorization";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ChannelMessageWriterService } from "../channels/channel-message-writer.service";
 import { DirectMessagesService } from "../direct-messages/direct-messages.service";
@@ -46,6 +48,7 @@ import {
   emitTypingUsers,
   stopTypingBroadcast,
   typingRoom,
+  requireTypingTarget,
   type TypingSocketDeps,
 } from "./typing-socket.handlers";
 
@@ -92,6 +95,7 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
 
   constructor(
     private readonly auth: AuthService,
+    private readonly permissions: OrganizationPermissionService,
     @Inject(DATABASE) private readonly db: Database,
     private readonly presence: ChatPresenceService,
     private readonly typing: ChatTypingService,
@@ -123,6 +127,7 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
     }
 
     try {
+      authorizeSocketPackets(client, this.auth, this.permissions);
       this.presence.connect(organizationId, memberId, client.id);
 
       const [orgChannels, memberships] = await Promise.all([
@@ -198,6 +203,8 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
   ): Promise<{ success: boolean } | { error: string }> {
     const room = typingRoom(data);
     if (!room) return { error: "Channel ID or Recipient ID is required" };
+    try { await requireTypingTarget(this.db, client, data); }
+    catch (error) { return { error: errorMessage(error) }; }
     this.typing.set(room, client.data.memberId);
     client.nsp.to(CHAT_ROOMS.member(client.data.memberId)).emit("user-typing", {
       typingUsers: [{ id: client.data.memberId }],

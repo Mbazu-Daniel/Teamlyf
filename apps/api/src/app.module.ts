@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { ScheduleModule } from "./modules/schedule/schedule.module";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
 import { EnvModule } from "./common/config/env.module";
 import { DbModule } from "./common/db/db.module";
 import { RedisModule } from "./common/redis/redis.module";
@@ -18,6 +20,8 @@ import { RealtimeModule } from "./modules/chat/realtime/realtime.module";
 
 @Module({
   imports: [
+    ScheduleModule,
+    NotificationsModule,
     EnvModule,
     DbModule,
     RedisModule,

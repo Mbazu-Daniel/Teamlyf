@@ -5,7 +5,7 @@ import { member } from "@teamlyf/db";
 import type { AuthService } from "../../auth/auth.service";
 import { organizationFromNamespace } from "../shared/rooms";
 
-export type SocketData = { organizationId: string; memberId: string };
+export type SocketData = { organizationId: string; memberId: string; userId: string };
 
 /** A socket past the handshake middleware, with org + member pinned down. */
 export type AuthenticatedSocket = Socket & { data: SocketData };
@@ -37,7 +37,7 @@ export function createChatAuthMiddleware(auth: AuthService, db: Database) {
         next(new Error("Forbidden"));
         return;
       }
-      socket.data = { ...(socket.data as Partial<SocketData>), organizationId, memberId: found.id };
+      socket.data = { ...(socket.data as Partial<SocketData>), organizationId, memberId: found.id, userId: session.user.id };
       next();
     } catch {
       next(new Error("Unauthorized"));

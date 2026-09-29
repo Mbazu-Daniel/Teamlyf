@@ -13,6 +13,18 @@ import { MemberProfileService } from "./member-profile.service";
 export class MemberProfileController {
   constructor(private readonly profiles: MemberProfileService) {}
 
+  @Get("profiles/:memberId")
+  @RequirePermission("hr", "read")
+  getEmployee(@Param("orgId") orgId: string, @Param("memberId") memberId: string) {
+    return this.profiles.getMemberProfile(orgId, memberId);
+  }
+
+  @Patch("profiles/:memberId")
+  @RequirePermission("hr", "update")
+  updateEmployee(@Param("orgId") orgId: string, @Param("memberId") memberId: string, @Body() body: UpdateEmployeeProfileDto) {
+    return this.profiles.updateMemberProfile(orgId, memberId, body);
+  }
+
   @Get("profiles")
   @RequirePermission("hr", "read")
   @ApiOperation({ summary: "Get every HR profile of the organization" })

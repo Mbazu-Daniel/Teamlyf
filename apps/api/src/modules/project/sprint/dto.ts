@@ -1,4 +1,5 @@
 import { IsDateString, IsIn, IsOptional, IsString, MaxLength } from "class-validator";
+import { PartialType } from "@nestjs/swagger";
 
 export class CreateSprintDto {
   @IsString()
@@ -18,4 +19,4 @@ export class CreateSprintDto {
   status?: string;
 }
 
-export class UpdateSprintDto extends CreateSprintDto {}
+export class UpdateSprintDto extends PartialType(CreateSprintDto) {}

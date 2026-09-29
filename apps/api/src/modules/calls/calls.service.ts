@@ -111,6 +111,11 @@ export class CallsService {
     const row = await this.requireActiveSession(callId, organizationId);
     await this.requireCanJoin(row, organizationId, memberId);
 
+    // Validate media configuration before persisting a successful join.
+    const summary = (await loadMemberSummaries(this.db, organizationId, [memberId])).get(memberId);
+    const participantName = summary ? displayName(summary) : memberId;
+    const token = signCallToken(this.env, memberId, participantName, row.roomName);
+
     const now = new Date();
     const existing = await this.db.query.callParticipant.findFirst({
       where: and(eq(callParticipant.callSessionId, callId), eq(callParticipant.memberId, memberId)),
@@ -125,10 +130,6 @@ export class CallsService {
     } else {
       await this.db.insert(callParticipant).values({ callSessionId: callId, memberId, status: "joined", joinedAt: now });
     }
-
-    const summary = (await loadMemberSummaries(this.db, organizationId, [memberId])).get(memberId);
-    const participantName = summary ? displayName(summary) : memberId;
-    const token = signCallToken(this.env, memberId, participantName, row.roomName);
 
     const participants = await loadParticipants(this.db, [callId]);
     return {

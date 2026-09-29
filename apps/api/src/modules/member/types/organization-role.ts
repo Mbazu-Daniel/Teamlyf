@@ -1,6 +1,4 @@
-export const ORGANIZATION_ROLES = ["owner", "admin", "member"] as const;
-
-export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
+export type OrganizationRole = string;
 
 export function parseOrganizationRoles(value: unknown): string[] {
   return (Array.isArray(value) ? value : [value])

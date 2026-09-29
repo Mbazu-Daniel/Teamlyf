@@ -1,7 +1,9 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException, type OnModuleInit, type OnModuleDestroy } from "@nestjs/common";
+import { plainToInstance } from "class-transformer";
+import { validateOrReject } from "class-validator";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema, project, task, taskComment } from "@teamlyf/db";
+import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema, member, project, task, taskComment } from "@teamlyf/db";
 
 const { subscription } = billingSchema;
 import { and, count, eq } from "drizzle-orm";
@@ -11,13 +13,45 @@ import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
 import type { CreateAgentDto, CreateAgentRunDto, RecordUsageDto, UpdateAgentDto, UpsertProviderConfigDto } from "./agent.dto";
 import { planEntitlements, type BillingPlan } from "../billing/plan-entitlements";
+import { OrganizationPermissionService } from "../rbac/organization-permission.service";
+import { TaskService } from "../project/task/task.service";
+import { UpdateTaskDto } from "../project/task/dto";
 
 @Injectable()
-export class AgentService {
+export class AgentService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(AgentService.name);
+  private readonly activeRuns = new Map<string, AbortController>();
+  private timer?: ReturnType<typeof setInterval>;
+  private polling = false;
+
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(API_ENV) private readonly env: ApiEnv,
+    private readonly permissions: OrganizationPermissionService,
+    private readonly tasks: TaskService,
   ) {}
+
+  onModuleInit() {
+    this.timer = setInterval(() => { void this.pollRuns(); }, 500);
+    this.timer.unref();
+  }
+
+  onModuleDestroy() {
+    clearInterval(this.timer);
+    for (const controller of this.activeRuns.values()) controller.abort();
+  }
+
+  private async pollRuns() {
+    if (this.polling || this.activeRuns.size >= 3) return;
+    this.polling = true;
+    try {
+      await this.processQueuedRuns();
+    } catch {
+      this.logger.error("Unable to poll the agent queue; will retry");
+    } finally {
+      this.polling = false;
+    }
+  }
 
   async getAgents(organizationId: string) {
     return this.db.query.agent.findMany({
@@ -67,7 +101,7 @@ export class AgentService {
     const queued = await this.db.query.agentRun.findMany({
       where: eq(agentRun.status, "queued"),
       orderBy: (row, { asc }) => asc(row.createdAt),
-      limit: 3,
+      limit: 3 - this.activeRuns.size,
     });
 
     for (const candidate of queued) {
@@ -75,15 +109,21 @@ export class AgentService {
         .set({ status: "running", startedAt: new Date(), attemptCount: candidate.attemptCount + 1, updatedAt: new Date() })
         .where(and(eq(agentRun.id, candidate.id), eq(agentRun.status, "queued")))
         .returning();
-      if (claimed) void this.executeRun(claimed.id);
+      if (claimed) {
+        const controller = new AbortController();
+        this.activeRuns.set(claimed.id, controller);
+        void this.executeRun(claimed.id, controller.signal)
+          .catch(() => this.logger.error("Unable to persist the agent run result"))
+          .finally(() => this.activeRuns.delete(claimed.id));
+      }
     }
   }
 
   // fallow-ignore-next-line complexity -- agent execution coordinates validation, provider resolution and terminal run state transitions
-  private async executeRun(runId: string) {
+  private async executeRun(runId: string, signal: AbortSignal) {
     try {
       const run = await this.db.query.agentRun.findFirst({ where: eq(agentRun.id, runId) });
-      if (!run) return;
+      if (!run || run.status !== "running") return;
 
       const target = await this.db.query.agent.findFirst({
         where: and(eq(agent.id, run.agentId), eq(agent.organizationId, run.organizationId)),
@@ -105,13 +145,14 @@ export class AgentService {
       if (!taskRecord || !projectRecord) throw new Error("Assigned task is no longer available");
 
       const provider = await this.resolveProvider(run.organizationId);
-      const result = await this.runModel(provider, target, taskRecord, projectRecord, input, run.memberId);
+      await this.requireRunPermission(runId, "read", taskId);
+      const result = await this.runModel(provider, target, taskRecord, projectRecord, input, run.memberId, runId, signal);
       await this.db.update(agentRun).set({
         status: "completed",
         output: result,
         completedAt: new Date(),
         updatedAt: new Date(),
-      }).where(eq(agentRun.id, runId));
+      }).where(and(eq(agentRun.id, runId), eq(agentRun.status, "running")));
     } catch (error) {
       await this.db.update(agentRun).set({
         status: "failed",
@@ -119,8 +160,20 @@ export class AgentService {
         errorMessage: error instanceof Error ? error.message : "Agent execution failed",
         completedAt: new Date(),
         updatedAt: new Date(),
-      }).where(eq(agentRun.id, runId));
+      }).where(and(eq(agentRun.id, runId), eq(agentRun.status, "running")));
     }
+  }
+
+  private async requireRunPermission(runId: string, action: string, taskId: string) {
+    const run = await this.db.query.agentRun.findFirst({ where: eq(agentRun.id, runId) });
+    if (!run || run.status !== "running") throw new Error("Agent run is no longer active");
+    const target = await this.requireAgent(run.organizationId, run.agentId);
+    const requester = await this.db.query.member.findFirst({ where: and(eq(member.id, run.memberId), eq(member.organizationId, run.organizationId)) });
+    if (!target.enabled || !requester) throw new Error("Agent or requesting member is no longer available");
+    if (!await this.permissions.checkAgentPermission(run.organizationId, run.agentId, "pm", action, taskId)) {
+      throw new Error(`Agent requires a pm:${action} tool grant for this task`);
+    }
+    return run;
   }
 
   // fallow-ignore-next-line complexity -- provider resolution intentionally validates source, provider and credential requirements together
@@ -147,6 +200,8 @@ export class AgentService {
     projectRecord: { id: string; name: string; description: string | null },
     input: Record<string, unknown>,
     memberId: string,
+    runId: string,
+    signal: AbortSignal,
   ) {
     const tools = [
       { type: "function", function: { name: "update_task", description: "Update the assigned task. Only change fields needed to complete the work.", parameters: {
@@ -163,7 +218,10 @@ export class AgentService {
     ];
 
     for (let step = 0; step < 8; step += 1) {
+      signal.throwIfAborted();
+      await this.requireRunPermission(runId, "read", taskRecord.id);
       const response = await fetch(provider.baseUrl + "/chat/completions", {
+        signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]),
         method: "POST",
         headers: { "content-type": "application/json", authorization: "Bearer " + provider.apiKey },
         body: JSON.stringify({ model: provider.model, messages, tools, tool_choice: "auto", temperature: 0.2 }),
@@ -177,11 +235,14 @@ export class AgentService {
       if (!message.tool_calls?.length) return { summary: message.content ?? "", steps: step + 1 };
 
       for (const call of message.tool_calls) {
+        signal.throwIfAborted();
         const args = parseJson(call.function.arguments);
         let output: unknown;
         if (call.function.name === "update_task") {
-          output = await this.updateTaskFromAgent(projectRecord.id, taskRecord.id, args);
+          const run = await this.requireRunPermission(runId, "update", taskRecord.id);
+          output = await this.updateTaskFromAgent(run.organizationId, projectRecord.id, taskRecord.id, memberId, args);
         } else if (call.function.name === "add_comment") {
+          await this.requireRunPermission(runId, "create", taskRecord.id);
           output = await this.addCommentFromAgent(taskRecord.id, memberId, args);
         } else {
           output = { error: "Unknown tool" };
@@ -192,12 +253,14 @@ export class AgentService {
     throw new Error("Agent reached the maximum execution steps");
   }
 
-  private async updateTaskFromAgent(projectId: string, taskId: string, args: Record<string, unknown>) {
+  private async updateTaskFromAgent(organizationId: string, projectId: string, taskId: string, memberId: string, args: Record<string, unknown>) {
     const allowed = ["name", "description", "priority", "statusId", "targetDate"] as const;
-    const values: Record<string, unknown> = { updatedAt: new Date() };
+    const values: Record<string, unknown> = {};
     for (const key of allowed) if (typeof args[key] === "string") values[key] = args[key];
-    await this.db.update(task).set(values).where(and(eq(task.id, taskId), eq(task.projectId, projectId)));
-    return { updated: true, fields: Object.keys(values).filter((key) => key !== "updatedAt") };
+    const dto = plainToInstance(UpdateTaskDto, values);
+    try { await validateOrReject(dto); } catch { throw new Error("Agent returned invalid task fields"); }
+    await this.tasks.updateTask(organizationId, projectId, taskId, dto, memberId);
+    return { updated: true, fields: Object.keys(values) };
   }
 
   private async addCommentFromAgent(taskId: string, memberId: string, args: Record<string, unknown>) {
@@ -323,8 +386,10 @@ export class AgentService {
     }
     const [updated] = await this.db.update(agentRun)
       .set({ status: "cancelled", completedAt: new Date(), updatedAt: new Date() })
-      .where(eq(agentRun.id, runId))
+      .where(and(eq(agentRun.id, runId), eq(agentRun.status, run.status)))
       .returning();
+    if (!updated) throw new BadRequestException("Agent run has already finished");
+    this.activeRuns.get(runId)?.abort();
     return updated;
   }
 

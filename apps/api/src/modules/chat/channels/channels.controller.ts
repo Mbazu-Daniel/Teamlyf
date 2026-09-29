@@ -6,10 +6,10 @@ import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } fr
 import { ChannelMembersService } from "./channel-members.service";
 import { ChannelMessagesService } from "./channel-messages.service";
 import { ChannelsService } from "./channels.service";
-import type { AddChannelMembersDto } from "./dto/add-channel-members.dto";
-import type { ChannelMessagesQueryDto } from "./dto/channel-messages-query.dto";
-import type { ChannelSearchQueryDto } from "./dto/channel-search-query.dto";
-import type { CreateChannelDto } from "./dto/create-channel.dto";
+import { AddChannelMembersDto } from "./dto/add-channel-members.dto";
+import { ChannelMessagesQueryDto } from "./dto/channel-messages-query.dto";
+import { ChannelSearchQueryDto } from "./dto/channel-search-query.dto";
+import { CreateChannelDto } from "./dto/create-channel.dto";
 
 /**
  * Channels slice of chat. The integrator registers this controller with

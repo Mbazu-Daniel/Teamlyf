@@ -14,6 +14,13 @@ export class LeaveRequestService {
     private readonly policies: LeavePolicyService,
   ) {}
 
+  async getReviewQueue(orgId: string) {
+    return this.db.query.leaveRequest.findMany({
+      where: eq(leaveRequest.organizationId, orgId),
+      orderBy: [desc(leaveRequest.createdAt)],
+    });
+  }
+
   async createLeaveRequest(orgId: string, memberId: string, dto: CreateLeaveRequestDto) {
     await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     const policy = await this.policies.getLeavePolicy(orgId, dto.policyId);
@@ -53,11 +60,14 @@ export class LeaveRequestService {
       where: and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId)),
     });
     if (!request) throw new NotFoundException("Leave request not found");
+    if (request.status !== "pending") throw new BadRequestException("Only pending requests can be reviewed");
+    if (dto.status === "rejected" && !dto.reviewReason?.trim()) throw new BadRequestException("Explain why this request is being rejected");
     const [updated] = await this.db
       .update(leaveRequest)
-      .set({ status: dto.status, reviewedById: reviewerId, reviewedAt: new Date() })
-      .where(and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId)))
+      .set({ status: dto.status, reviewReason: dto.reviewReason?.trim() || null, reviewedById: reviewerId, reviewedAt: new Date() })
+      .where(and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId), eq(leaveRequest.status, "pending")))
       .returning();
+    if (!updated) throw new BadRequestException("This request was already reviewed or cancelled");
     return updated;
   }
 
@@ -69,8 +79,8 @@ export class LeaveRequestService {
     if (request.memberId !== memberId) {
       throw new ForbiddenException("Only the requester can cancel their own leave request");
     }
-    if (request.status === "cancelled") {
-      throw new BadRequestException("Leave request is already cancelled");
+    if (!["pending", "approved"].includes(request.status)) {
+      throw new BadRequestException("Only pending or approved requests can be cancelled");
     }
     const [updated] = await this.db
       .update(leaveRequest)

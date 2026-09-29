@@ -1,7 +1,8 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { channel, directMessage, member, message, messageMention } from "@teamlyf/db";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { channel, channelMember, directMessage, member, message, messageMention } from "@teamlyf/db";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
+import { requireMessageAccess } from "../shared/message-access";
 import { DATABASE } from "../../../common/db/db.provider";
 import { loadChatMemberSources, toChatParticipant } from "../shared/member.mapper";
 import type { ChatMessageKind } from "../shared/message.mapper";
@@ -38,7 +39,8 @@ export class MessageMentionsService {
     mentionedById: string,
     dto: CreateMentionDto,
   ): Promise<MessageMentionRow> {
-    await this.requireMessage(organizationId, dto.messageType, dto.messageId);
+    await requireMessageAccess(this.db, organizationId, dto.messageType, dto.messageId, mentionedById);
+    await requireMessageAccess(this.db, organizationId, dto.messageType, dto.messageId, dto.mentionedUserId);
     await this.requireMember(organizationId, dto.mentionedUserId);
 
     const [existing] = await this.db
@@ -104,8 +106,8 @@ export class MessageMentionsService {
       loadChatMemberSources(this.db, organizationId, {
         memberIds: [...new Set(mentions.map((row) => row.mentionedById))],
       }),
-      this.loadChannelMessages(organizationId, channelMessageIds),
-      this.loadDirectMessages(organizationId, directMessageIds),
+      this.loadChannelMessages(organizationId, channelMessageIds, memberId),
+      this.loadDirectMessages(organizationId, directMessageIds, memberId),
     ]);
 
     const mentionerByMemberId = new Map(
@@ -114,7 +116,7 @@ export class MessageMentionsService {
     const channelByMessageId = new Map(channelRows.map((row) => [row.id, row]));
     const directByMessageId = new Map(directRows.map((row) => [row.id, row]));
 
-    return mentions.map((mention): MessageMentionRecord => {
+    return mentions.filter((mention) => mention.messageType === "channel" ? channelByMessageId.has(mention.messageId) : directByMessageId.has(mention.messageId)).map((mention): MessageMentionRecord => {
       const record: MessageMentionRecord = {
         id: mention.id,
         messageId: mention.messageId,
@@ -154,6 +156,7 @@ export class MessageMentionsService {
   private loadChannelMessages(
     organizationId: string,
     messageIds: string[],
+    memberId: string,
   ): Promise<ChannelMentionMessage[]> {
     if (messageIds.length === 0) return Promise.resolve([]);
     return this.db
@@ -165,12 +168,14 @@ export class MessageMentionsService {
       })
       .from(message)
       .innerJoin(channel, eq(channel.id, message.channelId))
-      .where(and(inArray(message.id, messageIds), eq(channel.organizationId, organizationId)));
+      .innerJoin(channelMember, and(eq(channelMember.channelId, channel.id), eq(channelMember.memberId, memberId)))
+      .where(and(inArray(message.id, messageIds), eq(channel.organizationId, organizationId), isNull(message.deletedAt)));
   }
 
   private loadDirectMessages(
     organizationId: string,
     messageIds: string[],
+    memberId: string,
   ): Promise<DirectMentionMessage[]> {
     if (messageIds.length === 0) return Promise.resolve([]);
     return this.db
@@ -185,40 +190,12 @@ export class MessageMentionsService {
         and(
           inArray(directMessage.id, messageIds),
           eq(directMessage.organizationId, organizationId),
+          or(eq(directMessage.senderId, memberId), eq(directMessage.recipientId, memberId)),
+          isNull(directMessage.deletedAt),
         ),
       );
   }
 
-  /** Channel messages are org-scoped through their channel; direct messages directly. */
-  private async requireMessage(
-    organizationId: string,
-    messageType: ChatMessageKind,
-    messageId: string,
-  ): Promise<void> {
-    const found =
-      messageType === "direct"
-        ? await this.db
-            .select({ id: directMessage.id })
-            .from(directMessage)
-            .where(
-              and(
-                eq(directMessage.id, messageId),
-                eq(directMessage.organizationId, organizationId),
-              ),
-            )
-            .limit(1)
-        : await this.db
-            .select({ id: message.id })
-            .from(message)
-            .innerJoin(channel, eq(channel.id, message.channelId))
-            .where(and(eq(message.id, messageId), eq(channel.organizationId, organizationId)))
-            .limit(1);
-
-    if (found.length === 0) {
-      const label = messageType === "direct" ? "Direct" : "Channel";
-      throw new NotFoundException(`${label} message not found`);
-    }
-  }
 
   /** Keeps `mentioned_member_id` inside this workspace (the FK only checks existence). */
   private async requireMember(organizationId: string, memberId: string): Promise<void> {

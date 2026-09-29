@@ -15,6 +15,7 @@ import {
   type SendDirectMessagePayload,
 } from "./socket-payloads";
 import type { AuthenticatedSocket } from "./ws-auth";
+import { broadcastChannel } from "./channel-broadcast";
 
 /**
  * Dependencies the message handlers need — passed in by the gateway so these
@@ -48,7 +49,7 @@ export async function sendChannelMessage(
       parentMessageId: validId(data?.parentMessageId),
     });
     await deps.stopTypingBroadcast(client, CHAT_ROOMS.channel(channelId));
-    client.broadcast.to(CHAT_ROOMS.channel(channelId)).emit("new-channel-message", {
+    await broadcastChannel(deps.db, client, channelId, "new-channel-message", {
       channelId,
       message: messageRow,
     });
@@ -103,10 +104,10 @@ export async function deleteMessage(
       const deleted = await deps.writer.deleteChannelMessage(organizationId, memberId, messageId);
       const row = await deps.db.query.message.findFirst({ where: eq(message.id, messageId) });
       if (row?.channelId) {
-        client.nsp.to(CHAT_ROOMS.channel(row.channelId)).emit("message-deleted", {
+        await broadcastChannel(deps.db, client, row.channelId, "message-deleted", {
           messageId: deleted.messageId,
           parentMessageId: deleted.parentMessageId ?? undefined,
-        });
+        }, true);
       }
     } else {
       const row = await deps.db.query.directMessage.findFirst({ where: eq(directMessage.id, messageId) });
@@ -147,7 +148,7 @@ export async function applyReaction(
     if (messageType === "channel") {
       const row = await deps.db.query.message.findFirst({ where: eq(message.id, messageId) });
       if (row?.channelId) {
-        client.broadcast.to(CHAT_ROOMS.channel(row.channelId)).emit(add ? "reaction-added" : "reaction-removed", event);
+        await broadcastChannel(deps.db, client, row.channelId, add ? "reaction-added" : "reaction-removed", event);
       }
     } else {
       const row = await deps.db.query.directMessage.findFirst({ where: eq(directMessage.id, messageId) });
