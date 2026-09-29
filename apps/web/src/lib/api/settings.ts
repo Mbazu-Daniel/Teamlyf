@@ -9,6 +9,8 @@ export type OrganizationMember = {
 type OrganizationMembersResponse = { members: OrganizationMember[]; total: number };
 type ActiveMemberRole = { role?: string | string[] };
 export type BillingSummary = {
+  plans?: Record<"starter" | "growth" | "scale", { seatLimit: number; agentLimit: number; callDurationMinutes: number }>;
+  checkoutAvailable?: boolean;
   plan: "starter" | "growth" | "scale";
   status: string;
   seatLimit: number;

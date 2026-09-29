@@ -1,25 +1,7 @@
-import { IconBuilding, IconCalendarOff, IconUsers } from "@tabler/icons-react";
+import { IconBuilding, IconCalendarOff, IconUsers, IconHierarchy } from "@tabler/icons-react";
+import { pageSecondaryAction } from "@/components/workspace/page-layout";
 
-export function HrmSidebar({ organizationSlug }: { organizationSlug: string }) {
-  const items = [
-    ["Employees", "employees", IconUsers],
-    ["Departments", "departments", IconBuilding],
-    ["Leave", "leave", IconCalendarOff],
-  ] as const;
-
-  return (
-    <aside className="w-[220px] shrink-0 rounded-[16px] border border-border/60 bg-card p-2">
-      <div className="rounded-[14px] border bg-muted/20 px-4 py-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Human Resources</p>
-        <p className="mt-1 text-sm font-semibold">Team operations</p>
-      </div>
-      <nav className="mt-3 space-y-1" aria-label="People and HR sections">
-        {items.map(([label, section, Icon]) => (
-          <a key={section} href={`/${organizationSlug}/people#${section}`} className="flex items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm text-muted-foreground hover:bg-primary/5 hover:text-primary">
-            <Icon className="size-4" />{label}
-          </a>
-        ))}
-      </nav>
-    </aside>
-  );
+export function HrmSidebar({ selected, onSelect }: { selected: string; onSelect: (section: string) => void }) {
+  const items = [["Employees", "employees", IconUsers], ["Departments", "departments", IconBuilding], ["Leave", "leave", IconCalendarOff], ["Org chart", "org-chart", IconHierarchy]] as const;
+  return <nav aria-label="HR sections" className="flex flex-wrap gap-2">{items.map(([label, section, Icon]) => <button key={section} className={`${pageSecondaryAction} ${selected === section ? "!bg-primary !text-primary-foreground" : ""}`} onClick={() => onSelect(section)} aria-current={selected === section ? "page" : undefined}><Icon className="size-4" />{label}</button>)}</nav>;
 }

@@ -12,14 +12,19 @@ import { getErrorMessage } from "@/lib/error-message";
 import { Button } from "@/components/ui/button";
 import { AuthField } from "@/components/auth/auth-field";
 import { useAuthAction } from "@/lib/auth-action";
+import { SettingsSection } from "@/components/workspace/page-layout";
+import { ProfileSettings } from "./profile";
+import { DeleteAccount } from "./delete-account";
 
 const MIN_PASSWORD_LENGTH = 8;
 
 export function SecuritySettingsPage() {
   return (
     <div className="space-y-6">
+      <ProfileSettings />
       <ChangePasswordCard />
       <SessionsCard />
+      <DeleteAccount />
     </div>
   );
 }
@@ -55,12 +60,8 @@ function ChangePasswordCard() {
   }
 
   return (
-    <section className="rounded-xl border bg-card p-5">
-      <h2 className="font-medium">Change password</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Changing your password signs out every other device.
-      </p>
-      <form onSubmit={submit} className="mt-5 space-y-4">
+    <SettingsSection title="Change password" description="Changing your password signs out every other device.">
+      <form onSubmit={submit} className="max-w-lg space-y-5">
         <AuthField
           label="Current password"
           name="currentPassword"
@@ -92,7 +93,7 @@ function ChangePasswordCard() {
           {pending ? "Saving..." : "Change password"}
         </Button>
       </form>
-    </section>
+    </SettingsSection>
   );
 }
 
@@ -100,10 +101,10 @@ function SessionsCard() {
   const { data, isPending, error } = useSessions();
 
   return (
-    <section className="rounded-xl border bg-card p-5">
+    <section className="rounded-[16px] border border-border/70 bg-card p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-medium">Active sessions</h2>
+          <h2 className="text-sm font-semibold">Active sessions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Every device signed in to your account. Revoke anything you do not recognise.
           </p>

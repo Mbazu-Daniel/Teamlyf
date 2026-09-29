@@ -38,9 +38,9 @@ export type LeavePolicy = {
   createdAt: string;
 };
 
-export type LeaveRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
+type LeaveRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
 
-export type LeaveRequest = {
+type LeaveRequest = {
   id: string;
   memberId: string;
   policyId: string;
@@ -50,10 +50,11 @@ export type LeaveRequest = {
   status: LeaveRequestStatus;
   reviewedById: string | null;
   reviewedAt: string | null;
+  reviewReason?: string | null;
   createdAt: string;
 };
 
-export type LeaveBalance = {
+type LeaveBalance = {
   policyId: string;
   policyName: string;
   daysPerYear: number;
@@ -79,6 +80,16 @@ const json = (body: unknown): RequestInit => ({
 });
 
 export const hrApi = {
+  updateDepartment: (org: string, id: string, input: { name: string; description?: string }) => client.request<Department>(departmentPath(org, id), { method: "PATCH", body: JSON.stringify(input) }),
+  deleteDepartment: (org: string, id: string) => client.request<void>(departmentPath(org, id), { method: "DELETE" }),
+  createPolicy: (org: string, input: { name: string; daysPerYear: number }) => client.request<LeavePolicy>(policyPath(org), json(input)),
+  updatePolicy: (org: string, id: string, input: { name: string; daysPerYear: number }) => client.request<LeavePolicy>(`${policyPath(org)}/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
+  deletePolicy: (org: string, id: string) => client.request<void>(`${policyPath(org)}/${id}`, { method: "DELETE" }),
+  getReviewQueue: (org: string) => client.request<LeaveRequest[]>(`${leavePath(org)}/review`),
+  getProfile: (org: string, member: string) => client.request<MemberProfile | null>(`${profilesPath(org)}/${member}`),
+  updateProfile: (org: string, member: string, input: Partial<Omit<MemberProfile, "memberId" | "organizationId">>) => client.request<MemberProfile>(`${profilesPath(org)}/${member}`, { method: "PATCH", body: JSON.stringify(input) }),
+  getEmergencyContact: (org: string, member: string) => client.request<{ name: string | null; phone: string | null }>(`/organization/${org}/members/${member}/emergency-contact`),
+  updateEmergencyContact: (org: string, member: string, input: { name: string; phone: string }) => client.request<unknown>(`/organization/${org}/members/${member}/emergency-contact`, { method: "PATCH", body: JSON.stringify(input) }),
   getDepartments: (organizationId: string) =>
     client.request<Department[]>(departmentPath(organizationId)),
   createDepartment: (organizationId: string, input: { name: string; description?: string }) =>
@@ -98,10 +109,10 @@ export const hrApi = {
     organizationId: string,
     input: { policyId: string; startDate: string; endDate: string; reason?: string },
   ) => client.request<LeaveRequest>(leavePath(organizationId), json(input)),
-  reviewLeaveRequest: (organizationId: string, requestId: string, status: "approved" | "rejected") =>
+  reviewLeaveRequest: (organizationId: string, requestId: string, status: "approved" | "rejected", reviewReason?: string) =>
     client.request<LeaveRequest>(leavePath(organizationId, requestId), {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, reviewReason }),
     }),
   cancelLeaveRequest: (organizationId: string, requestId: string) =>
     client.request<LeaveRequest>(leavePath(organizationId, requestId), { method: "DELETE" }),
