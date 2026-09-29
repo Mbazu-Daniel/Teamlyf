@@ -22,6 +22,7 @@ export const leaveRequest = pgTable("leave_request", {
   status: text("status").notNull().default("pending"),
   reviewedById: uuid("reviewed_by_id").references(() => member.id, { onDelete: "set null" }),
   reviewedAt: timestamp("reviewed_at"),
+  reviewReason: text("review_reason"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => [
   index("leave_request_org_idx").on(t.organizationId),

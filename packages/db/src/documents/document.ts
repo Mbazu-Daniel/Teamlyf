@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { member } from "../organization/member";
 import { organizationReference } from "../organization/membership-columns";
@@ -12,6 +12,9 @@ export const document = pgTable("document", {
   mimeType: text("mime_type").notNull().default("text/plain"),
   content: text("content"),
   objectKey: text("object_key"),
+  fileSize: integer("file_size").notNull().default(0),
+  uploadReady: boolean("upload_ready").notNull().default(true),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [

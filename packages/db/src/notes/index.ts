@@ -1,1 +1,1 @@
-export { note } from "./note";
+export { note, noteSnapshot, noteFavorite, notePresence } from "./note";

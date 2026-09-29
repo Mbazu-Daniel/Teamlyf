@@ -10,8 +10,10 @@ import * as notesSchema from "./notes";
 import * as hrSchema from "./hr";
 import * as billingSchema from "./billing";
 import * as chatSchema from "./chat";
+import * as scheduleSchema from "./schedule";
 
 const allSchemas = {
+  ...scheduleSchema,
   ...aiSchema,
   ...agentSchema,
   ...authSchema,
@@ -54,3 +56,4 @@ export * from "./ai";
 
 export * as chatSchema from "./chat";
 export * from "./chat";
+export * from "./schedule";

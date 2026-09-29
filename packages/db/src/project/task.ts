@@ -3,6 +3,7 @@ import { generateId } from "../id";
 import { memberReference } from "./references";
 import { project } from "./project";
 import { status } from "./status";
+import { sprint } from "./sprint";
 
 export const task = pgTable(
   "task",
@@ -17,6 +18,7 @@ export const task = pgTable(
       .notNull()
       .references(() => status.id, { onDelete: "cascade" }),
     parentId: uuid("parent_id").references((): any => task.id, { onDelete: "cascade" }),
+    sprintId: uuid("sprint_id").references(() => sprint.id, { onDelete: "set null" }),
     name: text("name").notNull(),
     description: text("description"),
     priority: text("priority").notNull().default("none"),
@@ -33,6 +35,7 @@ export const task = pgTable(
     index("task_project_id_idx").on(t.projectId),
     index("task_status_id_idx").on(t.statusId),
     index("task_parent_id_idx").on(t.parentId),
+    index("task_sprint_id_idx").on(t.sprintId),
     index("task_created_by_id_idx").on(t.createdById),
     foreignKey({
       columns: [t.projectId, t.statusId],

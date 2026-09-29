@@ -109,6 +109,11 @@ export class LocalStorageService implements StorageService {
     await rm(this.resolvePath(key), { force: true });
   }
 
+  async objectSize(key: string): Promise<number> {
+    try { return (await stat(this.resolvePath(key))).size; }
+    catch { throw new NotFoundException("Stored file not found"); }
+  }
+
   private capabilityUrl(mode: StorageTokenMode, payload: StorageTokenPayload): string {
     return `/storage/${mode}/${signStorageToken(payload, this.secret)}`;
   }

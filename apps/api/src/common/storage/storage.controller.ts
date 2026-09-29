@@ -35,7 +35,7 @@ export class StorageController {
     response.setHeader("Content-Type", "application/octet-stream");
     response.setHeader(
       "Content-Disposition",
-      `attachment; filename="${object.fileName.replace(/["\\]/g, "")}"`,
+      `attachment; filename*=UTF-8''${encodeURIComponent(object.fileName).replace(/'/g, "%27")}`,
     );
     response.send(object.body);
   }
