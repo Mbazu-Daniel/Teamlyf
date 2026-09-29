@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import type { Milestone, MilestoneStatus, ProjectTask } from "@/lib/api";
 import { IconCalendar, IconCheck, IconFlag, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { MutedMessage } from "./feedback";
+import { PageEmptyState, pageInput } from "@/components/workspace/page-layout";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 type MilestoneInput = {
   name: string;
@@ -43,13 +45,13 @@ export function MilestonesSection({
           <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Roadmap</p>
           <h2 className="mt-1 text-base font-semibold">Milestones</h2>
         </div>
-        <button type="button" onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition hover:bg-muted">
+        <button type="button" onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-1.5 rounded-lg border px-3 h-control py-0 text-xs font-semibold transition hover:bg-muted">
           <IconPlus className="size-3.5" />
           Add milestone
         </button>
       </div>
 
-      {open && (
+      <Sheet open={open} onOpenChange={setOpen}><SheetContent className="sm:max-w-md"><SheetHeader variant="form"><SheetTitle>Add milestone</SheetTitle><SheetDescription>Set a delivery checkpoint for this project.</SheetDescription></SheetHeader>
         <MilestoneForm
           loading={loading}
           onCancel={() => setOpen(false)}
@@ -58,7 +60,7 @@ export function MilestonesSection({
             setOpen(false);
           }}
         />
-      )}
+      </SheetContent></Sheet>
 
       <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
         {milestones.map((milestone) => (
@@ -74,7 +76,7 @@ export function MilestonesSection({
           />
         ))}
         {!loading && milestones.length === 0 && (
-          <MutedMessage className="p-3 sm:col-span-2 lg:col-span-3" message="No milestones yet. Add a delivery checkpoint and connect work to it." />
+          <div className="sm:col-span-2 lg:col-span-3"><PageEmptyState icon={IconFlag} title="Your next checkpoint" description="Add a milestone to connect tasks to a clear delivery goal." /></div>
         )}
         {loading && <MutedMessage className="p-3" message="Loading milestones..." />}
       </div>
@@ -108,14 +110,14 @@ function MilestoneForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-2 border-b bg-muted/20 p-4 sm:grid-cols-2">
-      <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Milestone name" className="rounded-lg border bg-background px-3 py-2 text-sm" required />
-      <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description (optional)" className="rounded-lg border bg-background px-3 py-2 text-sm" />
-      <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-      <input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} className="rounded-lg border bg-background px-3 py-2 text-sm" />
-      <div className="flex gap-2 sm:col-span-2">
-        <button disabled={loading} className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">{loading ? "Creating..." : "Create milestone"}</button>
-        <button type="button" onClick={onCancel} className="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-muted">Cancel</button>
+    <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-6">
+      <label className="space-y-2 text-xs font-medium">Milestone name<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. First release" className={`${pageInput} mt-2`} required /></label>
+      <label className="space-y-2 text-xs font-medium">Description<input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What does success look like?" className={`${pageInput} mt-2`} /></label>
+      <label className="space-y-2 text-xs font-medium">Start date<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className={`${pageInput} mt-2`} /></label>
+      <label className="space-y-2 text-xs font-medium">Target date<input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} className={`${pageInput} mt-2`} /></label>
+      <div className="mt-auto flex justify-end gap-2 border-t border-border/70 pt-5">
+        <button disabled={loading} className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50">{loading ? "Creating..." : "Create milestone"}</button>
+        <button type="button" onClick={onCancel} className="rounded-lg border px-3 h-control py-0 text-xs font-semibold hover:bg-muted">Cancel</button>
       </div>
     </form>
   );
@@ -252,18 +254,18 @@ function MilestoneEditForm({
       }}
       className="space-y-2"
     >
-      <input value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
-      <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
-      <select value={status} onChange={(event) => setStatus(event.target.value as MilestoneStatus)} className="w-full rounded-lg border bg-background px-3 py-2 text-xs">
+      <input value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-lg border bg-background px-3 h-control py-0 text-sm" />
+      <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className="w-full rounded-lg border bg-background px-3 h-control py-0 text-sm" />
+      <select value={status} onChange={(event) => setStatus(event.target.value as MilestoneStatus)} className="w-full rounded-lg border bg-background px-3 h-control py-0 text-xs">
         {statuses.map((item) => <option key={item} value={item}>{formatStatus(item)}</option>)}
       </select>
       <div className="grid grid-cols-2 gap-2">
-        <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="rounded-lg border bg-background px-3 py-2 text-xs" />
-        <input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} className="rounded-lg border bg-background px-3 py-2 text-xs" />
+        <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="rounded-lg border bg-background px-3 h-control py-0 text-xs" />
+        <input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} className="rounded-lg border bg-background px-3 h-control py-0 text-xs" />
       </div>
       <div className="flex gap-2">
-        <button className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">Save</button>
-        <button type="button" onClick={onCancel} className="rounded-lg border px-3 py-2 text-xs font-semibold">Cancel</button>
+        <button className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground">Save</button>
+        <button type="button" onClick={onCancel} className="rounded-lg border px-3 h-control py-0 text-xs font-semibold">Cancel</button>
       </div>
     </form>
   );

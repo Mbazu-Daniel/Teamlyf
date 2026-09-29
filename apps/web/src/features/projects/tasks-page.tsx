@@ -8,6 +8,11 @@ import { TaskDetailPanel } from "./task-detail-panel";
 import { TaskList } from "./task-list";
 import type { TaskView } from "./task-search";
 import { useMyTasks } from "./use-my-tasks";
+import { PageEmptyState, pageInput, pagePrimaryAction } from "@/components/workspace/page-layout";
+import { CreateTask } from "./create-task";
+import { useQuery } from "@tanstack/react-query";
+import { projectsApi } from "@/lib/api";
+import { queryKeys } from "@/lib/queryKeys";
 
 type TasksPageProps = Readonly<{
   organizationId: string | undefined;
@@ -22,10 +27,15 @@ type TasksPageProps = Readonly<{
 /** Everything assigned to the signed-in member, across every project they can see. */
 export function TasksPage({ organizationId, view, onViewChange, selectedTaskId, onSelectTask, onCloseTask }: TasksPageProps) {
   const [search, setSearch] = useState("");
-  const { rows, groups, columns, loading, error, statusesByProjectId, moveToStatus, reschedule, deleteTask, duplicateTask } = useMyTasks(organizationId, search);
+  const [scope, setScope] = useState<"mine" | "all">("mine");
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const [creating, setCreating] = useState(false);
+  const projects = useQuery({ queryKey: queryKeys.projects(organizationId ?? ""), queryFn: () => projectsApi.getProjects(organizationId!), enabled: !!organizationId });
+  const { rows, groups, columns, loading, error, statusesByProjectId, moveToStatus, reschedule, deleteTask, duplicateTask } = useMyTasks(organizationId, search, { scope, projectFilter, priority });
   const selectedRow = selectedTaskId ? rows.find((row) => row.task.id === selectedTaskId) : undefined;
   const projectCount = new Set(rows.map((row) => row.projectId)).size;
-  const searching = search.trim().length > 0;
+  const searching = search.trim().length > 0 || projectFilter !== "all" || priority !== "all" || scope === "all";
 
   function statusesFor(task: ProjectTask): Status[] {
     const row = rows.find((item) => item.task.id === task.id);
@@ -33,33 +43,41 @@ export function TasksPage({ organizationId, view, onViewChange, selectedTaskId, 
   }
 
   return (
-    <div className="flex min-w-0 h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-      <header className="border-b px-4 py-3 sm:px-5">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+      <header className="rounded-[16px] border border-border/70 bg-card p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="truncate text-base font-semibold tracking-tight">My Tasks</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {loading ? "Loading your tasks…" : `${rows.length} task${rows.length === 1 ? "" : "s"} assigned to you across ${projectCount} project${projectCount === 1 ? "" : "s"}`}
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Personal workspace</p>
+            <h1 className="mt-1 truncate text-2xl font-semibold tracking-[-0.03em]">{scope === "mine" ? "My Tasks" : "Workspace Tasks"}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {loading ? "Loading tasks…" : `${rows.length} tasks ${scope === "mine" ? "assigned to you " : ""}across ${projectCount} projects`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-lg bg-secondary p-0.5" role="group" aria-label="Task view">
-              <button type="button" onClick={() => onViewChange("board")} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "board" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")} aria-pressed={view === "board"}>
+            <div className="flex h-control items-center rounded-[10px] bg-muted/75 p-1" role="group" aria-label="Task view">
+              <button type="button" onClick={() => onViewChange("board")} className={cn("h-control-inner rounded-[8px] px-3 text-xs font-semibold transition-colors", view === "board" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")} aria-pressed={view === "board"}>
                 <IconLayoutKanban className="mr-1.5 inline size-3.5" /> Board
               </button>
-              <button type="button" onClick={() => onViewChange("list")} className={cn("h-8 rounded-md px-2.5 text-xs font-medium", view === "list" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground")} aria-pressed={view === "list"}>
+              <button type="button" onClick={() => onViewChange("list")} className={cn("h-control-inner rounded-[8px] px-3 text-xs font-semibold transition-colors", view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")} aria-pressed={view === "list"}>
                 <IconList className="mr-1.5 inline size-3.5" /> List
               </button>
             </div>
-            <div className="relative w-44 sm:w-56">
-              <IconSearch className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search tasks…" aria-label="Search my tasks" className="h-8 w-full rounded-lg border-border bg-secondary pl-8 pr-3 text-xs shadow-none outline-none transition-all focus:bg-background" />
+            <div className="relative min-w-[160px] flex-1 sm:w-64">
+              <IconSearch className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search tasks…" aria-label="Search my tasks" className="h-control w-full rounded-[10px] border border-border/80 bg-muted/45 pl-9 pr-3 text-sm font-normal shadow-none outline-none transition focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10" />
             </div>
           </div>
         </div>
       </header>
+      <div className="flex flex-wrap gap-3">
+        <select aria-label="Task scope" className={`${pageInput} !w-auto`} value={scope} onChange={(e) => setScope(e.target.value as "mine" | "all")}><option value="mine">My tasks</option><option value="all">All workspace tasks</option></select>
+        <select aria-label="Filter by project" className={`${pageInput} !w-auto`} value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)}><option value="all">All projects</option>{projects.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+        <select aria-label="Filter by priority" className={`${pageInput} !w-auto`} value={priority} onChange={(e) => setPriority(e.target.value)}>{["all", "none", "low", "medium", "high", "urgent"].map((p) => <option key={p}>{p}</option>)}</select>
+        <button className={pagePrimaryAction} disabled={!organizationId} onClick={() => setCreating(true)}>Create task</button>
+      </div>
+      {creating && organizationId && <CreateTask org={organizationId} onClose={() => setCreating(false)} />}
 
-      <main className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
+      <main className={`scrollbar-hidden min-h-0 overflow-auto rounded-[16px] border border-border/70 bg-card p-4 sm:p-5 ${view === "board" && rows.length > 0 ? "shrink-0" : "flex-1"}`}>
         {error ? (
           <MutedMessage message={error} />
         ) : loading ? (
@@ -68,13 +86,7 @@ export function TasksPage({ organizationId, view, onViewChange, selectedTaskId, 
           searching ? (
             <MutedMessage className="rounded-xl border border-dashed p-10 text-center" message="No tasks match your search." />
           ) : (
-            <div className="flex h-full items-center justify-center rounded-xl border border-dashed">
-              <div className="max-w-sm px-6 text-center">
-                <IconCircleCheck className="mx-auto size-6 text-muted-foreground" aria-hidden="true" />
-                <p className="mt-3 text-sm font-medium">Nothing is assigned to you</p>
-                <p className="mt-1 text-sm text-muted-foreground">Tasks assigned to you show up here, from every project you can see.</p>
-              </div>
-            </div>
+            <PageEmptyState icon={IconCircleCheck} title="Nothing is assigned to you" description="Tasks assigned to you show up here, from every project you can see." className="h-full" />
           )
         ) : view === "board" ? (
           <GroupedBoard columns={columns} allTasks={rows.map((row) => row.task)} statusesFor={statusesFor} onMove={moveToStatus} onDropColumn={reschedule} onSelect={onSelectTask} onDelete={deleteTask} onDuplicate={duplicateTask} />

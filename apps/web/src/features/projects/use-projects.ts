@@ -4,13 +4,14 @@ import { projectsApi, type Project } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 
-type CreateProjectInput = { name: string; identifier: string; description?: string };
+type CreateProjectInput = { name: string; identifier: string; description?: string; leadIds?: string[] };
 
 export function useProjects(organizationId: string | undefined) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [description, setDescription] = useState("");
+  const [leadIds, setLeadIds] = useState<string[]>([]);
   const [createdProject, setCreatedProject] = useState<Project | null>(null);
 
   const organizationKey = organizationId ?? "";
@@ -29,6 +30,7 @@ export function useProjects(organizationId: string | undefined) {
       setName("");
       setIdentifier("");
       setDescription("");
+      setLeadIds([]);
       setCreatedProject(project);
       queryClient.setQueryData<Project[]>(projectsKey, (current) => [project, ...(current ?? [])]);
     },
@@ -42,6 +44,7 @@ export function useProjects(organizationId: string | undefined) {
       name: name.trim(),
       identifier: identifier.trim(),
       description: description.trim() || undefined,
+      leadIds,
     });
   }
 
@@ -50,6 +53,7 @@ export function useProjects(organizationId: string | undefined) {
     getErrorMessage(projectsQuery.error, "Unable to load projects");
 
   return {
+    organizationId, leadIds, setLeadIds,
     projects: projectsQuery.data ?? [],
     createdProject,
     name,

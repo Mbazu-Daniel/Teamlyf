@@ -1,3 +1,5 @@
+import { TaskLabels } from "./task-labels";
+import { SprintPicker } from "./sprint-picker";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type {
@@ -37,7 +39,7 @@ export function TaskProperties({
     <section aria-label="Properties" className="space-y-4 rounded-xl border border-border/70 bg-card p-4">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Properties</h3>
       <Field label="Status" htmlFor="task-status">
-        <select id="task-status" value={task.statusId} onChange={(event) => updateTask({ statusId: event.target.value })} className="w-full rounded-md border bg-background px-2 py-2 text-sm">
+        <select id="task-status" value={task.statusId} onChange={(event) => updateTask({ statusId: event.target.value })} className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm">
           {statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
         </select>
       </Field>
@@ -49,20 +51,22 @@ export function TaskProperties({
             const priority = PRIORITIES.find((item) => item === event.target.value);
             if (priority) updateTask({ priority });
           }}
-          className="w-full rounded-md border bg-background px-2 py-2 text-sm"
+          className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm"
         >
           {PRIORITIES.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
         </select>
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Start date" htmlFor="task-start-date">
-          <input id="task-start-date" type="date" value={toDateValue(task.startDate)} onChange={(event) => { if (event.target.value) updateTask({ startDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 py-2 text-sm" />
+          <input id="task-start-date" type="date" value={toDateValue(task.startDate)} onChange={(event) => { if (event.target.value) updateTask({ startDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm" />
         </Field>
         <Field label="Target date" htmlFor="task-target-date">
-          <input id="task-target-date" type="date" value={toDateValue(task.targetDate)} onChange={(event) => { if (event.target.value) updateTask({ targetDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 py-2 text-sm" />
+          <input id="task-target-date" type="date" value={toDateValue(task.targetDate)} onChange={(event) => { if (event.target.value) updateTask({ targetDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm" />
         </Field>
       </div>
+      <SprintPicker org={organizationId} project={projectId} value={task.sprintId} onChange={(sprintId) => updateTask({ sprintId })} />
       <AssigneePicker organizationId={organizationId} projectId={projectId} task={task} members={members} membersLoading={membersLoading} updateTask={updateTask} />
+      <TaskLabels org={organizationId} project={projectId} selected={task.taskLabels?.map((l) => l.labelId) ?? []} onChange={(labelIds) => updateTask({ labelIds })} />
     </section>
   );
 }

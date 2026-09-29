@@ -47,7 +47,8 @@ export function useTaskDetail(
   // panel drops the picker instead of inventing member ids.
   const membersQuery = useQuery({
     queryKey: queryKeys.members(organizationKey),
-    queryFn: () => settingsApi.members(organizationKey).then((page) => page.members),
+    queryFn: () => settingsApi.members(organizationKey),
+    select: (page) => page.members,
     enabled,
     retry: false,
   });

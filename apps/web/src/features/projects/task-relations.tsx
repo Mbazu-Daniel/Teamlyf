@@ -155,7 +155,7 @@ function RelationsSection({
             value={relationType}
             onChange={(event) => setRelationType(event.target.value as TaskRelationType)}
             aria-label="Relation type"
-            className="rounded-md border bg-background px-2 py-2 text-sm"
+            className="rounded-md border bg-background px-2 h-control py-0 text-sm"
           >
             {TASK_RELATION_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -166,7 +166,7 @@ function RelationsSection({
           <button
             type="submit"
             disabled={!targetTaskId || relations.creating}
-            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50"
           >
             {relations.creating ? "Adding..." : "Add"}
           </button>
@@ -258,7 +258,7 @@ function SubscribersSection({
           <button
             type="submit"
             disabled={!memberId}
-            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50"
           >
             Add
           </button>

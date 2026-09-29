@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { StatusColumn } from "@/features/projects";
+import { GroupedBoard, KanbanBoard, StatusColumn } from "@/features/projects/board";
 import type { ProjectTask, Status } from "@/lib/api";
 
 const todo: Status = {
@@ -44,6 +44,26 @@ afterEach(() => {
   cleanup();
 });
 
+describe("Board layout", () => {
+  it.each(["project", "grouped"])("keeps the %s board compact with hidden, usable scroll areas", (kind) => {
+    const tasks = [makeTask("t1", "Write spec", "s1")];
+    const { container } = render(kind === "project" ? (
+      <KanbanBoard statuses={statuses} tasks={tasks} onMove={vi.fn()} onSelect={vi.fn()} />
+    ) : (
+      <GroupedBoard columns={[{ id: "today", name: "Today", color: "orange", tasks }]} allTasks={tasks} statusesFor={() => statuses} onDropColumn={vi.fn()} onSelect={vi.fn()} />
+    ));
+
+    const board = container.firstElementChild!;
+    expect(board.classList.contains("h-[380px]")).toBe(true);
+    expect(board.classList.contains("scrollbar-hidden")).toBe(true);
+    expect(board.classList.contains("overflow-x-auto")).toBe(true);
+    for (const column of container.querySelectorAll("section")) {
+      expect(column.classList.contains("min-h-0")).toBe(true);
+      expect(column.querySelector(".overflow-y-auto")?.classList.contains("scrollbar-hidden")).toBe(true);
+    }
+  });
+});
+
 describe("StatusColumn", () => {
   it("renders_onlyItsOwnTasks_withTheStatusCount", () => {
     render(
@@ -73,7 +93,7 @@ describe("StatusColumn", () => {
       />,
     );
 
-    expect(screen.getByText("No tasks")).toBeDefined();
+    expect(screen.getByText("Drop tasks here")).toBeDefined();
   });
 
   it("calls_onMove_withTheTaskAndPickedStatus", async () => {
@@ -91,7 +111,8 @@ describe("StatusColumn", () => {
 
     const selects = screen.getAllByRole("combobox");
     expect(selects).toHaveLength(1);
-    await user.selectOptions(selects[0] as HTMLSelectElement, "s2");
+    await user.click(selects[0]);
+    await user.click(await screen.findByRole("option", { name: "Doing" }));
 
     expect(onMove).toHaveBeenCalledTimes(1);
     const [task, statusId] = onMove.mock.calls[0] as [ProjectTask, string];

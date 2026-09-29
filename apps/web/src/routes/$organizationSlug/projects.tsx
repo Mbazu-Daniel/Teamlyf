@@ -1,10 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { ProjectListPage, useProjects } from "@/features/projects";
 import { useOrganization } from "@/lib/organization";
 
 export const Route = createFileRoute("/$organizationSlug/projects")({ component: ProjectsRoute });
 
 function ProjectsRoute() {
+  const matchRoute = useMatchRoute();
+  if (matchRoute({ to: "/$organizationSlug/projects/$projectId", fuzzy: true })) return <Outlet />;
+  return <ProjectsIndex />;
+}
+
+function ProjectsIndex() {
   const { organization } = useOrganization();
   const { organizationSlug } = Route.useParams();
   const state = useProjects(organization?.id);
