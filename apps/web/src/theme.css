@@ -38,8 +38,24 @@ html.light {
   --border: var(--background-700);
   --input: var(--background-700);
   --ring: var(--primary-400);
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --sidebar: rgba(255, 255, 255, 0.88);
+  --sidebar-foreground: #1f2937;
+  --sidebar-accent: #f5f7f8;
+  --sidebar-border: #e6e8eb;
+  --app-page-background: radial-gradient(circle at top right, rgb(124 58 237 / 8%) 0%, transparent 38%), linear-gradient(140deg, #fbfdfc 0%, #f8f7fc 48%, #f5f2fb 100%);
+  --app-panel-bg: rgb(255 255 255 / 94%);
+  --app-panel-border: rgb(215 227 246 / 95%);
+  --app-panel-shadow: 0 18px 38px -28px rgb(11 28 48 / 28%);
 }
 
 html.dark {
   color-scheme: dark;
+  --sidebar: rgb(18 19 25 / 92%);
+  --sidebar-accent: #252837;
+  --app-page-background: radial-gradient(circle at top right, rgb(124 58 237 / 18%) 0%, transparent 34%), linear-gradient(140deg, #11121a 0%, #151724 45%, #161926 100%);
+  --app-panel-bg: rgb(26 27 34 / 92%);
+  --app-panel-border: rgb(74 83 109 / 62%);
+  --app-panel-shadow: 0 24px 48px -34px rgb(0 0 0 / 70%);
 }

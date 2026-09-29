@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { getBreadcrumbs } from "@/components/header/breadcrumbs";
 
 describe("getBreadcrumbs", () => {
+  it("usesReadableLabelsForChatAndPeoplePages", () => {
+    expect(getBreadcrumbs("/acme/chats/threads").map((crumb) => crumb.label)).toEqual(["Chat", "Threads"]);
+    expect(getBreadcrumbs("/acme/people").map((crumb) => crumb.label)).toEqual(["HR"]);
+  });
   it("omitsTheWorkspace_whenPathMatchesAKnownRoute", () => {
     expect(getBreadcrumbs("/acme/settings").map((crumb) => crumb.label)).toEqual(["Settings"]);
     expect(getBreadcrumbs("/acme/projects")).toEqual([

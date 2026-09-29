@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,9 +47,11 @@ describe("Select", () => {
     const trigger = screen.getByRole("combobox", { name: "Role" });
     await user.click(trigger);
     await screen.findByRole("listbox");
+    // Base UI focuses/highlights the selected item on the next animation frame.
+    await waitFor(() => expect(screen.getByRole("option", { name: "Member" })).toHaveAttribute("data-highlighted"));
     await user.keyboard("{ArrowDown}");
 
-    expect(screen.getByRole("option", { name: "Admin" })).toHaveAttribute("data-highlighted");
+    await waitFor(() => expect(screen.getByRole("option", { name: "Admin" })).toHaveAttribute("data-highlighted"));
 
     await user.keyboard("{Enter}");
 
@@ -66,7 +68,7 @@ describe("Select", () => {
     await user.click(screen.getByRole("combobox", { name: "Role" }));
     await user.keyboard("{Escape}");
 
-    expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("listbox")).not.toBeInTheDocument());
     expect(onValueChange).not.toHaveBeenCalled();
   });
 

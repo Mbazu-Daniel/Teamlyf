@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { IconLogout, IconPlus, IconUsers } from "@tabler/icons-react";
+import { IconArrowUpRight, IconLogout, IconPlus, IconUsers } from "@tabler/icons-react";
 import { createOrganization, getOrganizations, signOut, type Organization } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { SessionGate, useResetSession } from "@/lib/session";
 import { useOrganization } from "@/lib/organization";
 import { Brand } from "@/components/ui/brand";
+import { ReceivedInvitations } from "@/features/settings/received-invitations";
 
 export const Route = createFileRoute("/workspaces")({
   component: () => (
@@ -69,7 +70,7 @@ function WorkspaceBody({
         <button
           type="button"
           onClick={() => void query.refetch()}
-          className="justify-self-center rounded-lg border border-border bg-card px-4 py-2 text-sm font-bold transition-colors hover:bg-muted"
+          className="justify-self-center rounded-lg border border-border bg-card px-4 h-control py-0 text-sm font-bold transition-colors hover:bg-muted"
         >
           Try again
         </button>
@@ -97,7 +98,7 @@ function WorkspaceBody({
       <button
         type="button"
         onClick={onShowCreate}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm font-bold text-muted-foreground transition-colors hover:border-primary-400 hover:text-foreground"
+        className="inline-flex h-control items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm font-bold text-muted-foreground transition-colors hover:border-primary-400 hover:text-foreground"
       >
         <IconPlus className="size-4" aria-hidden="true" />
         Create another workspace
@@ -131,27 +132,31 @@ function WorkspacesPage() {
   }
 
   return (
-    <div className="min-h-svh bg-background px-4 py-12 text-foreground">
-      <div className="mx-auto w-full max-w-2xl">
-        <header className="flex items-center justify-between gap-4">
+    <div className="flex min-h-svh flex-col bg-background text-foreground">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border/70 bg-card px-5 sm:px-8 lg:px-12">
           <Brand />
+          <div className="ml-auto flex items-center gap-3">
+          <Link to="/account" className="text-sm font-medium text-primary">Your account</Link>
           <button
             type="button"
             onClick={() => void handleSignOut()}
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex h-control shrink-0 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <IconLogout className="size-4" aria-hidden="true" />
             <span>Sign out</span>
           </button>
+          </div>
         </header>
-
-        <h1 className="mt-8 text-3xl font-bold tracking-tight">
+      <main className="flex flex-1 items-center justify-center bg-gradient-to-b from-primary/[0.04] to-background px-4 py-12 sm:px-6 lg:py-20"><div className="w-full max-w-3xl">
+        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Your Teamlyf</p>
+        <h1 className="mt-3 text-center text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
           {workspaceHeading(workspaces.length, showCreate)}
         </h1>
-        <p className="mt-2 max-w-prose text-muted-foreground">
+        <p className="mx-auto mt-3 max-w-lg text-center text-sm leading-6 text-muted-foreground">
           A workspace holds your projects, chat and people. Create one to open Teamlyf.
         </p>
 
+        <ReceivedInvitations />
         <div className="mt-8">
           <WorkspaceBody
             query={{ isPending, isError, refetch }}
@@ -161,7 +166,7 @@ function WorkspacesPage() {
             onHideCreate={() => setCreating(false)}
           />
         </div>
-      </div>
+      </div></main>
     </div>
   );
 }
@@ -179,17 +184,18 @@ function WorkspaceTile({ workspace }: Readonly<{ workspace: Organization }>) {
     <button
       type="button"
       onClick={choose}
-      className="app-card crisp-card flex min-w-0 items-center gap-3 p-4 text-left"
+      className="group flex min-w-0 items-center gap-4 rounded-[14px] border border-border/70 bg-card p-6 text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
     >
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-500/15 text-sm font-bold text-primary-300">
+      <span className="grid size-12 shrink-0 place-items-center rounded-[12px] bg-gradient-to-br from-primary to-primary/70 text-lg font-medium text-primary-foreground">
         {workspace.name.slice(0, 1).toUpperCase()}
       </span>
       <span className="min-w-0">
-        <span className="block truncate font-bold">{workspace.name}</span>
+        <span className="block truncate text-sm font-semibold">{workspace.name}</span>
         <span className="block truncate text-xs text-muted-foreground">
           {workspace.slug || workspace.id}
         </span>
       </span>
+      <IconArrowUpRight className="ml-auto size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
     </button>
   );
 }
@@ -214,13 +220,12 @@ async function createWorkspace(name: string, queryClient: QueryClient) {
     throw new Error("That name does not make a valid workspace address.");
   }
 
-  // The create endpoint answers with an empty body, so read the
-  // fresh collection instead of trusting the response.
+  // The create endpoint may not include a usable organization payload. Read
+  // the collection directly: `fetchQuery` would reuse the five-minute cache
+  // from the initial empty workspace screen.
   await createOrganization({ name, slug: address });
-  const fresh = await queryClient.fetchQuery({
-    queryKey: queryKeys.organizations,
-    queryFn: getOrganizations,
-  });
+  const fresh = await getOrganizations();
+  queryClient.setQueryData(queryKeys.organizations, fresh);
 
   return fresh.find((item) => matchesWorkspace(item, address, name)) ?? fresh[0];
 }
@@ -262,14 +267,14 @@ function CreateWorkspaceForm({
         event.preventDefault();
         void form.handleSubmit();
       }}
-      className="app-card grid gap-5 p-6"
+      className="mx-auto grid max-w-xl gap-5 rounded-[16px] border border-border/70 bg-card p-6 sm:p-8"
     >
       <div className="grid gap-2">
         <form.Field
           name="name"
           children={(field) => (
             <div className="grid gap-2">
-              <label htmlFor="workspace-name" className="text-sm font-bold">
+              <label htmlFor="workspace-name" className="text-xs font-medium">
                 Workspace name
               </label>
               <input
@@ -282,7 +287,7 @@ function CreateWorkspaceForm({
                 autoComplete="organization"
                 autoFocus
                 required
-                className="h-11 rounded-xl border border-border bg-background px-3.5 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary-400"
+                className="h-control rounded-[12px] border border-border/80 bg-muted/30 px-4 text-sm font-normal text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/50 focus:bg-card focus:ring-2 focus:ring-primary/10"
               />
               {field.state.meta.errors.length > 0 ? (
                 <p role="alert" className="text-sm text-destructive">
@@ -310,7 +315,7 @@ function CreateWorkspaceForm({
             <button
               type="submit"
               disabled={!canSubmit || isSubmitting}
-              className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-control items-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <IconUsers className="size-4" aria-hidden="true" />
               {isSubmitting ? "Creating..." : "Create workspace"}

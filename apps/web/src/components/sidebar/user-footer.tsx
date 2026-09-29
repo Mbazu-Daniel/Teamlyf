@@ -63,18 +63,18 @@ export function UserFooter({ collapsed, compact = false }: UserFooterProps) {
                 title={collapsed ? name : undefined}
                 className={cn(
                   "flex items-center gap-2.5 text-left transition-colors duration-150 hover:bg-muted",
-                  compact ? "rounded-lg px-2 py-1.5" : "flex-1 rounded-lg px-3 py-2.5",
+                  compact ? "rounded-lg px-2 py-1.5" : "flex-1 rounded-[10px] px-2.5 py-2.5 hover:bg-sidebar-accent",
                   collapsed && "justify-center px-0",
                 )}
               >
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary-500/15 text-xs font-bold text-primary-300">
+                <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-primary to-primary-400 text-[10px] font-bold text-primary-foreground shadow-sm">
                   {name.slice(0, 1).toUpperCase()}
                 </span>
                 {!collapsed && (
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">{name}</span>
+                    <span className="block truncate text-xs font-semibold leading-tight">{name}</span>
                     {user?.email && (
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="block truncate text-[10px] leading-tight text-muted-foreground">
                         {user.email}
                       </span>
                     )}

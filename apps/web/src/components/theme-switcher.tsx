@@ -8,6 +8,8 @@ import {
 } from "@tabler/icons-react";
 import {
   getThemeMode,
+  getCustomAccent,
+  setCustomAccent,
   getThemePalette,
   setThemeMode,
   setThemePalette,
@@ -48,11 +50,13 @@ const palettes: readonly {
 export function ThemeSwitcher({ variant = "app", compact = false }: ThemeSwitcherProps) {
   const [mode, setMode] = useState<ThemeMode>("system");
   const [palette, setPalette] = useState<ThemePalette>("violet");
+  const [custom, setCustom] = useState("#7c3aed");
 
   useEffect(() => {
     const sync = () => {
       setMode(getThemeMode());
       setPalette(getThemePalette());
+      setCustom(getCustomAccent());
     };
     sync();
     return subscribeToThemeChange(sync);
@@ -142,6 +146,7 @@ export function ThemeSwitcher({ variant = "app", compact = false }: ThemeSwitche
             ))}
           </div>
         </DropdownMenuGroup>
+        <DropdownMenuGroup><DropdownMenuLabel>Custom accent</DropdownMenuLabel><label className="flex items-center justify-between gap-3 px-3 pb-3 text-xs"><span>Choose any color</span><input aria-label="Custom accent color" type="color" value={custom} onChange={(event) => setCustomAccent(event.target.value)} className="h-9 w-12 cursor-pointer rounded-lg border bg-card" /></label></DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

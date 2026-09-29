@@ -115,13 +115,16 @@ describe("OrganizationSwitcher", () => {
     expect(mocks.navigate).toHaveBeenCalledWith({ to: "/globex/settings" });
   });
 
-  it("opensTheWorkspacePicker_whenCreateWorkspaceChosen", async () => {
+  it("opensOrganizationSettings_whenSettingsChosen", async () => {
     const user = userEvent.setup();
     renderSwitcher();
 
     await openSwitcher(user);
     await user.click(screen.getByRole("menuitem", { name: "Organization settings" }));
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: "/acme/settings" });
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: "/$organizationSlug/settings",
+      params: { organizationSlug: "acme" },
+    });
   });
 });

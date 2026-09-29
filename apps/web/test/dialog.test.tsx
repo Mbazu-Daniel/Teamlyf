@@ -59,7 +59,7 @@ describe("Dialog", () => {
     await user.click(screen.getByRole("button", { name: "Open settings" }));
     const dialog = await screen.findByRole("dialog");
 
-    expect(dialog.contains(document.activeElement)).toBe(true);
+    await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
 
     for (let step = 0; step < 4; step += 1) {
       await user.tab();

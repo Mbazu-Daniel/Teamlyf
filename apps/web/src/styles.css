@@ -6,9 +6,9 @@
 :root {
   color-scheme: dark;
   --radius: 0.75rem;
-  --font-sans: "Ubuntu", system-ui, sans-serif;
-  --font-heading: "Ubuntu", system-ui, sans-serif;
-  --font-body: "Ubuntu", system-ui, sans-serif;
+  --font-sans: "Montserrat", "Inter", system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-body: var(--font-sans);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-micro: 120ms;
@@ -214,6 +214,9 @@ html[data-theme-palette="forest"] {
 }
 
 @theme inline {
+  /* Shared height for page actions, single-line fields and filter groups. */
+  --spacing-control: 2.75rem;
+  --spacing-control-inner: calc(var(--spacing-control) - 0.5rem);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -236,9 +239,9 @@ html[data-theme-palette="forest"] {
   --text-body-md--line-height: 1.5rem;
   --text-body-md--font-weight: 400;
 
-  --font-sans: "Ubuntu", system-ui, sans-serif;
-  --font-heading: "Ubuntu", system-ui, sans-serif;
-  --font-body: "Ubuntu", system-ui, sans-serif;
+  --font-sans: "Montserrat", "Inter", system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --font-body: var(--font-sans);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -343,6 +346,7 @@ html[data-theme-palette="forest"] {
   html,
   body {
     overflow-x: clip;
+    font-family: var(--font-sans);
   }
 
   * {
@@ -351,33 +355,46 @@ html[data-theme-palette="forest"] {
 
   body {
     @apply bg-background font-body text-foreground antialiased;
-    font-family: "Ubuntu", system-ui, sans-serif;
+    font-family: var(--font-body);
   }
 
   h1,
   h2,
   h3 {
     font-style: normal;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.03em;
     overflow-wrap: anywhere;
     min-width: 0;
   }
 }
 
 @layer components {
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
   .app-card {
     border-radius: calc(var(--radius) + 4px);
-    border: 1px solid var(--border);
-    background: var(--card);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--app-panel-border);
+    background: var(--app-panel-bg, var(--card));
+    box-shadow: var(--app-panel-shadow, var(--shadow-md));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 
   .app-topbar {
-    background: color-mix(in oklab, var(--background) 82%, transparent);
+    background: color-mix(in oklab, var(--card) 82%, transparent);
+    border-bottom: 1px solid var(--app-panel-border);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
   }
 
   .crisp-card {
@@ -393,7 +410,7 @@ html[data-theme-palette="forest"] {
 
   .empty-state {
     border: 1px dashed var(--border);
-    background: color-mix(in oklab, var(--background-900) 60%, transparent);
+    background: color-mix(in oklab, var(--card) 60%, transparent);
   }
 
   .aurora {
@@ -465,13 +482,13 @@ html[data-theme-palette="forest"] {
   --muted-foreground: #667085;
   --border: #d9e0e9;
   --input: #d9e0e9;
-  background: #ffffff;
+  background: var(--background);
   color: var(--foreground);
-  box-shadow: -18px 0 42px -30px rgb(11 28 48 / 0.14);
+  color-scheme: light;
 }
 
 .auth-form-heading {
-  margin-top: 3.5rem;
+  margin-top: 0;
 }
 
 .auth-password-toggle {
@@ -490,13 +507,6 @@ html[data-theme-palette="forest"] {
 
 .auth-password-toggle:hover { background: var(--muted); color: var(--foreground); }
 .auth-password-toggle:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-
-.auth-form-kicker {
-  color: var(--primary);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-}
 
 .auth-showcase {
   background:

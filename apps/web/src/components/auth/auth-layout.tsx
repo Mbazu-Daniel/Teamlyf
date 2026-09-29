@@ -38,21 +38,24 @@ export function AuthLayout({ children, title, description }: AuthLayoutProps) {
         </div>
       </aside>
 
-      <section className="auth-form-pane flex min-h-svh items-center justify-center px-5 py-10 sm:px-8 lg:px-12 xl:px-16">
-        <div className="w-full max-w-md">
+      <section className="auth-form-pane flex min-h-svh flex-col px-5 py-6 sm:px-8 lg:px-12 xl:px-16">
+        <div className="flex w-full justify-end">
           <Brand />
+        </div>
 
-          <header className="auth-form-heading">
-            <p className="auth-form-kicker">TEAMLYF ACCOUNT</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-foreground sm:text-[2.5rem] sm:leading-[1.08]">
-              {title}
-            </h1>
-            <p className="mt-3 max-w-sm text-[15px] leading-6 text-muted-foreground">
-              {description}
-            </p>
-          </header>
+        <div className="flex w-full flex-1 items-center justify-center py-8">
+          <div className="auth-form-card w-full max-w-lg rounded-xl border border-border bg-card p-6 sm:p-8">
+            <header className="auth-form-heading text-center">
+              <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[30px] sm:leading-tight">
+                {title}
+              </h1>
+              <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+                {description}
+              </p>
+            </header>
 
-          <div className="auth-form-content mt-8">{children}</div>
+            <div className="auth-form-content mt-8">{children}</div>
+          </div>
         </div>
       </section>
     </main>

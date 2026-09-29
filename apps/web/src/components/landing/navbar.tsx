@@ -2,9 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const links = [
-  { label: "Features", href: "#features" },
-  { label: "Product", href: "#product" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Features", href: "/#features" },
+  { label: "Product", href: "/#product" },
+  { label: "Pricing", href: "/pricing" },
 ] as const;
 
 export function Navbar() {

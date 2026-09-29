@@ -53,17 +53,18 @@ export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
             type="button"
             title={collapsed ? activeOrganization.name : undefined}
             className={cn(
-              "flex h-11 w-full items-center gap-2.5 rounded-lg px-3 text-sm transition-colors duration-150 hover:bg-muted",
+              "flex h-11 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left transition-colors duration-150 hover:bg-sidebar-accent/90",
               collapsed && "justify-center px-0",
             )}
           >
-            <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary-500/15 text-xs font-bold text-primary-300">
+            <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-primary to-primary-400 text-[10px] font-semibold text-primary-foreground">
               {organizationInitial(activeOrganization.name)}
             </span>
             {!collapsed && (
               <>
                 <span className="min-w-0 flex-1 text-left">
-                  <span className="block truncate font-bold">{activeOrganization.name}</span>
+                  <span className="block truncate text-[13px] font-semibold leading-tight text-foreground">{activeOrganization.name}</span>
+                  <span className="mt-0.5 block text-[10px] leading-tight text-muted-foreground">Workspace</span>
                 </span>
                 <IconSelector className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               </>
@@ -78,11 +79,11 @@ export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
         {isPending && <p className="px-3 py-2 text-sm text-muted-foreground">Loading...</p>}
         {organizations?.map((item) => (
           <DropdownMenuItem key={item.id} onClick={() => choose(item)}>
-            <span className="grid size-6 shrink-0 place-items-center rounded-md bg-primary-500/15 text-[10px] font-bold text-primary-300">
+            <span className="grid size-6 shrink-0 place-items-center rounded-md bg-primary/15 text-[10px] font-bold text-primary">
               {organizationInitial(item.name)}
             </span>
             <span className="min-w-0 flex-1 truncate">{item.name}</span>
-            {item.id === activeOrganization.id && <IconCheck className="text-primary-300" />}
+            {item.id === activeOrganization.id && <IconCheck className="text-primary" />}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />

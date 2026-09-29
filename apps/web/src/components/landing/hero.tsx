@@ -15,7 +15,15 @@ export function Hero() {
         </div>
 
         <h1 className="landing-reveal landing-reveal-delay-1 mx-auto mt-7 max-w-4xl text-balance text-5xl font-semibold leading-[0.98] tracking-[-0.045em] text-[var(--landing-ink)] sm:text-6xl lg:text-7xl">
-          Everything your team needs. <span className="landing-accent">Finally together.</span>
+          Everything your team needs.{" "}
+          <span className="landing-accent" aria-label="Finally together.">
+            <span className="landing-word-drop" style={{ animationDelay: "180ms" }}>
+              Finally
+            </span>{" "}
+            <span className="landing-word-drop" style={{ animationDelay: "310ms" }}>
+              together.
+            </span>
+          </span>
         </h1>
 
         <p className="landing-reveal landing-reveal-delay-2 mx-auto mt-6 max-w-2xl text-pretty text-lg leading-7 text-[var(--landing-muted)] sm:text-xl">

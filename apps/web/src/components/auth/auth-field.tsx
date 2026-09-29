@@ -24,7 +24,7 @@ export function AuthField({
   const isPassword = type === "password";
 
   return (
-    <label className="block text-sm font-semibold text-foreground">
+    <label className="block text-xs font-medium text-foreground">
       {label}
       <span className="relative mt-2 block">
         <Input

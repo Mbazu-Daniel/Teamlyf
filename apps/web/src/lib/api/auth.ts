@@ -1,6 +1,6 @@
 import { client } from "./client";
 
-type Session = { user?: { id: string; name?: string | null; email?: string | null } } | null;
+type Session = { user?: { id: string; name?: string | null; email?: string | null; image?: string | null } } | null;
 
 export function getSession() {
   return client.request<Session>("/auth/session");

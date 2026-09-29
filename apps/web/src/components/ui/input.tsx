@@ -13,9 +13,9 @@ const inputDecorClasses: Record<InputDecor, string> = {
   default: "",
   flat: "bg-background shadow-none",
   filled: "border-slate-200 bg-slate-50/80 shadow-none",
-  auth: "h-12 rounded-[var(--radius)] border-border bg-background px-4 text-[15px] shadow-sm shadow-black/[0.02] focus-visible:border-primary/60 focus-visible:bg-card",
+  auth: "h-control rounded-[var(--radius)] border-border bg-background px-4 text-sm font-normal shadow-sm shadow-black/[0.02] focus-visible:border-primary/60 focus-visible:bg-card",
   "auth-password":
-    "h-12 rounded-[var(--radius)] border-border bg-background px-4 pr-12 text-[15px] shadow-sm shadow-black/[0.02] focus-visible:border-primary/60 focus-visible:bg-card",
+    "h-control rounded-[var(--radius)] border-border bg-background px-4 pr-12 text-sm font-normal shadow-sm shadow-black/[0.02] focus-visible:border-primary/60 focus-visible:bg-card",
 };
 
 function Input({
@@ -33,7 +33,7 @@ function Input({
       data-slot="input"
       type={type}
       className={cn(
-        "flex h-10 w-full min-w-0 rounded-full border border-input bg-transparent px-4 text-base placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-control w-full min-w-0 rounded-full border border-input bg-transparent px-4 text-sm font-normal placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
         inputDecorClasses[decor],
         inputSizeClasses[size],
         className,

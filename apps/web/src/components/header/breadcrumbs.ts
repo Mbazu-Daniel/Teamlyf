@@ -15,6 +15,14 @@ const LABELS: Record<string, string> = {
   schedule: "Schedule",
   hr: "HR",
   notifications: "Notifications",
+  chats: "Chat",
+  threads: "Threads",
+  mentions: "Mentions",
+  calls: "Calls",
+  people: "HR",
+  documents: "Documents",
+  agents: "Agents",
+  appearance: "Appearance",
 };
 
 function slugify(value: string) {

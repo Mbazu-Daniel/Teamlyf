@@ -11,7 +11,7 @@ export const designSystem = {
     "4xl": "3.158rem",
     "5xl": "4.210rem",
   },
-  fontFamily: { heading: "Mirza", body: "Mirza" },
+  fontFamily: { heading: "var(--font-heading)", body: "var(--font-body)" },
   fontWeight: { normal: "400", bold: "700" },
   colors: {
     text: { 50: "var(--text-50)", 100: "var(--text-100)", 200: "var(--text-200)", 300: "var(--text-300)", 400: "var(--text-400)", 500: "var(--text-500)", 600: "var(--text-600)", 700: "var(--text-700)", 800: "var(--text-800)", 900: "var(--text-900)", 950: "var(--text-950)" },

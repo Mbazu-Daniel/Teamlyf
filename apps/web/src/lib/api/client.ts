@@ -46,7 +46,7 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
   return (body ? JSON.parse(body) : null) as T;
 }
 
-export type Organization = { id: string; name: string; slug?: string };
+export type Organization = { id: string; name: string; logo?: string | null; slug?: string };
 
 /**
  * Storage capability URLs arrive relative to the API base URL, so they follow
