@@ -18,6 +18,8 @@ import type { Project } from "@/lib/api";
 import { projectMembersApi, projectsApi, settingsApi, statusesApi } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
+import { ProjectLeads } from "./project-leads";
+import { pageInput } from "@/components/workspace/page-layout";
 
 type ProjectSettingsProps = {
   project: Project;
@@ -46,8 +48,8 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
   const [tab, setTab] = useState<"general" | "members" | "states">("general");
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-(--app-page-background)">
-      <div className="mx-auto flex min-h-0 w-full max-w-295 flex-1 flex-col p-3 md:p-5">
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1180px] flex-1 flex-col px-4 py-5 sm:px-6 lg:px-8">
         <div className="mb-4">
           <Link
             to="/$organizationSlug/projects/$projectId"
@@ -63,8 +65,8 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
           </p>
         </div>
 
-        <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-          <nav className="w-40 shrink-0 border-r bg-muted/20 p-2 sm:w-48" aria-label="Project settings">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[16px] border border-border/70 bg-card md:flex-row">
+          <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-border/70 bg-muted/20 p-3 md:w-48 md:flex-col md:border-b-0 md:border-r" aria-label="Project settings">
             {([
               { id: "general", label: "General", icon: IconSettings },
               { id: "members", label: "Members", icon: IconCircleDot },
@@ -73,10 +75,11 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
               <button
                 key={id}
                 type="button"
+                aria-pressed={tab === id}
                 onClick={() => setTab(id as typeof tab)}
                 className={cn(
-                  "mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs font-medium",
-                  tab === id ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "flex h-control shrink-0 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13px] font-medium transition-colors md:w-full",
+                  tab === id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <Icon className="size-4" />
@@ -85,7 +88,7 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
             ))}
           </nav>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 md:p-6">
             {tab === "general" && <GeneralSettings organizationId={organizationId} organizationSlug={organizationSlug} project={project} />}
             {tab === "members" && <MembersSettings project={project} organizationId={organizationId} />}
             {tab === "states" && <WorkflowSettings organizationId={organizationId} projectId={project.id} />}
@@ -97,6 +100,10 @@ export function ProjectSettings({ project, organizationId, organizationSlug }: P
 }
 
 function GeneralSettings({ organizationId, organizationSlug, project }: { organizationId: string; organizationSlug: string; project: Project }) {
+  const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState(project.identifier);
+  const [status, setStatus] = useState(project.status ?? "planned");
+  const [leadIds, setLeadIds] = useState(project.leads?.map((m) => m.id) ?? []);
   const queryClient = useQueryClient();
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description ?? "");
@@ -109,18 +116,20 @@ function GeneralSettings({ organizationId, organizationSlug, project }: { organi
         name: name.trim(),
         description: description.trim(),
         emoji: emoji.trim(),
+        identifier: identifier.trim(), status, leadIds,
       }),
     onSuccess: async () => {
       setSaved(true);
       await queryClient.invalidateQueries({ queryKey: queryKeys.projects(organizationId) });
       await queryClient.invalidateQueries({ queryKey: queryKeys.project(organizationId, project.id) });
+      if (identifier.toUpperCase() !== project.identifier) await navigate({ to: "/$organizationSlug/projects/$projectId/settings", params: { organizationSlug, projectId: identifier.trim().toUpperCase() } });
       window.setTimeout(() => setSaved(false), 1800);
     },
   });
 
   return (
     <div className="max-w-3xl space-y-6">
-      <section className="rounded-xl border bg-card p-5">
+      <section className="rounded-[16px] border border-border/70 bg-card p-5 sm:p-6">
         <div className="mb-5">
           <h2 className="text-base font-semibold">General</h2>
           <p className="mt-1 text-sm text-muted-foreground">Update the project name, code, description, and icon.</p>
@@ -129,22 +138,24 @@ function GeneralSettings({ organizationId, organizationSlug, project }: { organi
         <div className="grid gap-5 sm:grid-cols-[1fr_160px]">
           <label className="space-y-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Project name</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus:border-primary" />
+            <input value={name} onChange={(e) => setName(e.target.value)} className="h-control w-full rounded-[12px] border border-border/80 bg-muted/30 px-4 text-sm font-normal outline-none transition-colors focus:border-primary/50 focus:bg-card focus:ring-2 focus:ring-primary/10" />
           </label>
           <label className="space-y-1.5">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Code</span>
-            <input value={project.identifier} readOnly className="h-9 w-full rounded-md border bg-muted px-3 text-sm font-semibold uppercase text-muted-foreground outline-none" />
+            <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} className={pageInput} aria-label="Project code" />
           </label>
         </div>
 
+        <label className="mt-5 block text-sm">Project status<select className={pageInput} value={status} onChange={(e) => setStatus(e.target.value)}>{["planned", "backlog", "in_progress", "paused", "completed", "cancelled"].map((s) => <option key={s} value={s}>{s.replaceAll("_", " ")}</option>)}</select></label>
+        <ProjectLeads org={organizationId} selected={leadIds} onChange={setLeadIds} />
         <label className="mt-5 block space-y-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Icon</span>
-          <input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={8} placeholder="🚀" className="h-9 w-24 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary" />
+          <input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={8} placeholder="🚀" className="h-control w-24 rounded-[12px] border border-border/80 bg-muted/30 px-4 text-sm outline-none focus:border-primary/50" />
         </label>
 
         <label className="mt-5 block space-y-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</span>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="What is this project about?" className="w-full resize-none rounded-md border bg-background p-3 text-sm outline-none focus:border-primary" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={5} placeholder="What is this project about?" className="w-full resize-none rounded-[12px] border border-border/80 bg-muted/30 p-4 text-sm leading-6 outline-none focus:border-primary/50" />
         </label>
 
         <div className="mt-5 flex items-center justify-end gap-3">
@@ -154,7 +165,7 @@ function GeneralSettings({ organizationId, organizationSlug, project }: { organi
             type="button"
             disabled={mutation.isPending || !name.trim()}
             onClick={() => mutation.mutate()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+            className="inline-flex h-control items-center gap-1.5 rounded-md bg-primary px-4 text-xs font-semibold text-primary-foreground disabled:opacity-50"
           >
             {mutation.isPending && <IconLoader2 className="size-3.5 animate-spin" />}
             {mutation.isPending ? "Saving…" : "Save changes"}
@@ -217,7 +228,7 @@ function MembersSettings({
       <div>
         <h2 className="text-base font-semibold">Members</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add or remove organization members from this project. Project membership follows the project-member model used by the original Teamlyf server.
+            Manage the teammates who have access to this project's work.
         </p>
       </div>
 
@@ -263,7 +274,7 @@ function MembersSettings({
           <select
             value={selectedMemberId}
             onChange={(event) => setSelectedMemberId(event.target.value)}
-            className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary"
+            className="h-control min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="">Select a member</option>
             {availableMembers.map((member) => {
@@ -275,7 +286,7 @@ function MembersSettings({
             type="button"
             disabled={!selectedMemberId || add.isPending}
             onClick={() => void add.mutateAsync()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+            className="inline-flex h-control items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"
           >
             {add.isPending ? "Adding…" : "Add"}
           </button>
@@ -340,7 +351,7 @@ function WorkflowSettings({ organizationId, projectId }: { organizationId: strin
                 {draft ? (
                   <>
                     <ColorPicker value={draft.color} onChange={(color) => setEditing((current) => ({ ...current, [status.id]: { ...draft, color } }))} />
-                    <input value={draft.name} onChange={(e) => setEditing((current) => ({ ...current, [status.id]: { ...draft, name: e.target.value } }))} onKeyDown={(e) => { if (e.key === "Enter") void update.mutateAsync({ id: status.id, name: draft.name, color: draft.color }); if (e.key === "Escape") setEditing((current) => { const next = { ...current }; delete next[status.id]; return next; }); }} className="h-8 min-w-0 flex-1 rounded-md border bg-background px-2 text-sm outline-none focus:border-primary" autoFocus />
+                    <input value={draft.name} onChange={(e) => setEditing((current) => ({ ...current, [status.id]: { ...draft, name: e.target.value } }))} onKeyDown={(e) => { if (e.key === "Enter") void update.mutateAsync({ id: status.id, name: draft.name, color: draft.color }); if (e.key === "Escape") setEditing((current) => { const next = { ...current }; delete next[status.id]; return next; }); }} className="h-control min-w-0 flex-1 rounded-md border bg-background px-2 text-sm outline-none focus:border-primary" autoFocus />
                     <button type="button" onClick={() => void update.mutateAsync({ id: status.id, name: draft.name, color: draft.color })} className="rounded-md p-1.5 hover:bg-muted" aria-label="Save status"><IconCheck className="size-4" /></button>
                     <button type="button" onClick={() => setEditing((current) => { const next = { ...current }; delete next[status.id]; return next; })} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" aria-label="Cancel"><IconX className="size-4" /></button>
                   </>
@@ -362,9 +373,9 @@ function WorkflowSettings({ organizationId, projectId }: { organizationId: strin
       <div className="border-t border-dashed pt-4">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Add state</p>
         <div className="flex items-center gap-2">
-          <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && newName.trim()) void create.mutateAsync(); }} placeholder="e.g. Ready for QA" className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary" />
+          <input value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && newName.trim()) void create.mutateAsync(); }} placeholder="e.g. Ready for QA" className="h-control min-w-0 flex-1 rounded-md border bg-background px-3 text-sm outline-none focus:border-primary" />
           <ColorPicker value={newColor} onChange={setNewColor} />
-          <button type="button" disabled={!newName.trim() || create.isPending} onClick={() => void create.mutateAsync()} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"><IconPlus className="size-3.5" /> Add</button>
+          <button type="button" disabled={!newName.trim() || create.isPending} onClick={() => void create.mutateAsync()} className="inline-flex h-control items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50"><IconPlus className="size-3.5" /> Add</button>
         </div>
       </div>
     </section>
@@ -396,7 +407,7 @@ function DangerZone({ organizationId, organizationSlug, project }: { organizatio
           <p className="mt-1 text-sm text-muted-foreground">Deleting this project removes it and its tasks from active views.</p>
         </div>
       </div>
-      <button type="button" disabled={mutation.isPending} onClick={() => { if (window.confirm(`Delete “${project.name}”? This cannot be undone.`)) mutation.mutate(); }} className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-md bg-destructive px-3 text-xs font-semibold text-destructive-foreground disabled:opacity-50">
+      <button type="button" disabled={mutation.isPending} onClick={() => { if (window.confirm(`Delete “${project.name}”? This cannot be undone.`)) mutation.mutate(); }} className="mt-4 inline-flex h-control items-center gap-1.5 rounded-md bg-destructive px-3 text-xs font-semibold text-destructive-foreground disabled:opacity-50">
         <IconAlertTriangle className="size-3.5" />
         {mutation.isPending ? "Deleting…" : "Delete project"}
       </button>

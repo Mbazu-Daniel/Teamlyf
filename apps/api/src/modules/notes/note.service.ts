@@ -1,8 +1,6 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { Inject } from "@nestjs/common";
-import type { Database } from "@teamlyf/db";
-import { note, project, task } from "@teamlyf/db";
-import { and, eq, ilike, isNull } from "drizzle-orm";
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, Inject } from "@nestjs/common";
+import { type Database, note, noteSnapshot, noteFavorite, notePresence, project, task, member, user } from "@teamlyf/db";
+import { and, desc, eq, gt, ilike, isNull, or, sql } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { requireOrganizationMemberOrNotFound } from "../../common/organization-member";
 import type { CreateNoteDto, UpdateNoteDto } from "./note.dto";
@@ -10,119 +8,114 @@ import type { CreateNoteDto, UpdateNoteDto } from "./note.dto";
 @Injectable()
 export class NoteService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
-
-  private async requireNote(orgId: string, noteId: string) {
-    const found = await this.db.query.note.findFirst({
-      where: and(eq(note.id, noteId), eq(note.organizationId, orgId)),
-    });
+  private visibility(org: string, memberId: string) {
+    return and(eq(note.organizationId, org), or(eq(note.private, false), eq(note.ownerId, memberId)));
+  }
+  private async requireNote(org: string, id: string, memberId: string) {
+    const found = await this.db.query.note.findFirst({ where: and(eq(note.id, id), this.visibility(org, memberId)) });
     if (!found) throw new NotFoundException("Note not found");
     return found;
   }
-
-  /** Tasks live under projects; org scope is proven through the project join. */
-  private async requireTask(orgId: string, taskId: string) {
-    const [row] = await this.db
-      .select({ id: task.id })
-      .from(task)
-      .innerJoin(project, eq(task.projectId, project.id))
-      .where(and(eq(task.id, taskId), eq(project.organizationId, orgId)));
+  private async requireTask(org: string, taskId: string) {
+    const [row] = await this.db.select({ id: task.id }).from(task).innerJoin(project, eq(task.projectId, project.id)).where(and(eq(task.id, taskId), eq(project.organizationId, org)));
     if (!row) throw new NotFoundException("Task not found");
-    return row.id;
   }
-
-  async createNote(orgId: string, memberId: string, dto: CreateNoteDto) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    if (dto.parentId) await this.requireNote(orgId, dto.parentId);
-    if (dto.taskId) await this.requireTask(orgId, dto.taskId);
-    const [created] = await this.db.insert(note).values(noteValues(orgId, memberId, dto)).returning();
+  async createNote(org: string, memberId: string, dto: CreateNoteDto) {
+    await requireOrganizationMemberOrNotFound(this.db, org, memberId);
+    const parent = dto.parentId ? await this.requireNote(org, dto.parentId, memberId) : null;
+    if (dto.taskId) await this.requireTask(org, dto.taskId);
+    if (!dto.title.trim()) throw new BadRequestException("Enter a note title.");
+    const [created] = await this.db.insert(note).values({ organizationId: org, ownerId: memberId, parentId: dto.parentId ?? null, taskId: dto.taskId ?? null, title: dto.title.trim(), content: dto.content ?? "", private: parent?.private || dto.private || false }).returning();
     return created;
   }
-
-  async getNotes(orgId: string, memberId: string, parentId?: string) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    if (parentId) await this.requireNote(orgId, parentId);
-    return this.db.query.note.findMany({
-      where: parentId
-        ? and(eq(note.organizationId, orgId), eq(note.parentId, parentId))
-        : and(eq(note.organizationId, orgId), isNull(note.parentId)),
-      orderBy: (n, { desc }) => [desc(n.updatedAt)],
+  async getNotes(org: string, memberId: string, parentId?: string, all = false) {
+    await requireOrganizationMemberOrNotFound(this.db, org, memberId);
+    if (parentId) await this.requireNote(org, parentId, memberId);
+    const rows = await this.db.query.note.findMany({ where: and(this.visibility(org, memberId), all ? undefined : parentId ? eq(note.parentId, parentId) : isNull(note.parentId)), orderBy: [desc(note.updatedAt)] });
+    const favorites = await this.db.select().from(noteFavorite).where(eq(noteFavorite.memberId, memberId));
+    const ids = new Set(favorites.map((item) => item.noteId));
+    return rows.map((row) => ({ ...row, favorite: ids.has(row.id) }));
+  }
+  async getNote(org: string, memberId: string, id: string) {
+    await requireOrganizationMemberOrNotFound(this.db, org, memberId);
+    return this.requireNote(org, id, memberId);
+  }
+  async updateNote(org: string, memberId: string, id: string, dto: UpdateNoteDto) {
+    await requireOrganizationMemberOrNotFound(this.db, org, memberId);
+    await this.requireNote(org, id, memberId);
+    if (dto.taskId) await this.requireTask(org, dto.taskId);
+    return this.db.transaction(async (tx) => {
+      // Serialize tree mutations per organization to prevent simultaneous cyclic moves.
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${org}))`);
+      const [current] = await tx.select().from(note).where(and(eq(note.id, id), this.visibility(org, memberId))).for("update");
+      if (!current) throw new NotFoundException("Note not found");
+      if (dto.revision !== undefined && dto.revision !== current.revision) throw new ConflictException("This note changed elsewhere. Reload the latest version before saving; your draft has been kept.");
+      if ((dto.content !== undefined || dto.title !== undefined) && dto.revision === undefined) throw new ConflictException("Reload this note before saving.");
+      if (dto.title !== undefined && !dto.title.trim()) throw new BadRequestException("Enter a note title.");
+      if (dto.private !== undefined && dto.private !== current.private) {
+        if (current.ownerId !== memberId) throw new ForbiddenException("Only the owner can change note visibility.");
+        const child = await tx.select({ id: note.id }).from(note).where(eq(note.parentId, id)).limit(1);
+        if (child.length) throw new BadRequestException("Move child notes before changing this note's visibility.");
+      }
+      const parentId = dto.parentId === undefined ? current.parentId : dto.parentId;
+      let ancestorId = parentId;
+      const visited = new Set([id]);
+      while (ancestorId) {
+        if (visited.has(ancestorId)) throw new BadRequestException("A note cannot be moved inside itself or its descendants.");
+        visited.add(ancestorId);
+        const [ancestor] = await tx.select().from(note).where(and(eq(note.id, ancestorId), this.visibility(org, memberId)));
+        if (!ancestor) throw new NotFoundException("Parent note not found");
+        if (ancestor.private && !(dto.private ?? current.private)) throw new BadRequestException("A shared note cannot be placed under a private note.");
+        ancestorId = ancestor.parentId;
+      }
+      if (dto.content !== undefined || dto.title !== undefined) {
+        await tx.insert(noteSnapshot).values({ noteId: id, revision: current.revision, title: current.title, content: current.content });
+      }
+      const { revision: _expected, ...changes } = dto;
+      const [updated] = await tx.update(note).set({ ...changes, title: dto.title?.trim(), revision: current.revision + 1, updatedAt: new Date() }).where(and(eq(note.id, id), eq(note.organizationId, org))).returning();
+      return updated;
     });
   }
-
-  async getNote(orgId: string, memberId: string, noteId: string) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    return this.requireNote(orgId, noteId);
+  async searchNotes(org: string, memberId: string, q: string) {
+    await requireOrganizationMemberOrNotFound(this.db, org, memberId);
+    const pattern = "%" + q.replace(/[\\%_]/g, "\\$&") + "%";
+    return this.db.query.note.findMany({ where: and(this.visibility(org, memberId), ilike(note.title, pattern)), orderBy: [desc(note.updatedAt)], limit: 50 });
   }
-
-  async updateNote(orgId: string, memberId: string, noteId: string, dto: UpdateNoteDto) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    await this.requireNote(orgId, noteId);
-    if (dto.parentId) {
-      if (dto.parentId === noteId) throw new BadRequestException("A note cannot be its own parent");
-      await this.requireNote(orgId, dto.parentId);
-    }
-    if (dto.taskId) await this.requireTask(orgId, dto.taskId);
-    const [updated] = await this.db.update(note).set({
-      title: dto.title, content: dto.content, parentId: dto.parentId, taskId: dto.taskId, updatedAt: new Date(),
-    }).where(and(eq(note.id, noteId), eq(note.organizationId, orgId))).returning();
-    return updated;
+  async getNotesByTask(org: string, memberId: string, taskId: string) {
+    await requireOrganizationMemberOrNotFound(this.db, org, memberId);
+    await this.requireTask(org, taskId);
+    return this.db.query.note.findMany({ where: and(this.visibility(org, memberId), eq(note.taskId, taskId)), orderBy: [desc(note.updatedAt)] });
   }
-
-  async searchNotes(orgId: string, memberId: string, q: string) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    const pattern = `%${q.replace(/[\\%_]/g, "\\$&")}%`;
-    return this.db.query.note.findMany({
-      where: and(eq(note.organizationId, orgId), ilike(note.title, pattern)),
-      orderBy: (n, { desc }) => [desc(n.updatedAt)],
-      limit: 50,
-    });
+  async duplicateNote(org: string, memberId: string, id: string) {
+    const original = await this.getNote(org, memberId, id);
+    return this.createNote(org, memberId, { title: original.title + " (Copy)", content: original.content, private: original.private, parentId: original.parentId ?? undefined, taskId: original.taskId ?? undefined });
   }
-
-  async getNotesByTask(orgId: string, memberId: string, taskId: string) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    await this.requireTask(orgId, taskId);
-    return this.db.query.note.findMany({
-      where: and(eq(note.organizationId, orgId), eq(note.taskId, taskId)),
-      orderBy: (n, { desc }) => [desc(n.updatedAt)],
-    });
+  async deleteNote(org: string, memberId: string, id: string) {
+    await this.getNote(org, memberId, id);
+    const child = await this.db.query.note.findFirst({ where: and(eq(note.organizationId, org), eq(note.parentId, id)) });
+    if (child) throw new BadRequestException("Delete or move child notes before deleting this note.");
+    await this.db.delete(note).where(and(eq(note.id, id), eq(note.organizationId, org)));
+    return { success: true };
   }
-
-  async duplicateNote(orgId: string, memberId: string, noteId: string) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    const original = await this.requireNote(orgId, noteId);
-    const [created] = await this.db.insert(note).values({
-      organizationId: orgId,
-      ownerId: memberId,
-      parentId: original.parentId,
-      taskId: original.taskId,
-      title: `${original.title} (Copy)`,
-      content: original.content,
-    }).returning();
-    return created;
+  async favorite(org: string, memberId: string, id: string, enabled: boolean) {
+    await this.getNote(org, memberId, id);
+    if (enabled) await this.db.insert(noteFavorite).values({ noteId: id, memberId }).onConflictDoNothing();
+    else await this.db.delete(noteFavorite).where(and(eq(noteFavorite.noteId, id), eq(noteFavorite.memberId, memberId)));
+    return { favorite: enabled };
   }
-
-  async deleteNote(orgId: string, memberId: string, noteId: string) {
-    await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
-    await this.requireNote(orgId, noteId);
-    const children = await this.db.query.note.findFirst({
-      where: and(eq(note.organizationId, orgId), eq(note.parentId, noteId)),
-    });
-    if (children) throw new BadRequestException("Delete child notes before deleting this note");
-    await this.db.delete(note).where(and(eq(note.id, noteId), eq(note.organizationId, orgId)));
+  async snapshots(org: string, memberId: string, id: string) {
+    await this.getNote(org, memberId, id);
+    return this.db.query.noteSnapshot.findMany({ where: eq(noteSnapshot.noteId, id), orderBy: [desc(noteSnapshot.revision)] });
   }
-}
-
-/**
- * The insert row, with every optional column written as an explicit null rather
- * than left off the statement, so a note always has all four columns present.
- */
-function noteValues(orgId: string, memberId: string, dto: CreateNoteDto) {
-  return {
-    organizationId: orgId,
-    ownerId: memberId,
-    parentId: dto.parentId ?? null,
-    taskId: dto.taskId ?? null,
-    title: dto.title,
-    content: dto.content ?? "",
-  };
+  async restore(org: string, memberId: string, id: string, snapshotId: string, revision: number) {
+    await this.getNote(org, memberId, id);
+    const snapshot = await this.db.query.noteSnapshot.findFirst({ where: and(eq(noteSnapshot.noteId, id), eq(noteSnapshot.id, snapshotId)) });
+    if (!snapshot) throw new NotFoundException("Snapshot not found");
+    return this.updateNote(org, memberId, id, { title: snapshot.title, content: snapshot.content, revision });
+  }
+  async presence(org: string, memberId: string, id: string) {
+    await this.getNote(org, memberId, id);
+    await this.db.insert(notePresence).values({ noteId: id, memberId, lastSeen: new Date() }).onConflictDoUpdate({ target: [notePresence.noteId, notePresence.memberId], set: { lastSeen: new Date() } });
+    return this.db.select({ id: member.id, name: user.name }).from(notePresence).innerJoin(member, eq(member.id, notePresence.memberId)).innerJoin(user, eq(user.id, member.userId)).where(and(eq(notePresence.noteId, id), gt(notePresence.lastSeen, new Date(Date.now() - 45000))));
+  }
 }

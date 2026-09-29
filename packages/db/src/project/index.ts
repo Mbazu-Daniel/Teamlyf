@@ -30,4 +30,4 @@ export {
   milestoneTaskRelations,
   projectMemberRelations,
 } from "./relations";
-
+export { notificationRead } from "./notification-read";

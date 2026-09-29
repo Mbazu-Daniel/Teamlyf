@@ -21,7 +21,13 @@ const MIN_PASSWORD_LENGTH = 8;
 function ResetPassword() {
   const { token, error: linkError } = Route.useSearch();
   const navigate = useNavigate();
-  return <ResetPasswordForm token={token} linkError={linkError} onDone={() => navigate({ to: "/sign-in" })} />;
+  return (
+    <ResetPasswordForm
+      token={token}
+      linkError={linkError}
+      onDone={() => navigate({ to: "/sign-in" })}
+    />
+  );
 }
 
 /**
@@ -66,7 +72,10 @@ export function ResetPasswordForm({
   }
 
   return (
-    <AuthLayout title="Choose a new password" description="Pick something you have not used before.">
+    <AuthLayout
+      title="Choose a new password"
+      description="Pick something you have not used before."
+    >
       <form className="space-y-4" onSubmit={submit}>
         <AuthField
           label="New password"
@@ -94,12 +103,15 @@ export function ResetPasswordForm({
           </p>
         )}
 
-        <Button className="w-full" size="lg" type="submit" disabled={pending}>
+        <Button className="w-full" variant="auth" size="auth" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Set new password"}
         </Button>
 
         <p className="text-center text-sm text-muted-foreground">
-          <Link to="/sign-in" className="font-bold text-foreground underline-offset-4 hover:underline">
+          <Link
+            to="/sign-in"
+            className="font-bold text-foreground underline-offset-4 hover:underline"
+          >
             Back to sign in
           </Link>
         </p>
@@ -111,13 +123,21 @@ export function ResetPasswordForm({
 /** Terminal state for a link that cannot be used — no form to show. */
 function Notice({ title, detail }: { title: string; detail: string }) {
   return (
-    <AuthLayout title="Reset your password" description="This link cannot be used to set a new password.">
+    <AuthLayout
+      title="Reset your password"
+      description="This link cannot be used to set a new password."
+    >
       <div role="alert" className="space-y-4">
         <p className="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <strong className="block">{title}</strong>
           {detail}
         </p>
-        <Button render={<Link to="/forgot-password" />} variant="outline" className="w-full" size="lg">
+        <Button
+          render={<Link to="/forgot-password" />}
+          variant="auth-outline"
+          className="w-full"
+          size="auth"
+        >
           Request a new link
         </Button>
       </div>

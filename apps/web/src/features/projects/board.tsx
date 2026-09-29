@@ -4,6 +4,8 @@ import { IconChevronDown, IconChevronUp, IconPlus } from "@tabler/icons-react";
 import { MutedMessage } from "./feedback";
 import { TaskCard } from "./task-card";
 
+const boardLayout = "scrollbar-hidden flex h-[380px] gap-3 overflow-x-auto overflow-y-hidden";
+
 /**
  * A board column is a name, a colour and its cards — statuses on a project board
  * and date buckets on My Tasks both fit it. `droppable: false` makes a column a
@@ -56,14 +58,14 @@ function BoardColumn({ column, allTasks, statusesFor, onMove, onDrop, onSelect, 
 
   return (
     <section
-      className="flex h-full min-h-[420px] w-[285px] shrink-0 flex-col rounded-2xl border bg-muted/20 p-2"
+      className="flex h-full min-h-0 w-[300px] shrink-0 flex-col rounded-[16px] border border-border/40 bg-muted/35 p-2.5"
       onDragOver={dropHandler ? (event) => event.preventDefault() : undefined}
       onDrop={dropHandler}
     >
-      <div className="flex items-center gap-2 px-2 py-2">
+      <div className="mb-2 flex items-center gap-2 rounded-[10px] px-2 py-2.5">
         <span className="size-2 rounded-full" style={{ backgroundColor: column.color }} aria-hidden="true" />
         <h2 className="min-w-0 flex-1 truncate text-xs font-semibold">{column.name}</h2>
-        <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+        <span className="rounded-md border border-border/50 bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
           {column.tasks.length}
         </span>
         <button
@@ -76,7 +78,7 @@ function BoardColumn({ column, allTasks, statusesFor, onMove, onDrop, onSelect, 
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-1 pb-1">
+      <div className="scrollbar-hidden min-h-0 flex-1 space-y-3 overflow-y-auto px-0.5 pb-1">
         {column.tasks.map((task) => (
           <TaskCard
             key={task.id}
@@ -162,7 +164,7 @@ export function KanbanBoard({
   onDuplicate?: (task: ProjectTask) => void;
 }) {
   return (
-    <div className="flex h-full min-h-[420px] gap-3 overflow-x-auto overflow-y-hidden pb-2">
+    <div className={boardLayout}>
       {statuses.map((status) => (
         <StatusColumn
           key={status.id}
@@ -199,7 +201,7 @@ export function GroupedBoard({ columns, allTasks, statusesFor, onMove, onDropCol
   onDuplicate?: (task: ProjectTask) => void;
 }) {
   return (
-    <div className="flex h-full min-h-[420px] gap-3 overflow-x-auto overflow-y-hidden pb-2">
+    <div className={boardLayout}>
       {columns.map((column) => (
         <BoardColumn
           key={column.id}

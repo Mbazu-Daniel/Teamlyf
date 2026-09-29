@@ -102,13 +102,13 @@ export function useDashboard(organizationId: string | undefined) {
       memberCount: membersQuery.data?.members.length ?? 0,
       departmentCount: departments.length,
       unassignedCount: (membersQuery.data?.members ?? []).filter((item) => !assignedToDepartment.has(item.id)).length,
-      error: getErrorMessage(membersQuery.error ?? departmentsQuery.error, null),
+      error: getErrorMessage(membersQuery.error ?? departmentsQuery.error, "Unable to load team details"),
     },
     leave: {
       balances: balancesQuery.data ?? [],
       pending: requests.filter((request) => request.status === "pending").length,
       upcoming: requests.filter((request) => request.status === "approved").length,
-      error: getErrorMessage(leaveQuery.error ?? balancesQuery.error, null),
+      error: getErrorMessage(leaveQuery.error ?? balancesQuery.error, "Unable to load leave details"),
     },
   };
 }

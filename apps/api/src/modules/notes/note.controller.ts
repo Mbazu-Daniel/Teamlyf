@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from "@nestj
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import type { SessionMember } from "../../common/types";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../rbac";
-import { CreateNoteDto, UpdateNoteDto } from "./note.dto";
+import { CreateNoteDto, UpdateNoteDto, NoteFavoriteDto, RestoreNoteDto } from "./note.dto";
 import { NoteService } from "./note.service";
 
 @ApiTags("Notes")
@@ -24,8 +24,8 @@ export class NoteController {
   @RequirePermission("notes", "read")
   @ApiOperation({ summary: "Get notes" })
   @ApiQuery({ name: "parentId", required: false })
-  getNotes(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("parentId") parentId?: string) {
-    return this.notes.getNotes(orgId, member.id, parentId);
+  getNotes(@Param("orgId") orgId: string, @CurrentMember() member: SessionMember, @Query("parentId") parentId?: string, @Query("all") all?: string) {
+    return this.notes.getNotes(orgId, member.id, parentId, all === "true");
   }
 
   // Literal search routes must stay above ":noteId" so "search" is not
@@ -74,4 +74,16 @@ export class NoteController {
   delete(@Param("orgId") orgId: string, @Param("noteId") noteId: string, @CurrentMember() member: SessionMember) {
     return this.notes.deleteNote(orgId, member.id, noteId);
   }
+
+  @Post(":noteId/favorite") @RequirePermission("notes", "read", "noteId")
+  favorite(@Param("orgId") org: string, @Param("noteId") id: string, @CurrentMember() member: SessionMember, @Body() body: NoteFavoriteDto) { return this.notes.favorite(org, member.id, id, body.enabled); }
+
+  @Get(":noteId/snapshots") @RequirePermission("notes", "read", "noteId")
+  snapshots(@Param("orgId") org: string, @Param("noteId") id: string, @CurrentMember() member: SessionMember) { return this.notes.snapshots(org, member.id, id); }
+
+  @Post(":noteId/snapshots/:snapshotId/restore") @RequirePermission("notes", "update", "noteId")
+  restore(@Param("orgId") org: string, @Param("noteId") id: string, @Param("snapshotId") snapshot: string, @CurrentMember() member: SessionMember, @Body() body: RestoreNoteDto) { return this.notes.restore(org, member.id, id, snapshot, body.revision); }
+
+  @Post(":noteId/presence") @RequirePermission("notes", "read", "noteId")
+  presence(@Param("orgId") org: string, @Param("noteId") id: string, @CurrentMember() member: SessionMember) { return this.notes.presence(org, member.id, id); }
 }

@@ -25,8 +25,19 @@ case "$BRANCH" in
     ;;
 esac
 
-BASE=""
-if git show-ref --verify --quiet refs/heads/main; then
+# A stacked PR is compared with its immediate parent, not the whole stack.
+# Configure with: git config branch.<branch>.preview-base <parent-branch>
+BASE="$(git config --get "branch.$BRANCH.preview-base" || true)"
+if [ -n "$BASE" ]; then
+  if ! git rev-parse --verify "$BASE^{commit}" >/dev/null 2>&1; then
+    echo "BLOCKED: preview parent '$BASE' is unavailable. Fetch or restore it first."
+    exit 1
+  fi
+  if ! git merge-base --is-ancestor "$BASE" HEAD; then
+    echo "BLOCKED: preview parent '$BASE' is not an ancestor of '$BRANCH'. Restack first."
+    exit 1
+  fi
+elif git show-ref --verify --quiet refs/heads/main; then
   BASE="main"
 elif git show-ref --verify --quiet refs/remotes/origin/main; then
   BASE="origin/main"
@@ -34,10 +45,15 @@ elif git show-ref --verify --quiet refs/heads/master; then
   BASE="master"
 elif git show-ref --verify --quiet refs/remotes/origin/master; then
   BASE="origin/master"
+elif git show-ref --verify --quiet refs/heads/dev; then
+  BASE="dev"
+elif git show-ref --verify --quiet refs/remotes/origin/dev; then
+  BASE="origin/dev"
 fi
 
 if [ -z "$BASE" ]; then
-  echo "WARNING: no main/master base found; skipping branch file-count check"
+  echo "BLOCKED: no base found. Configure branch.$BRANCH.preview-base first."
+  exit 1
 else
   CHANGED_FILES="$(git diff --name-only "$BASE"...HEAD | wc -l | tr -d ' ')"
 
@@ -52,8 +68,8 @@ fi
 
 # Local CI gate: fallow audit must pass before push (same check CI enforces).
 # Use `pnpm ci:local` manually for a full act-based CI run; it is too slow for a hook.
-echo "Running fallow audit..."
-pnpm fallow:audit || {
+echo "Running fallow audit against $BASE..."
+FALLOW_AUDIT_BASE="$BASE" pnpm fallow:audit || {
   echo "BLOCKED: fallow audit failed. Fix the findings above before pushing."
   exit 1
 }

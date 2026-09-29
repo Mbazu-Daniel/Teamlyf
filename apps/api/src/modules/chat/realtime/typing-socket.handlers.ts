@@ -5,6 +5,19 @@ import { CHAT_ROOMS } from "../shared/rooms";
 import type { TypingPayload } from "./socket-payloads";
 import type { ChatTypingService } from "./typing.service";
 import type { AuthenticatedSocket } from "./ws-auth";
+import { ForbiddenException } from "@nestjs/common";
+import { requireChannelMembership, requireChannelRow } from "../channels/channel-access";
+import { broadcastChannel } from "./channel-broadcast";
+
+export async function requireTypingTarget(db: Database, client: AuthenticatedSocket, data: TypingPayload) {
+  if (data.recipientId) {
+    const target = await db.query.member.findFirst({ where: and(eq(member.id, data.recipientId), eq(member.organizationId, client.data.organizationId)) });
+    if (!target) throw new ForbiddenException("Recipient is not in this workspace");
+  } else if (data.channelId) {
+    await requireChannelRow(db, client.data.organizationId, data.channelId);
+    await requireChannelMembership(db, data.channelId, client.data.memberId, "Join this channel before typing");
+  }
+}
 
 /**
  * Dependencies the typing helpers need — passed in by the gateway so these
@@ -40,12 +53,10 @@ export async function emitTypingUsers(
   const channelId = room.startsWith("channel:") ? room.slice("channel:".length) : undefined;
   const recipientId = room.startsWith("member:") ? room.slice("member:".length) : undefined;
   const ids = deps.typing.activeMemberIds(room);
-  if (ids.length === 0) {
-    client.nsp.to(room).emit("user-typing", { typingUsers: [], channelId, recipientId });
-    return;
-  }
-  const users = await loadTypingUsers(deps.db, client.data.organizationId, ids);
-  client.nsp.to(room).emit("user-typing", { typingUsers: users, channelId, recipientId });
+  const users = ids.length ? await loadTypingUsers(deps.db, client.data.organizationId, ids) : [];
+  const payload = { typingUsers: users, channelId, recipientId };
+  if (channelId) await broadcastChannel(deps.db, client, channelId, "user-typing", payload, true);
+  else client.nsp.to(room).emit("user-typing", payload);
 }
 
 async function loadTypingUsers(db: Database, organizationId: string, memberIds: string[]) {

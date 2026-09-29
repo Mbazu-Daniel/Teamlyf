@@ -50,7 +50,7 @@ export function ChatView({
   }
 
   return (
-    <div className="flex h-full flex-col relative">
+    <div className="relative flex h-full flex-col bg-card">
       {isSelectionMode && (
         <ChatSelectionBar
           selectedCount={selectedIds.length}
@@ -99,7 +99,7 @@ export function ChatView({
 
       <TypingIndicator typingUsers={typingUsers} />
 
-      <div className="p-3 bg-background border-t">
+      <div className="border-t border-border/70 bg-background px-4 py-3 sm:px-5">
         {composer}
       </div>
     </div>

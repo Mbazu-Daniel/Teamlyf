@@ -23,7 +23,7 @@ export function useOrganizationSettings(organization: Organization | null, selec
       return;
     }
 
-    setForm({ name: organization.name, logo: "" });
+    setForm({ name: organization.name, logo: organization.logo ?? "" });
     setMembers([]);
     setLoadingMembers(true);
     setError(null);
@@ -41,7 +41,7 @@ export function useOrganizationSettings(organization: Organization | null, selec
     if (!organization || !form.name.trim()) return;
     const organizationId = organization.id;
     await runAction(
-      () => settingsApi.updateOrganization(organizationId, { name: form.name.trim(), logo: form.logo.trim() || undefined }),
+      () => settingsApi.updateOrganization(organizationId, { name: form.name.trim(), logo: form.logo.trim() }),
       (updated) => {
         if (selectedOrganizationId.current === organizationId) selectOrganization(updated);
       },

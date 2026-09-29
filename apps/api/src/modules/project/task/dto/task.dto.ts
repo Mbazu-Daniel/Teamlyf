@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   ValidateNested,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
@@ -27,6 +28,11 @@ export class TaskAssigneeInputDto {
 }
 
 export class CreateTaskDto {
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsUUID()
+  sprintId?: string | null;
+
   @ApiProperty({ example: "Fix login bug" })
   @IsString()
   @IsNotEmpty()

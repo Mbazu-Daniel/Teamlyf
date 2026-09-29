@@ -1,7 +1,7 @@
 // fallow-ignore-file complexity
 import { Link, useLocation } from "@tanstack/react-router";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
-import { NAV_SECTIONS, isNavItemActive, type NavItem } from "./nav-items";
+import { NAV_SECTIONS, findActiveNavItem, type NavItem } from "./nav-items";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { cn } from "@/lib/utils";
 import { useOrganization } from "@/lib/organization";
@@ -9,11 +9,11 @@ import { useOrganization } from "@/lib/organization";
 type AppSidebarProps = Readonly<{ collapsed: boolean; onToggle: () => void }>;
 
 const GROUP_HEADING =
-  "mt-4 mb-1 px-3 text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase first:mt-0";
+  "mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/90 first:mt-0";
 const LINK_BASE =
-  "mb-0.5 flex h-9 items-center gap-2.5 rounded-lg px-3 text-sm whitespace-nowrap transition-colors duration-150";
-const LINK_ACTIVE = "bg-background-800 font-semibold text-text-50";
-const LINK_IDLE = "text-muted-foreground hover:bg-background-800 hover:text-text-50";
+  "mb-1 flex h-11 items-center gap-2.5 rounded-[8px] border-r-[3px] border-transparent px-3 text-[13px] font-medium leading-5 whitespace-nowrap transition-colors duration-150";
+const LINK_ACTIVE = "border-primary bg-primary text-primary-foreground font-semibold shadow-[0_10px_20px_-16px_hsl(var(--primary))] hover:bg-primary/90";
+const LINK_IDLE = "text-sidebar-foreground/75 hover:bg-sidebar-accent/90 hover:text-foreground";
 
 function navLinkClass(active: boolean, collapsed: boolean, available: boolean) {
   return cn(
@@ -47,7 +47,7 @@ function NavItemLink({
   }
 
   return (
-    <Link to={href} title={label} className={navLinkClass(active, collapsed, true)}>
+    <Link to={href} title={item.label} aria-label={item.label} aria-current={active ? "page" : undefined} className={navLinkClass(active, collapsed, true)}>
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       {label && <span className="truncate">{item.label}</span>}
     </Link>
@@ -62,26 +62,23 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "flex shrink-0 flex-col border-r border-background-700 bg-background-900/60 transition-[width] duration-200 ease-out",
-        collapsed ? "w-16" : "w-[190px]",
+        "flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar/90 backdrop-blur-xl transition-[width] duration-200 ease-out",
+        collapsed ? "w-16" : "w-[248px]",
       )}
     >
-      <div className="border-b border-background-700 px-2 py-2">
+      <div className="border-b border-sidebar-border px-2 py-3">
         <OrganizationSwitcher collapsed={collapsed} />
       </div>
 
-      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3" aria-label="Primary">
+      <nav className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-1.5 pb-4 pt-5" aria-label="Primary">
         {NAV_SECTIONS.map((section) => (
-          <div key={section.id}>
+          <div key={section.id} className={cn(collapsed && section.id !== "workspace" && "mt-4 border-t border-sidebar-border pt-4")}>
             {!collapsed && <p className={GROUP_HEADING}>{section.label}</p>}
             {section.items.map((item) => (
               <NavItemLink
                 key={item.id}
                 item={item}
-                active={isNavItemActive(
-                  pathname,
-                  item.to ? "/" + organizationSlug + "/" + item.to : "/" + organizationSlug,
-                )}
+                active={findActiveNavItem(pathname)?.id === item.id}
                 href={item.to ? "/" + organizationSlug + "/" + item.to : "/" + organizationSlug}
                 collapsed={collapsed}
               />
@@ -90,9 +87,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         ))}
       </nav>
 
-      <div className="border-t border-background-700 px-2 py-2" />
-
-      <div className="border-t border-background-700">
+      <div className="border-t border-sidebar-border">
         <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
       </div>
     </aside>
@@ -105,14 +100,14 @@ function CollapseToggle({ collapsed, onToggle }: Readonly<{ collapsed: boolean; 
       type="button"
       onClick={onToggle}
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      className="flex h-11 w-full items-center justify-center gap-2 text-muted-foreground transition-colors duration-150 hover:bg-background-800 hover:text-text-50"
+      className="flex h-12 w-full items-center justify-center gap-2 text-[13px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent/90 hover:text-foreground"
     >
       {collapsed ? (
         <IconChevronRight className="size-4" aria-hidden="true" />
       ) : (
         <>
           <IconChevronLeft className="size-4" aria-hidden="true" />
-          <span className="text-sm">Collapse</span>
+          <span>Collapse</span>
         </>
       )}
     </button>

@@ -50,7 +50,7 @@ export class BillingService {
   async summary(organizationId: string) {
     await this.requireOrganization(organizationId);
     const [current, members] = await this.loadSummaryData(organizationId);
-    return this.buildSummary(current, Number(members[0]?.total ?? 0));
+    return { ...this.buildSummary(current, Number(members[0]?.total ?? 0)), plans: planEntitlements, checkoutAvailable: Boolean(this.env.BACHS_API_URL && this.env.BACHS_API_KEY) };
   }
 
   async checkout(organizationId: string, dto: CheckoutDto) {

@@ -60,7 +60,7 @@ function ForgotPassword() {
             </p>
           )}
 
-          <Button className="w-full" size="lg" type="submit" disabled={pending}>
+          <Button className="w-full" variant="auth" size="auth" type="submit" disabled={pending}>
             {pending ? "Sending..." : "Send reset link"}
           </Button>
 

@@ -9,15 +9,12 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useThreadStore } from "@/lib/store/ui-stores";
 import { useTenantStore } from "@/lib/store/tenant-store";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useNewChatStore } from "@/lib/store/new-chat-store";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useGlobalChatSync } from "@/features/chat/data/hooks/use-global-chat-sync";
 import { GlobalCallOverlay } from "@/features/chat/calls/global-call-overlay";
 
-function RouteComponent({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function RouteComponent() {
   const tenantId = useTenantStore((s) => s.tenantId);
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -37,12 +34,13 @@ function RouteComponent({
   const setIsProfileOpen = useThreadStore((s) => s.setIsProfileOpen);
 
   const isMobile = useIsMobile();
+  const selectedUser = useNewChatStore((state) => state.selectedUser);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // On mobile, if we are on the base chats page (no active chat/subpage selected),
   // we show the chat navigator as the main content.
   const isBaseChatPage = pathname.endsWith("/chats") || pathname.endsWith("/chats/");
-  const showSidebarAsMain = isMobile && isBaseChatPage;
+  const showSidebarAsMain = isMobile && isBaseChatPage && !selectedUser;
 
   const isThreadPanelVisible = isThreadOpen && activeThread && activeThreadType && chatId != null;
 
@@ -60,10 +58,10 @@ function RouteComponent({
       </Sheet>
 
       {/* Main Layout */}
-      <div className="flex h-full min-h-0 w-full flex-col bg-(--app-page-background)">
-        <div className="mx-auto flex h-full min-h-0 w-full `max-w-360 flex-col gap-4 pb-2">
+      <div className="flex h-full min-h-0 w-full flex-col">
+        <div className="mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-4 px-4 py-5 pb-6 sm:px-6 lg:px-8">
           {/* Desktop: Vertical sidebar rail + Chat + Thread panel */}
-          <div className="hidden md:flex min-h-0 flex-1 overflow-hidden rounded-[16px] border border-[var(--app-panel-border)] bg-white/92 shadow-[0_20px_48px_-36px_rgba(15,23,42,0.32)]">
+          <div className="hidden md:flex min-h-0 flex-1 overflow-hidden rounded-[16px] border border-[var(--app-panel-border)] bg-card shadow-[0_8px_20px_-20px_rgba(15,23,42,0.2)]">
             <ResizablePanelGroup className="min-h-0 flex-1">
               {/* Card 1: Sidebar Rail (always visible) */}
               <ResizablePanel defaultSize={22} minSize={200} maxSize={300} className="h-full">
@@ -78,7 +76,7 @@ function RouteComponent({
                       <ChatSidebarRail />
                     </div>
                   ) : (
-                    children
+                    <Outlet />
                   )}
                 </main>
               </ResizablePanel>
@@ -97,7 +95,7 @@ function RouteComponent({
           {/* Mobile: Simplified layout */}
           <div className="flex min-h-0 flex-1 flex-col md:hidden">
             <main className="flex h-full flex-1 flex-col bg-chat-primary-bg">
-              <Outlet />
+              {showSidebarAsMain ? <ChatSidebarRail /> : <Outlet />}
             </main>
           </div>
         </div>
@@ -125,17 +123,25 @@ function RouteComponent({
         </Sheet>
       )}
 
-      {/* Desktop Profile Overlay */}
-      {isProfileOpen && profileMember && !isMobile && (
-        <div className="fixed inset-y-0 right-0 z-50 w-80 border-l border-border/60 bg-background shadow-2xl animate-in slide-in-from-right duration-200">
-          <UserProfilePanel
-            member={profileMember}
-            onClose={() => {
-              setIsProfileOpen(false);
-              setProfileMember(null);
-            }}
-          />
-        </div>
+      {/* Desktop profile side panel */}
+      {!isMobile && (
+        <Sheet open={isProfileOpen} onOpenChange={(open) => {
+          setIsProfileOpen(open);
+          if (!open) setProfileMember(null);
+        }}>
+          <SheetContent side="right" variant="flushRoundedLeft" className="w-full sm:max-w-80">
+            <SheetTitle className="sr-only">Profile</SheetTitle>
+            {profileMember && (
+              <UserProfilePanel
+                member={profileMember}
+                onClose={() => {
+                  setIsProfileOpen(false);
+                  setProfileMember(null);
+                }}
+              />
+            )}
+          </SheetContent>
+        </Sheet>
       )}
 
       {/* Mobile Profile Sheet */}
@@ -164,5 +170,5 @@ function RouteComponent({
 
 
 export const Route = createFileRoute('/$organizationSlug/chats')({
-  component: RouteComponent as any,
+  component: RouteComponent,
 });

@@ -44,5 +44,6 @@ export interface StorageService {
   acceptUpload(token: string, upload: StorageUploadStream): Promise<void>;
   readDownload(token: string): Promise<StoredObject>;
   objectExists(key: string): Promise<boolean>;
+  objectSize(key: string): Promise<number>;
   deleteObject(key: string): Promise<void>;
 }

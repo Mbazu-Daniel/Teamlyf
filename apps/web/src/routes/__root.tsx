@@ -4,6 +4,7 @@ import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-r
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import styles from "../styles.css?url";
+import themeStyles from "../theme.css?url";
 import { OrganizationProvider } from "../lib/organization";
 import { GlobalCallEventsBridge } from "../features/chat/data/global-call-events-bridge";
 import { initializeTheme } from "../lib/theme";
@@ -25,13 +26,13 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: styles },
-      { rel: "stylesheet", href: "/theme.css" },
+      { rel: "stylesheet", href: themeStyles },
       { rel: "icon", type: "image/svg+xml", href: "/brand/logo-icon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Mirza:wght@400;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap",
       },
     ],
   }),
@@ -64,7 +65,7 @@ function RootComponent() {
             <Outlet />
           </GlobalCallEventsBridge>
         </OrganizationProvider>
-        <Toaster richColors position="top-right" theme="system" closeButton />
+        <Toaster richColors position="top-right" theme="system" closeButton style={{ fontFamily: "var(--font-sans)" }} />
       </QueryClientProvider>
     </RootDocument>
   );

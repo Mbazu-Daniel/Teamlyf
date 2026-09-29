@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { IconArrowsMaximize, IconArrowsMinimize, IconX, IconGripVertical, IconLink, IconShare2 } from "@tabler/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { Status } from "@/lib/api";
 import { ErrorMessage, MutedMessage } from "./feedback";
 import { TaskActivity } from "./task-activity";
@@ -8,6 +9,7 @@ import { TaskAttachments } from "./task-attachments";
 import { TaskComments } from "./task-comments";
 import { TaskProperties } from "./task-detail-properties";
 import { TaskRelations } from "./task-relations";
+import { Subtasks } from "./subtasks";
 import { useTaskDetail } from "./use-task-detail";
 
 export type TaskDetailPanelProps = {
@@ -32,9 +34,9 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
 
   if (mobile) {
     return (
-      <>
-        <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={onClose} />
-        <aside className="fixed inset-y-0 right-0 z-50 flex h-svh w-full flex-col border-l bg-background shadow-2xl">
+      <Sheet open onOpenChange={(open) => !open && onClose()}>
+        <SheetContent side="right" variant="task" showCloseButton={false} className="w-full sm:max-w-none">
+          <SheetTitle className="sr-only">Task details</SheetTitle>
           <div className="flex items-center justify-between border-b bg-background px-5 py-3">
             <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{taskId.slice(0, 8)}</span></div>
             <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
@@ -44,8 +46,8 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
           <div className="min-h-0 flex-1 overflow-y-auto">
             <TaskDetailContent organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} />
           </div>
-        </aside>
-      </>
+        </SheetContent>
+      </Sheet>
     );
   }
 
@@ -76,21 +78,16 @@ function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId
     };
   }, [maximized]);
 
-  useEffect(() => {
-    const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") props.onClose();
-    };
-    window.addEventListener("keydown", escape);
-    return () => window.removeEventListener("keydown", escape);
-  }, [props.onClose]);
-
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/[0.03]" onClick={props.onClose} />
-      <aside
+    <Sheet open onOpenChange={(open) => !open && props.onClose()}>
+      <SheetContent
+        side="right"
+        variant="task"
+        showCloseButton={false}
         style={{ width: maximized ? "100%" : `${width}px` }}
-        className="fixed right-0 top-0 z-50 flex h-svh flex-col border-l border-border bg-background shadow-2xl"
+        className="max-w-none sm:max-w-none"
       >
+        <SheetTitle className="sr-only">Task details</SheetTitle>
         {!maximized && (
           <button
             type="button"
@@ -119,8 +116,8 @@ function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId
         <div className="min-h-0 flex-1 overflow-y-auto">
           <TaskDetailContent {...props} />
         </div>
-      </aside>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -158,6 +155,7 @@ function TaskDetailContent({
           <TaskProperties organizationId={organizationId} projectId={projectId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
           <TaskRelations organizationId={organizationId} projectId={projectId} taskId={taskId} members={detail.members} membersLoading={detail.membersLoading} />
           <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId} />
+          <Subtasks org={organizationId} project={projectId} task={taskId} />
           <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId} />
           <TaskAttachments organizationId={organizationId} projectId={projectId} taskId={taskId} />
           {detail.saving && <MutedMessage message="Saving your change..." />}
@@ -195,7 +193,7 @@ function TaskDetailsForm({ detail }: { detail: TaskDetail }) {
     <form onSubmit={save} className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
       <input value={name} onChange={(event) => setName(event.target.value)} className="w-full border-0 bg-transparent px-0 text-lg font-semibold outline-none" aria-label="Task name" />
       <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} placeholder="Add a description..." className="w-full resize-none rounded-lg border bg-background p-3 text-sm outline-none focus:border-primary" />
-      <button type="submit" disabled={detail.saving || !name.trim()} className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+      <button type="submit" disabled={detail.saving || !name.trim()} className="rounded-lg bg-primary px-4 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50">
         {detail.saving ? "Saving..." : "Save changes"}
       </button>
     </form>

@@ -2,8 +2,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  IconArrowsSort,
   IconCheck,
   IconFilter,
+  IconFolder,
   IconLayoutGrid,
   IconList,
   IconPlus,
@@ -11,7 +13,10 @@ import {
 } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProjectCard } from "./project-card";
+import { ProjectLeads } from "./project-leads";
 import { ErrorMessage, MutedMessage } from "./feedback";
 
 type ProjectsState = ReturnType<typeof import("./use-projects").useProjects>;
@@ -31,7 +36,40 @@ const SORT_OPTIONS = [
   { label: "Name Z–A", value: "name-desc" },
   { label: "Newest", value: "created-desc" },
   { label: "Recently updated", value: "updated-desc" },
+  { label: "Most tasks", value: "tasks-desc" },
+  { label: "Highest progress", value: "progress-desc" },
+  { label: "Latest task due date", value: "target-asc" },
 ];
+
+const STATUS_STYLES: Record<string, string> = {
+  planned: "bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-400/20",
+  backlog: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:ring-slate-400/20",
+  in_progress: "bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/20",
+  paused: "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/20",
+  completed: "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/20",
+  cancelled: "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/20",
+};
+
+const STATUS_DOT_STYLES: Record<string, string> = {
+  planned: "bg-violet-500",
+  backlog: "bg-slate-400",
+  in_progress: "bg-blue-500",
+  paused: "bg-amber-500",
+  completed: "bg-emerald-500",
+  cancelled: "bg-rose-500",
+};
+
+function ProjectStatusPill({ status }: { status?: string | null }) {
+  const key = status ?? "planned";
+  const label = key.replace("_", " ");
+
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold capitalize ring-1", STATUS_STYLES[key] ?? STATUS_STYLES.planned)}>
+      <span className={cn("size-1.5 rounded-full", STATUS_DOT_STYLES[key] ?? STATUS_DOT_STYLES.planned)} />
+      {label}
+    </span>
+  );
+}
 
 export function ProjectListPage({
   organizationSlug,
@@ -75,6 +113,12 @@ export function ProjectListPage({
 
     return [...filtered].sort((a, b) => {
       switch (sortValue) {
+        case "tasks-desc":
+          return (b.taskCount ?? 0) - (a.taskCount ?? 0);
+        case "progress-desc":
+          return (b.completedCount ?? 0) / Math.max(1, b.taskCount ?? 0) - (a.completedCount ?? 0) / Math.max(1, a.taskCount ?? 0);
+        case "target-asc":
+          return (a.targetDate ? Date.parse(a.targetDate) : Number.MAX_SAFE_INTEGER) - (b.targetDate ? Date.parse(b.targetDate) : Number.MAX_SAFE_INTEGER);
         case "name-desc":
           return b.name.localeCompare(a.name);
         case "created-desc":
@@ -90,89 +134,112 @@ export function ProjectListPage({
   const isFilterActive = statusFilter !== "all" || debouncedSearch.length > 0;
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-(--app-page-background)">
+    <div className="flex h-full min-h-0 w-full flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-360 flex-col gap-4 p-3 pb-6 md:p-4">
-          <section className="border-b border-border/60 pb-3">
+        <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-4 py-5 pb-8 sm:px-6 lg:px-8">
+          <section className="flex flex-col gap-1 px-1 pt-1 sm:px-2">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[28px]">Projects</h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Keep priorities, progress, and the people doing the work in view.
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{state.projects.length}</span>{" "}
+                {state.projects.length === 1 ? "project" : "projects"}
+              </p>
+            </div>
+          </section>
+
+          <section className="app-card rounded-[16px] border-border/70 p-4 shadow-[0_8px_20px_-20px_rgba(15,23,42,0.2)] sm:p-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex shrink-0 items-center rounded-lg bg-secondary p-1">
+                <div className="flex h-control shrink-0 items-center rounded-[10px] bg-muted/75 p-1">
                   <button
                     type="button"
                     onClick={() => setViewMode("board")}
+                    aria-pressed={viewMode === "board"}
                     className={cn(
-                      "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-all",
+                      "inline-flex h-control-inner items-center gap-2 rounded-[8px] px-3.5 text-sm font-semibold transition-all",
                       viewMode === "board"
-                        ? "bg-background text-primary shadow-sm"
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    <IconLayoutGrid className="size-3.5" />
+                    <IconLayoutGrid className="size-4" />
                     Board
                   </button>
                   <button
                     type="button"
                     onClick={() => setViewMode("list")}
+                    aria-pressed={viewMode === "list"}
                     className={cn(
-                      "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-all",
+                      "inline-flex h-control-inner items-center gap-2 rounded-[8px] px-3.5 text-sm font-semibold transition-all",
                       viewMode === "list"
-                        ? "bg-background text-primary shadow-sm"
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground",
                     )}
                   >
-                    <IconList className="size-3.5" />
+                    <IconList className="size-4" />
                     List
                   </button>
                 </div>
 
-                <div className="relative w-full max-w-md">
-                  <IconSearch className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <div className="relative w-full max-w-xl">
+                  <IconSearch className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Search projects…"
-                    className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none transition focus:border-primary"
+                    aria-label="Search projects"
+                    className="h-control w-full rounded-[10px] border border-border/80 bg-muted/45 pl-11 pr-4 text-sm font-normal outline-none transition placeholder:text-muted-foreground/80 focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/10"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1 rounded-lg border border-border bg-background p-1">
-                  <IconFilter className="ml-1 size-3.5 text-muted-foreground" />
-                  <select
-                    value={statusFilter}
-                    onChange={(event) => setStatusFilter(event.target.value)}
-                    className="h-7 w-[130px] border-0 bg-transparent px-1 text-xs outline-none"
-                    aria-label="Filter projects by status"
-                  >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Select value={statusFilter} items={Object.fromEntries(STATUS_OPTIONS.map((option) => [option.value, option.label]))} onValueChange={setStatusFilter}>
+                  <SelectTrigger variant="filter" className="min-w-[180px]">
+                    <span className="flex items-center gap-2">
+                      <IconFilter className="size-4 text-muted-foreground" />
+                      <SelectValue placeholder="Filter status" />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
                     {STATUS_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
+                      <SelectItem key={option.value} value={option.value}>
+                        <span className="flex items-center gap-2">
+                          <span className={cn("size-2 rounded-full", option.value === "all" ? "bg-muted-foreground" : STATUS_DOT_STYLES[option.value])} />
+                          {option.label}
+                        </span>
+                      </SelectItem>
                     ))}
-                  </select>
-                  <div className="h-5 w-px bg-border" />
-                  <select
-                    value={sortValue}
-                    onChange={(event) => setSortValue(event.target.value)}
-                    className="h-7 w-[125px] border-0 bg-transparent px-1 text-xs outline-none"
-                    aria-label="Sort projects"
-                  >
+                  </SelectContent>
+                </Select>
+                <Select value={sortValue} items={Object.fromEntries(SORT_OPTIONS.map((option) => [option.value, option.label]))} onValueChange={setSortValue}>
+                  <SelectTrigger variant="filter" className="min-w-[180px]">
+                    <span className="flex items-center gap-2">
+                      <IconArrowsSort className="size-4 text-muted-foreground" />
+                      <SelectValue placeholder="Sort projects" />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
                     {SORT_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
+                      <SelectItem key={option.value} value={option.value}>
                         {option.label}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                </div>
+                  </SelectContent>
+                </Select>
 
                 <button
                   type="button"
-                  onClick={() => setShowCreateProject((value) => !value)}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                  onClick={() => setShowCreateProject(true)}
+                  className="inline-flex h-control shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[12px] bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                 >
                   <IconPlus className="size-3.5" />
-                  {showCreateProject ? "Close" : "New project"}
+                  New project
                 </button>
               </div>
             </div>
@@ -182,13 +249,13 @@ export function ProjectListPage({
 
           <section>
             {state.projectsLoading ? (
-              <div className="flex min-h-105 items-center justify-center">
+              <div className="app-card flex min-h-105 items-center justify-center rounded-[16px] border-border/70 shadow-[0_8px_20px_-20px_rgba(15,23,42,0.2)]">
                 <MutedMessage message="Fetching projects…" />
               </div>
             ) : projects.length === 0 ? (
-              <div className="flex min-h-105 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
-                <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/10">
-                  <IconLayoutGrid className="size-7 text-primary" />
+              <div className="app-card flex min-h-105 flex-col items-center justify-center rounded-[16px] border-dashed border-border/80 bg-card/70 px-6 py-12 text-center shadow-none">
+                <div className="mb-5 flex size-14 items-center justify-center rounded-[16px] bg-primary/10">
+                  <IconFolder className="size-6 text-primary" />
                 </div>
                 <h2 className="text-xl font-semibold tracking-tight">
                   {isFilterActive ? "No projects found" : "No projects yet"}
@@ -206,22 +273,24 @@ export function ProjectListPage({
                       setShowCreateProject(true);
                     }
                   }}
-                  className="mt-6 inline-flex h-9 items-center gap-1.5 rounded-md border px-4 text-xs font-semibold hover:bg-muted"
+                  className="mt-6 inline-flex h-control items-center gap-1.5 rounded-[9px] border border-border bg-background px-4 text-xs font-semibold transition hover:bg-muted"
                 >
                   <IconCheck className="size-4" />
                   {isFilterActive ? "Clear filters" : "Create project"}
                 </button>
               </div>
-            ) : viewMode === "board" ? (
-              <div className="grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-                {projects.map((project) => (
-                  <ProjectCard key={project.id} project={project} organizationSlug={organizationSlug} />
-                ))}
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <div className="min-w-[720px] divide-y rounded-lg border border-border/60 bg-background">
-                  <div className="grid grid-cols-[minmax(0,1.6fr)_140px_minmax(0,1fr)] gap-3 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <div>
+                {viewMode === "board" ? (
+                  <div aria-label="Project cards" className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    {projects.map((project) => (
+                      <ProjectCard key={project.id} project={project} organizationSlug={organizationSlug} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[760px] divide-y overflow-hidden rounded-[12px] border border-border/70 bg-card">
+                      <div className="grid grid-cols-[minmax(0,1.7fr)_170px_minmax(0,0.85fr)] gap-3 bg-muted/35 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     <span>Name</span>
                     <span>Status</span>
                     <span>Members</span>
@@ -231,10 +300,10 @@ export function ProjectListPage({
                       key={project.id}
                       to="/$organizationSlug/projects/$projectId"
                       params={{ organizationSlug, projectId: project.identifier }}
-                      className="grid grid-cols-[minmax(0,1.6fr)_140px_minmax(0,1fr)] items-center gap-3 px-4 py-3 hover:bg-muted/50"
+                      className="grid grid-cols-[minmax(0,1.7fr)_170px_minmax(0,0.85fr)] items-center gap-3 px-5 py-4 transition hover:bg-muted/45"
                     >
                       <span className="flex min-w-0 items-center gap-3">
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-primary/10 text-sm font-semibold text-primary">
                           {project.name.charAt(0)}
                         </span>
                         <span className="min-w-0">
@@ -242,31 +311,79 @@ export function ProjectListPage({
                           <span className="text-xs text-muted-foreground">{project.identifier}</span>
                         </span>
                       </span>
-                      <span className="text-xs font-medium capitalize">{project.status?.replace("_", " ") ?? "—"}</span>
-                      <span className="text-xs text-muted-foreground">{project.members?.length ?? 0} members</span>
+                      <ProjectStatusPill status={project.status} />
+                      <span className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">{project.members?.length ?? 0}</span> {project.members?.length === 1 ? "member" : "members"}</span>
                     </Link>
                   ))}
+                    </div>
+                  </div>
+                )}
                 </div>
-              </div>
             )}
           </section>
 
-          {showCreateProject && (
-            <section className="border-t border-border/60 pt-4">
-              <h2 className="text-sm font-bold">Create project</h2>
-              <p className="mt-1 text-xs text-muted-foreground">Create a project to start managing tasks and milestones.</p>
-              <form onSubmit={state.createProject} className="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_auto]">
-                <input value={state.name} onChange={(event) => state.setName(event.target.value)} placeholder="Project name" className="h-10 rounded-lg border bg-background px-3 text-sm" required />
-                <input value={state.identifier} onChange={(event) => state.setIdentifier(event.target.value)} placeholder="Code" className="h-10 rounded-lg border bg-background px-3 text-sm" required />
-                <input value={state.description} onChange={(event) => state.setDescription(event.target.value)} placeholder="Description" className="h-10 rounded-lg border bg-background px-3 text-sm" />
-                <button disabled={state.loading} className="h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">
-                  {state.loading ? "Creating…" : "Create"}
-                </button>
-              </form>
-            </section>
-          )}
         </div>
       </div>
+
+      <Sheet open={showCreateProject} onOpenChange={setShowCreateProject}>
+        <SheetContent side="right" variant="form" className="w-full sm:max-w-[28rem]">
+          <SheetHeader variant="form">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">New workspace project</p>
+            <SheetTitle variant="form" className="mt-1">Create project</SheetTitle>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Set up a dedicated place to manage the work, teammates, and milestones that belong together.
+            </p>
+          </SheetHeader>
+
+          <form onSubmit={state.createProject} className="flex min-h-0 flex-1 flex-col">
+            <div className="flex-1 space-y-5 overflow-y-auto px-5 py-6 sm:px-6">
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">Project name</span>
+                <input
+                  value={state.name}
+                  onChange={(event) => state.setName(event.target.value)}
+                  placeholder="e.g. Product launch"
+                  className="h-control w-full rounded-[10px] border border-border/80 bg-background px-3 text-sm font-normal outline-none transition placeholder:text-muted-foreground/80 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  required
+                />
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">Project code</span>
+                <input
+                  value={state.identifier}
+                  onChange={(event) => state.setIdentifier(event.target.value)}
+                  placeholder="e.g. LAUNCH"
+                  className="h-control w-full rounded-[10px] border border-border/80 bg-background px-3 text-sm font-normal outline-none transition placeholder:text-muted-foreground/80 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                  required
+                />
+                <span className="block text-xs leading-5 text-muted-foreground">Use a short, memorable identifier for project links and tasks.</span>
+              </label>
+
+              <label className="block space-y-2">
+                <span className="text-sm font-medium text-foreground">Description <span className="font-normal text-muted-foreground">(optional)</span></span>
+                <textarea
+                  value={state.description}
+                  onChange={(event) => state.setDescription(event.target.value)}
+                  placeholder="What is this project for?"
+                  className="min-h-28 w-full resize-y rounded-[10px] border border-border/80 bg-background px-3 py-2.5 text-sm font-normal outline-none transition placeholder:text-muted-foreground/80 focus:border-primary focus:ring-2 focus:ring-primary/10"
+                />
+              </label>
+            </div>
+
+            <div className="px-6 pb-5">{state.organizationId && <ProjectLeads org={state.organizationId} selected={state.leadIds} onChange={state.setLeadIds} />}</div>
+            <div className="flex items-center justify-end gap-2 border-t border-border/70 px-5 py-4 sm:px-6">
+              <button type="button" onClick={() => setShowCreateProject(false)} className="h-control rounded-[10px] px-4 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground">
+                Cancel
+              </button>
+              <button disabled={state.loading} className="inline-flex h-control items-center gap-2 rounded-[10px] bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[0_5px_12px_-11px_hsl(var(--primary))] transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50">
+                <IconPlus className="size-4" />
+                {state.loading ? "Creating…" : "Create project"}
+              </button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

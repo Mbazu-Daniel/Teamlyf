@@ -1,7 +1,8 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { channel, directMessage, message, messageReaction } from "@teamlyf/db";
+import { messageReaction } from "@teamlyf/db";
 import { and, eq } from "drizzle-orm";
+import { requireMessageAccess } from "../shared/message-access";
 import { DATABASE } from "../../../common/db/db.provider";
 import { loadReactions } from "../shared/message-related";
 import type { ChatMessageKind } from "../shared/message.mapper";
@@ -37,7 +38,9 @@ export class MessageReactionsService {
     organizationId: string,
     messageId: string,
     messageType: ChatMessageKind,
+    memberId: string,
   ): Promise<MessageReactionRecord[]> {
+    await requireMessageAccess(this.db, organizationId, messageType, messageId, memberId);
     const grouped = await loadReactions(this.db, organizationId, messageType, [messageId]);
     return (grouped.get(messageId) ?? []).map((row) => ({
       reaction: row.emoji,
@@ -52,7 +55,7 @@ export class MessageReactionsService {
    */
   async addReaction(args: ReactionArgs): Promise<ReactionEvent> {
     const { organizationId, messageType, messageId, memberId, reaction } = args;
-    await this.requireMessage(organizationId, messageType, messageId);
+    await requireMessageAccess(this.db, organizationId, messageType, messageId, memberId);
 
     await this.db
       .insert(messageReaction)
@@ -65,6 +68,7 @@ export class MessageReactionsService {
   /** Gateway seam: deletes only the caller's own row; repeating it stays safe. */
   async removeReaction(args: ReactionArgs): Promise<ReactionEvent> {
     const { organizationId, messageType, messageId, memberId, reaction } = args;
+    await requireMessageAccess(this.db, organizationId, messageType, messageId, memberId);
 
     await this.db
       .delete(messageReaction)
@@ -72,6 +76,7 @@ export class MessageReactionsService {
         and(
           eq(messageReaction.organizationId, organizationId),
           eq(messageReaction.messageId, messageId),
+          eq(messageReaction.messageType, messageType),
           eq(messageReaction.memberId, memberId),
           eq(messageReaction.emoji, reaction),
         ),
@@ -80,34 +85,4 @@ export class MessageReactionsService {
     return { messageId, messageType, reaction, tenantMemberId: memberId };
   }
 
-  /** Channel messages hang off `channel.organization_id`; direct messages carry it. */
-  private async requireMessage(
-    organizationId: string,
-    messageType: ChatMessageKind,
-    messageId: string,
-  ): Promise<void> {
-    const found =
-      messageType === "direct"
-        ? await this.db
-            .select({ id: directMessage.id })
-            .from(directMessage)
-            .where(
-              and(
-                eq(directMessage.id, messageId),
-                eq(directMessage.organizationId, organizationId),
-              ),
-            )
-            .limit(1)
-        : await this.db
-            .select({ id: message.id })
-            .from(message)
-            .innerJoin(channel, eq(channel.id, message.channelId))
-            .where(and(eq(message.id, messageId), eq(channel.organizationId, organizationId)))
-            .limit(1);
-
-    if (found.length === 0) {
-      const label = messageType === "direct" ? "Direct" : "Channel";
-      throw new NotFoundException(`${label} message not found`);
-    }
-  }
 }

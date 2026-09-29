@@ -16,9 +16,13 @@ export type Project = {
   members?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
   leads?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
   leadIds?: string[];
+  taskCount?: number;
+  completedCount?: number;
+  targetDate?: string | null;
 };
 
 export type ProjectTask = {
+  sprintId?: string | null;
   id: string;
   sequenceId: number;
   name: string;
@@ -48,6 +52,7 @@ export type TaskPriority = "urgent" | "high" | "medium" | "low" | "none";
 export type TaskAssigneeInput = { kind: "member" | "agent"; id: string };
 
 export type UpdateTaskInput = {
+  sprintId?: string | null;
   name?: string;
   statusId?: string;
   parentId?: string;
@@ -75,16 +80,17 @@ export const projectMembersApi = {
   },
 };
 
+type ProjectInput = { name?: string; identifier?: string; description?: string; emoji?: string; status?: string; leadIds?: string[] };
 export const projectsApi = {
   getProjects: (organizationId: string) => client.request<Project[]>(projectPath(organizationId)),
-  create: (organizationId: string, input: { name: string; identifier: string; description?: string }) => client.request<Project>(projectPath(organizationId), { method: "POST", body: JSON.stringify(input) }),
+  create: (organizationId: string, input: ProjectInput & { name: string; identifier: string }) => client.request<Project>(projectPath(organizationId), { method: "POST", body: JSON.stringify(input) }),
   get: (organizationId: string, projectId: string) => client.request<Project>(projectPath(organizationId, projectId)),
-  update: (organizationId: string, projectId: string, input: { name?: string; description?: string; emoji?: string }) => client.request<Project>(projectPath(organizationId, projectId), { method: "PATCH", body: JSON.stringify(input) }),
+  update: (organizationId: string, projectId: string, input: ProjectInput) => client.request<Project>(projectPath(organizationId, projectId), { method: "PATCH", body: JSON.stringify(input) }),
   delete: (organizationId: string, projectId: string) => client.request<null>(projectPath(organizationId, projectId), { method: "DELETE" }),
   getTasks: (organizationId: string, projectId: string) => client.request<ProjectTask[]>(taskPath(organizationId, projectId)),
   reorderTasks: (organizationId: string, projectId: string, taskIds: string[]) => client.request<ProjectTask[]>(`${taskPath(organizationId, projectId)}/reorder`, { method: "PATCH", body: JSON.stringify({ ids: taskIds }) }),
   getTask: (organizationId: string, projectId: string, taskId: string) => client.request<ProjectTask>(taskPath(organizationId, projectId, taskId)),
-  createTask: (organizationId: string, projectId: string, input: { name: string; statusId: string }) => client.request<ProjectTask>(taskPath(organizationId, projectId), { method: "POST", body: JSON.stringify(input) }),
+  createTask: (organizationId: string, projectId: string, input: UpdateTaskInput & { name: string; statusId: string }) => client.request<ProjectTask>(taskPath(organizationId, projectId), { method: "POST", body: JSON.stringify(input) }),
   updateTask: (organizationId: string, projectId: string, taskId: string, input: UpdateTaskInput) => client.request<ProjectTask>(taskPath(organizationId, projectId, taskId), { method: "PATCH", body: JSON.stringify(input) }),
   deleteTask: (organizationId: string, projectId: string, taskId: string) => client.request<null>(taskPath(organizationId, projectId, taskId), { method: "DELETE" }),
   moveTask: (organizationId: string, projectId: string, taskId: string, statusId: string) => client.request<ProjectTask>(taskPath(organizationId, projectId, taskId), { method: "PATCH", body: JSON.stringify({ statusId }) }),

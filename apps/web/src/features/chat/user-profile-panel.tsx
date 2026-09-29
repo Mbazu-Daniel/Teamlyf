@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { AddMemberToProject } from "@/features/projects/add-member-to-project";
 import { IconMail, IconMessage, IconPhone, IconShield, IconUserPlus, IconX } from "@tabler/icons-react";
 import { useAppRouter } from "@/lib/navigation";
 
@@ -14,6 +16,8 @@ interface UserProfilePanelProps {
 }
 
 export function UserProfilePanel({ member, onClose }: UserProfilePanelProps) {
+  const [addToProject, setAddToProject] = useState(false);
+  const org = useTenantStore((state) => state.tenantId);
   const router = useAppRouter()
   const currentSlug = useTenantStore((state) => state.subdomain)
   const currentUserId = useAuthStore((s) => s.user?.id)
@@ -23,7 +27,7 @@ export function UserProfilePanel({ member, onClose }: UserProfilePanelProps) {
   const fullName = [member.firstName, member.lastName].filter(Boolean).join(" ") || "Unknown User"
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <><div className="flex h-full min-h-0 flex-col bg-background">
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between px-4 h-14 border-b border-border/60">
         <div className="flex items-center gap-2.5">
@@ -96,7 +100,7 @@ export function UserProfilePanel({ member, onClose }: UserProfilePanelProps) {
               <Button
                 variant="soft"
                 size="sm-relaxed"
-                className="h-9 flex-1"
+                className="flex-1"
                 onClick={() => {
                   onClose()
                   router.push(`/${currentSlug}/chats/dm/${member.id}`)
@@ -108,10 +112,8 @@ export function UserProfilePanel({ member, onClose }: UserProfilePanelProps) {
               <Button
                 variant="outline"
                 size="sm-relaxed"
-                className="h-9 flex-1"
-                onClick={() => {
-                  onClose()
-                }}
+                className="flex-1"
+                onClick={() => setAddToProject(true)}
               >
                 <IconUserPlus className="h-3.5 h-3.5 w-3.5" />
                 Add to project
@@ -165,7 +167,6 @@ export function UserProfilePanel({ member, onClose }: UserProfilePanelProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>{addToProject && org && member.id && <AddMemberToProject org={org} member={member.id} onClose={() => setAddToProject(false)} />}</>
   )
 }
-

@@ -14,6 +14,9 @@ type BuildRowsInput = {
   statusesByProject: readonly (readonly Status[] | undefined)[];
   memberId: string;
   query?: string;
+  scope?: "mine" | "all";
+  projectFilter?: string;
+  priority?: string;
 };
 
 /**
@@ -21,15 +24,17 @@ type BuildRowsInput = {
  * project and resolved status so the list and the board can render a flat row
  * set without re-querying. Pure — the hook below only supplies the fetches.
  */
-export function buildMyTasksRows({ projects, tasksByProject, statusesByProject, memberId, query = "" }: BuildRowsInput): MyTaskRow[] {
+export function buildMyTasksRows({ projects, tasksByProject, statusesByProject, memberId, query = "", scope = "mine", projectFilter = "all", priority = "all" }: BuildRowsInput): MyTaskRow[] {
   const needle = query.trim().toLowerCase();
   const rows: MyTaskRow[] = [];
   projects.forEach((project, index) => {
+    if (projectFilter !== "all" && project.id !== projectFilter) return;
     const statuses = statusesByProject[index] ?? [];
     const statusById = new Map(statuses.map((status) => [status.id, status]));
     for (const task of tasksByProject[index] ?? []) {
       const assignedToMe = task.taskAssignees?.some((assignee) => assignee.kind === "member" && assignee.memberId === memberId) ?? false;
-      if (!assignedToMe) continue;
+      if (scope === "mine" && !assignedToMe) continue;
+      if (priority !== "all" && task.priority !== priority) continue;
       if (needle && !matchesSearch(task, needle)) continue;
       rows.push({ task, status: statusById.get(task.statusId), project: { name: project.name, emoji: project.emoji }, projectId: project.id });
     }
@@ -45,7 +50,7 @@ function matchesSearch(task: ProjectTask, needle: string): boolean {
  * Cross-project My Tasks data: projects, their tasks and statuses, and the
  * caller's own membership, which is the assignee filter.
  */
-export function useMyTasks(organizationId: string | undefined, query: string) {
+export function useMyTasks(organizationId: string | undefined, query: string, filters: { scope?: "mine" | "all"; projectFilter?: string; priority?: string } = {}) {
   const queryClient = useQueryClient();
   const organizationKey = organizationId ?? "";
   const enabled = Boolean(organizationId);
@@ -65,13 +70,13 @@ export function useMyTasks(organizationId: string | undefined, query: string) {
   const tasksByProject = taskQueries.map((result) => result.data);
   const statusesByProject = statusQueries.map((result) => result.data);
   const statusesByProjectId = new Map(projects.map((project, index) => [project.id, statusesByProject[index] ?? []] as const));
-  const rows = member.data ? buildMyTasksRows({ projects, tasksByProject, statusesByProject, memberId: member.data.id, query }) : [];
+  const rows = member.data ? buildMyTasksRows({ projects, tasksByProject, statusesByProject, memberId: member.data.id, query, ...filters }) : [];
 
   const groups: DateGroup[] = groupRowsByDate(rows);
   const columns: BoardColumnData[] = groups.map((group) => ({ id: group.id, name: group.label, color: DATE_GROUP_META[group.id].color, droppable: DATE_GROUP_META[group.id].droppable, tasks: group.rows.map((row) => row.task) }));
 
   const loading = projectsQuery.isLoading || member.isLoading || taskQueries.some((result) => result.isLoading) || statusQueries.some((result) => result.isLoading);
-  const error = getErrorMessage(projectsQuery.error, "Unable to load your tasks") ?? getErrorMessage(member.error, "Unable to load your tasks");
+  const error = getErrorMessage(projectsQuery.error ?? taskQueries.find((q) => q.error)?.error ?? statusQueries.find((q) => q.error)?.error, "Unable to load your tasks") ?? getErrorMessage(member.error, "Unable to load your tasks");
 
   function invalidateProjects() {
     for (const project of projects) void queryClient.invalidateQueries({ queryKey: queryKeys.tasks(organizationKey, project.id) });

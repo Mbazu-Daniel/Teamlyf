@@ -28,23 +28,23 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-0.5">
-      <div className="flex items-center justify-between px-2 py-1">
+    <div className="space-y-1">
+      <div className="flex items-center justify-between px-2 py-1.5">
         <button
           onClick={onToggle}
-          className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
         >
           {isOpen ? <IconChevronDown className="w-3 h-3" /> : <IconChevronUp className="w-3 h-3" />}
-          <span className="uppercase tracking-widest">{title}</span>
+          <span>{title}</span>
           {count > 0 && (
-            <span className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-bold">
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">
               {count}
             </span>
           )}
         </button>
         <button
           onClick={onAdd}
-          className="w-5 h-5 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex size-6 items-center justify-center rounded-[7px] text-primary transition-colors hover:bg-primary/10"
         >
           <IconPlus className="w-3.5 h-3.5" />
         </button>
@@ -84,13 +84,13 @@ export function QuickActionButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition-all",
+        "flex h-control items-center justify-center gap-1.5 rounded-[8px] px-2 text-[11px] font-semibold transition-colors",
         layout === "top"
           ? active
-            ? "bg-primary-button/10 text-primary-button shadow-sm"
+            ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
           : active
-            ? "bg-primary-button/10 text-primary-button shadow-sm"
+            ? "bg-primary text-primary-foreground"
             : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >

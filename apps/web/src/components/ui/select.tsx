@@ -1,6 +1,7 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
 type SelectProps = Omit<SelectPrimitive.Root.Props<string>, "onValueChange"> & {
   onValueChange?: (value: string) => void;
@@ -22,18 +23,32 @@ function SelectValue(props: SelectPrimitive.Value.Props) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
+const selectTriggerVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+      field: "rounded-[12px] bg-muted/30 shadow-none",
+      filter: "rounded-[10px] border-border/80 bg-background px-3 shadow-none",
+      compact: "rounded-[9px] border-border/60 bg-muted/20 text-xs shadow-none",
+    },
+  },
+  defaultVariants: { variant: "default" },
+});
+
 type SelectTriggerProps = Omit<SelectPrimitive.Trigger.Props, "className"> & {
   className?: string;
   size?: "sm" | "default";
-};
+} & VariantProps<typeof selectTriggerVariants>;
 
-function SelectTrigger({ className, size = "default", children, ...props }: SelectTriggerProps) {
+function SelectTrigger({ className, size = "default", variant = "default", children, ...props }: SelectTriggerProps) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex h-10 w-full items-center justify-between gap-2 rounded-full border border-input bg-transparent px-4 text-sm whitespace-nowrap transition-[background-color,border-color,color] outline-none focus-visible:ring-3 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-muted-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground data-[size=default]:h-10 data-[size=sm]:h-8",
+        "flex w-full items-center justify-between gap-2 rounded-full border border-input bg-transparent px-4 text-sm whitespace-nowrap transition-[background-color,border-color,color] outline-none focus-visible:ring-3 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-muted-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
+        "h-control",
+        selectTriggerVariants({ variant }),
         className,
       )}
       {...props}

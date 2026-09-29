@@ -35,6 +35,16 @@ export function usePasswordAuth(
       await authenticate(credentials(form));
       resetSession();
 
+      const invitationReturn = sessionStorage.getItem("teamlyf:invitation-return");
+      sessionStorage.removeItem("teamlyf:invitation-return");
+      if (invitationReturn?.startsWith("/accept-invite?")) {
+        const url = new URL(invitationReturn, window.location.origin);
+        if (url.origin === window.location.origin && url.pathname === "/accept-invite") {
+          window.location.assign(url.pathname + url.search);
+          return;
+        }
+      }
+
       if (destination) {
         await navigate({ to: destination });
         return;

@@ -1,5 +1,5 @@
 import type { Icon as TablerIcon } from "@tabler/icons-react";
-import { IconBell, IconCalendar, IconCheck, IconHome, IconLayoutKanban, IconList, IconMessage, IconNotes, IconPhone, IconSettings, IconUsers } from "@tabler/icons-react";
+import { IconBell, IconCalendar, IconCheck, IconFileText, IconHome, IconLayoutKanban, IconList, IconMessage, IconNotes, IconPhone, IconSettings, IconUsers } from "@tabler/icons-react";
 
 export type NavChild = Readonly<{ id:string; label:string; to:string; icon:TablerIcon }>;
 export type NavItem = Readonly<{ id:string; label:string; to:string; icon:TablerIcon; available?:boolean; children?:readonly NavChild[] }>;
@@ -11,8 +11,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [{
   {id:"projects",label:"Projects",to:"projects",icon:IconLayoutKanban},
   {id:"tasks",label:"Tasks",to:"tasks",icon:IconCheck,children:[{id:"task-board",label:"Board",to:"tasks?view=board",icon:IconLayoutKanban},{id:"task-list",label:"List",to:"tasks?view=list",icon:IconList}]},
   {id:"chat",label:"Chat",to:"chats",icon:IconMessage},
-  // Documents is temporarily hidden from navigation. The route and page remain intact.
-  // {id:"documents",label:"Documents",to:"documents",icon:IconFileText,available:false},
+  {id:"documents",label:"Documents",to:"documents",icon:IconFileText},
   {id:"notes",label:"Notes",to:"notes",icon:IconNotes},
   {id:"schedule",label:"Schedule",to:"schedule",icon:IconCalendar},
   {id:"people",label:"HR",to:"people",icon:IconUsers},
@@ -26,5 +25,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [{
 
 export const NAV_ITEMS:readonly NavItem[]=NAV_SECTIONS.flatMap(section=>section.items);
 export const NAV_HOME:NavItem=NAV_SECTIONS[0].items[0];
-export function isNavItemActive(pathname:string,to:string){const path=to.split("?")[0];if(!path)return pathname.split("/").filter(Boolean).length===1;return pathname==="/"+path||pathname.endsWith("/"+path)||pathname.includes("/"+path+"/");}
+export function isNavItemActive(pathname: string, to: string) {
+  const path = to.split("?")[0];
+  if (!path) return pathname.split("/").filter(Boolean).length === 1;
+  if (path.startsWith("/")) return pathname === path;
+  return pathname === "/" + path || pathname.endsWith("/" + path) || pathname.includes("/" + path + "/");
+}
 export function findActiveNavItem(pathname:string){return NAV_ITEMS.filter(item=>item.available!==false&&isNavItemActive(pathname,item.to)).at(-1)??null;}

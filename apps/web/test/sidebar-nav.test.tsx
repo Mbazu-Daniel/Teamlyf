@@ -10,7 +10,7 @@ import {
 describe("nav data", () => {
   it("groupsEntries_underWorkspaceAndAdminHeadings", () => {
     expect(NAV_SECTIONS.map((section) => section.label)).toEqual(["Workspace", "Admin"]);
-    expect(NAV_SECTIONS[0].items.map((item) => item.label)).toEqual(["Home", "Projects"]);
+    expect(NAV_SECTIONS[0].items.map((item) => item.label)).toEqual(["Overview", "Projects", "Tasks", "Chat", "Documents", "Notes", "Schedule", "HR", "Calls", "Notifications"]);
     expect(NAV_SECTIONS[1].items.map((item) => item.label)).toEqual(["Settings"]);
   });
 
@@ -21,13 +21,13 @@ describe("nav data", () => {
 
   it("keepsEveryEntryInsideTheApp_neverOnTheMarketingRoot", () => {
     expect(NAV_ITEMS.map((item) => item.to)).not.toContain("/");
-    // Stands in for the dashboard until ticket 10 lands one.
+    // Overview is the organization root, not the marketing root.
     expect(NAV_HOME.to).toBe("");
   });
 });
 
 describe("active matching", () => {
-  it("accentsProjects_whenOnProjectsRoute_homeSharesTheRouteAsAStandIn", () => {
+  it("accentsProjects_whenOnProjectsRoute", () => {
     expect(findActiveNavItem("/acme/projects")?.id).toBe("projects");
   });
 
@@ -38,11 +38,17 @@ describe("active matching", () => {
 
   it("accentsNothing_whenOnARouteWithNoEntry", () => {
     expect(findActiveNavItem("/")).toBeNull();
-    expect(findActiveNavItem("/somewhere-else")).toBeNull();
+    expect(findActiveNavItem("/acme/somewhere-else")).toBeNull();
   });
 
   it("matchesRootRoutesExactly_soAForwardSlashEntryNeverLightsUpEverywhere", () => {
     expect(isNavItemActive("/acme", "/acme")).toBe(true);
     expect(isNavItemActive("/acme/projects", "/acme")).toBe(false);
+  });
+
+  it("selectsOnlyTheMostSpecificEntry_forCallsInsideChat", () => {
+    expect(findActiveNavItem("/acme/chats/calls")?.id).toBe("calls");
+    expect(findActiveNavItem("/acme/chats/channel/team")?.id).toBe("chat");
+    expect(findActiveNavItem("/acme")?.id).toBe("home");
   });
 });

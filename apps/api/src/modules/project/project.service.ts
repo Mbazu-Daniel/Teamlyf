@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { Inject } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { project, projectMember, status } from "@teamlyf/db/project-schema";
-import { and, eq } from "drizzle-orm";
+import { project, projectMember, status, task } from "@teamlyf/db/project-schema";
+import { and, eq, sql } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { ProjectAccessService } from "./project-access.service";
 import type { CreateProjectDto, UpdateProjectDto } from "./dto";
+import { requireOrganizationMemberOrNotFound } from "../../common/organization-member";
 
 const DEFAULT_STATUSES = [
   { name: "Backlog", color: "#60646C", group: "backlog", sequence: 15000, default: true },
@@ -23,6 +24,7 @@ export class ProjectService {
   ) {}
 
   async createProject(orgId: string, dto: CreateProjectDto, creatorMemberId: string) {
+    for (const id of dto.leadIds ?? []) await requireOrganizationMemberOrNotFound(this.db, orgId, id);
     return this.db.transaction(async (tx) => {
       const [created] = await tx.insert(project).values({
         organizationId: orgId,
@@ -30,6 +32,7 @@ export class ProjectService {
         identifier: dto.identifier.toUpperCase(),
         description: dto.description ?? null,
         emoji: dto.emoji ?? null,
+        status: dto.status ?? "planned",
       }).returning();
 
       await tx.insert(projectMember).values({
@@ -38,6 +41,10 @@ export class ProjectService {
         memberId: creatorMemberId,
         role: "admin",
       });
+      for (const memberId of dto.leadIds ?? []) {
+        if (memberId === creatorMemberId) continue;
+        await tx.insert(projectMember).values({ projectId: created.id, organizationId: orgId, memberId, role: "admin" });
+      }
 
       await tx.insert(status).values(
         DEFAULT_STATUSES.map((item) => ({
@@ -62,6 +69,9 @@ export class ProjectService {
 
     if (projects.length === 0) return projects;
 
+    const stats = await this.db.select({ projectId: task.projectId, taskCount: sql<number>`count(*)`.mapWith(Number), completedCount: sql<number>`count(*) filter (where ${status.group} = 'done')`.mapWith(Number), targetDate: sql<string | null>`max(${task.targetDate})` }).from(task).innerJoin(project, eq(task.projectId, project.id)).innerJoin(status, eq(task.statusId, status.id)).where(eq(project.organizationId, orgId)).groupBy(task.projectId);
+    const statsByProject = new Map(stats.map((stat) => [stat.projectId, stat]));
+
     const memberships = await this.db.query.projectMember.findMany({
       where: eq(projectMember.organizationId, orgId),
       with: { member: true },
@@ -75,6 +85,9 @@ export class ProjectService {
 
     return projects.map((item) => ({
       ...item,
+      taskCount: statsByProject.get(item.id)?.taskCount ?? 0,
+      completedCount: statsByProject.get(item.id)?.completedCount ?? 0,
+      targetDate: statsByProject.get(item.id)?.targetDate ?? null,
       members: (membersByProject.get(item.id) ?? []).map((membership) => ({
         id: membership.member.id,
         firstName: membership.member.firstName,
@@ -117,12 +130,20 @@ export class ProjectService {
 
   async updateProject(orgId: string, projectId: string, dto: UpdateProjectDto) {
     await this.access.requireProject(orgId, projectId);
-    const [updated] = await this.db
+    const { leadIds, ...fields } = dto;
+    for (const id of leadIds ?? []) await requireOrganizationMemberOrNotFound(this.db, orgId, id);
+    return this.db.transaction(async (tx) => {
+    const [updated] = await tx
       .update(project)
-      .set({ ...dto, updatedAt: new Date() })
+      .set({ ...fields, identifier: fields.identifier?.toUpperCase(), updatedAt: new Date() })
       .where(and(eq(project.organizationId, orgId), eq(project.id, projectId)))
       .returning();
+    if (leadIds) {
+      await tx.update(projectMember).set({ role: "member" }).where(and(eq(projectMember.organizationId, orgId), eq(projectMember.projectId, projectId)));
+      for (const memberId of leadIds) await tx.insert(projectMember).values({ organizationId: orgId, projectId, memberId, role: "admin" }).onConflictDoUpdate({ target: [projectMember.projectId, projectMember.memberId], set: { role: "admin" } });
+    }
     return updated;
+    });
   }
 
   async deleteProject(orgId: string, projectId: string) {

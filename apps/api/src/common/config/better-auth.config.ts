@@ -1,4 +1,6 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
+import { eq } from "drizzle-orm";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
 import * as schema from "@teamlyf/db/schema";
@@ -50,6 +52,15 @@ export function createAuth(options: CreateAuthOptions) {
       },
     },
     socialProviders,
+    user: {
+      deleteUser: {
+        enabled: true,
+        beforeDelete: async (user) => {
+          const membership = await options.db.query.member.findFirst({ where: eq(organizationSchema.member.userId, user.id) });
+          if (membership) throw new APIError("BAD_REQUEST", { message: "Remove your workspace memberships before deleting your account. Transfer ownership or delete owned workspaces first." });
+        },
+      },
+    },
     account: {
       accountLinking: {
         enabled: true,

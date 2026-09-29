@@ -19,6 +19,7 @@ export default defineConfig({
     "./src/billing/index.ts",
     "./src/agent/index.ts",
     "./src/ai/index.ts",
+    "./src/schedule/index.ts",
   ],
   out: "./drizzle",
   dbCredentials: {

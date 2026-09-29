@@ -17,8 +17,8 @@ const priorityTone: Record<string, string> = { urgent: "text-destructive", high:
 type SortKey = "title" | "status" | "due" | "start";
 type SortState = Readonly<{ key: SortKey; dir: "asc" | "desc" }>;
 
-const HEADER_CELL = "px-3 text-left align-middle text-[11px] font-semibold uppercase tracking-wide";
-const ROW_CELL = "h-12 px-3 align-middle";
+const HEADER_CELL = "h-11 px-4 text-left align-middle text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground";
+const ROW_CELL = "h-16 px-4 align-middle";
 
 export function TaskList({ groups, onSelect, onDelete, onDuplicate, emptyMessage = "No tasks match your current view." }: {
   groups: readonly TaskListGroup[];
@@ -76,10 +76,10 @@ export function TaskList({ groups, onSelect, onDelete, onDuplicate, emptyMessage
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[14px] border border-border/70 bg-card">
       <div className="min-h-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-background shadow-[inset_0_-1px_0_var(--border)]">
+        <table className="w-full min-w-[480px] table-fixed border-collapse text-[13px]">
+          <thead className="sticky top-0 z-10 border-b border-border/70 bg-muted">
             <tr className="group">
               <th scope="col" className={cn(HEADER_CELL, "w-10 pl-4")}>
                 <Checkbox checked={allSelected} indeterminate={selectedCount > 0 && !allSelected} onCheckedChange={toggleAll} aria-label="Select all tasks" />
@@ -97,7 +97,7 @@ export function TaskList({ groups, onSelect, onDelete, onDuplicate, emptyMessage
               <Fragment key={group.id}>
                 {group.label && (
                   <tr>
-                    <td colSpan={columnCount} className="h-8 border-y bg-muted/50 px-3">
+                    <td colSpan={columnCount} className="h-10 border-y border-border/60 bg-muted/25 px-4">
                       <span className="flex items-center gap-2">
                         <span className={cn("text-xs font-semibold", group.labelClassName)}>{group.label}</span>
                         <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{group.rows.length}</span>
@@ -136,7 +136,7 @@ function TaskRow({ row, selected, onSelectedChange, onSelect, onDelete, onDuplic
 }) {
   const { task, status, project } = row;
   return (
-    <tr onClick={() => onSelect(task)} className="group cursor-pointer border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/40">
+    <tr onClick={() => onSelect(task)} className={cn("group cursor-pointer border-b border-border/50 transition-colors last:border-b-0 hover:bg-primary/[0.035]", selected && "bg-primary/5")}>
       <td className={cn(ROW_CELL, "pl-4")}>
         <Checkbox checked={selected} onCheckedChange={(checked) => onSelectedChange(task.id, checked)} onClick={(event) => event.stopPropagation()} aria-label={`Select ${task.name}`} />
       </td>
@@ -174,7 +174,8 @@ function StatusPill({ status }: { status?: Status }) {
   if (!status) return <span className="text-xs text-muted-foreground">—</span>;
   const hex = /^#[0-9a-f]{6}$/i.test(status.color) ? status.color : null;
   return (
-    <span className="inline-flex max-w-full items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide" style={hex ? { color: hex, backgroundColor: `${hex}1f`, borderColor: `${hex}59` } : undefined}>
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium capitalize" style={hex ? { color: hex, backgroundColor: `${hex}12`, borderColor: `${hex}35` } : undefined}>
+      <span className="size-1.5 shrink-0 rounded-full bg-current" />
       <span className="truncate">{status.name.replace(/[_-]+/g, " ")}</span>
     </span>
   );

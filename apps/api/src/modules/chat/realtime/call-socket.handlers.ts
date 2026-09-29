@@ -5,6 +5,7 @@ import type { CallsService } from "../../calls/calls.service";
 import { CHAT_ROOMS } from "../shared/rooms";
 import { errorMessage, validIds, type CallIdPayload, type InitiateCallPayload } from "./socket-payloads";
 import type { AuthenticatedSocket } from "./ws-auth";
+import { broadcastChannel } from "./channel-broadcast";
 
 /**
  * Dependencies the call handlers need — passed in by the gateway so these
@@ -52,7 +53,7 @@ export async function initiateCall(
       client.nsp.to(CHAT_ROOMS.member(id)).emit("call-initiated", payload);
     }
     if (session.channelId) {
-      client.nsp.to(CHAT_ROOMS.channel(session.channelId)).emit("call-initiated", payload);
+      await broadcastChannel(deps.db, client, session.channelId, "call-initiated", payload, true);
     }
 
     await client.join(callRoom(session.id));

@@ -38,6 +38,7 @@ const dialogContentVariants = cva("", {
       default: "",
       flush: "p-0",
       compact: "p-4",
+      media: "border-0 bg-transparent p-0 shadow-none",
     },
   },
   defaultVariants: { variant: "default" },

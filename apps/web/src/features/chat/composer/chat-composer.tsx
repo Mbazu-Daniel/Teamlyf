@@ -175,11 +175,11 @@ export function ChatComposer({
   };
 
   return (
-    <div className="px-3 py-2.5 shrink-0">
+    <div className="shrink-0 px-1 py-1">
       <div
         className={`
-        flex flex-col rounded-md border bg-background
-        transition-all duration-150
+        flex flex-col rounded-[14px] border border-border/80 bg-card
+        transition-colors duration-150
         focus-within:ring-2 focus-within:ring-primary-button/30 focus-within:border-primary-button/50
       `}
       >

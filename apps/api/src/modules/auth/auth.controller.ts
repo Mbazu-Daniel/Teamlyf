@@ -7,12 +7,22 @@ import {
   toFetchHeaders,
 } from "../../common/better-auth/better-auth-http";
 import { AuthService } from "./auth.service";
+import { DeleteAccountDto } from "./dto/delete-account.dto";
 import { SignUpDto, SignInDto, SignInSocialDto, UpdateUserDto, RevokeSessionDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, RefreshTokenDto } from "./dto";
 
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post("delete-user")
+  @ApiOperation({ summary: "Delete your account after removing all workspace memberships" })
+  async deleteAccount(@Body() body: DeleteAccountDto, @Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
+    const response = await this.authService.auth.api.deleteUser({ body, headers: toFetchHeaders(req), asResponse: true });
+    forwardSetCookies(res, response);
+    res.status(response.status);
+    return readResponseBody(response);
+  }
 
   @Post("sign-up/email")
   @ApiOperation({ summary: "Register a new user" })

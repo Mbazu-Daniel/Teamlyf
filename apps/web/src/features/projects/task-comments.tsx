@@ -44,7 +44,7 @@ export function TaskComments({ organizationId, projectId, taskId }: TaskComments
           <button
             type="submit"
             disabled={!draft.trim() || thread.creating}
-            className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50"
+            className="rounded-md bg-primary px-4 h-control py-0 text-sm text-primary-foreground disabled:opacity-50"
           >
             {thread.creating ? "Posting..." : "Comment"}
           </button>

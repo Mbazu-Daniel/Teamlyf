@@ -1,4 +1,5 @@
-import type { InputHTMLAttributes } from "react";
+import { useState, type InputHTMLAttributes } from "react";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
 
 type AuthFieldProps = Readonly<{
@@ -10,7 +11,7 @@ type AuthFieldProps = Readonly<{
   minLength?: number;
 }>;
 
-/** Label + pill input. The label wraps the field so the hit target includes the text. */
+/** Label + relaxed auth input. The label keeps its text and control one target. */
 export function AuthField({
   label,
   name,
@@ -19,18 +20,34 @@ export function AuthField({
   autoComplete,
   minLength,
 }: AuthFieldProps) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPassword = type === "password";
+
   return (
-    <label className="block text-sm font-bold">
+    <label className="block text-xs font-medium text-foreground">
       {label}
-      <Input
-        className="mt-1.5"
-        name={name}
-        type={type}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        minLength={minLength}
-        required
-      />
+      <span className="relative mt-2 block">
+        <Input
+          decor={isPassword ? "auth-password" : "auth"}
+          name={name}
+          type={isPassword && passwordVisible ? "text" : type}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          minLength={minLength}
+          required
+        />
+        {isPassword && (
+          <button
+            type="button"
+            className="auth-password-toggle"
+            aria-label={passwordVisible ? "Hide password" : "Show password"}
+            aria-pressed={passwordVisible}
+            onClick={() => setPasswordVisible((visible) => !visible)}
+          >
+            {passwordVisible ? <IconEyeOff className="size-4" /> : <IconEye className="size-4" />}
+          </button>
+        )}
+      </span>
     </label>
   );
 }

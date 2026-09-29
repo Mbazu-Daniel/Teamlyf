@@ -1,3 +1,4 @@
+import { PageEmptyState } from "@/components/workspace/page-layout";
 import { IconAt, IconChevronRight, IconClock, IconHash, IconMessageQuestion } from "@tabler/icons-react";
 import { useAppRouter } from "@/lib/navigation";
 
@@ -87,27 +88,27 @@ export function MentionsList() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <div className="px-6 py-4 border-b border-border/50 bg-card/30">
+    <div className="flex h-full min-h-0 flex-col bg-card">
+      <div className="border-b border-border/70 bg-card px-5 py-5 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-button/10 rounded-xl flex items-center justify-center">
               <IconAt className="w-5 h-5 text-primary-button" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Mentions</h2>
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">Mentions</h2>
               <p className="text-xs text-muted-foreground">See where people have mentioned you</p>
             </div>
           </div>
 
-          <div className="ml-auto flex items-center rounded-[8px] bg-[linear-gradient(180deg,#f8f9ff_0%,#f3f4fb_100%)] p-1.5 shadow-inner">
+          <div className="ml-auto flex h-control items-center gap-1 rounded-[12px] bg-muted/60 p-1">
             <button
               type="button"
               onClick={() => setActiveTab("all")}
               className={cn(
-                "inline-flex h-11 items-center rounded-[8px] px-5 text-sm font-semibold transition-all",
+                "inline-flex h-control-inner items-center rounded-[9px] px-4 text-[13px] font-medium transition-colors",
                 activeTab === "all"
-                  ? "bg-white text-primary shadow-[0_10px_24px_-18px_rgba(70,72,212,0.4)]"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -117,9 +118,9 @@ export function MentionsList() {
               type="button"
               onClick={() => setActiveTab("unread")}
               className={cn(
-                "inline-flex h-11 items-center rounded-[8px] px-5 text-sm font-semibold transition-all",
+                "inline-flex h-control-inner items-center rounded-[9px] px-4 text-[13px] font-medium transition-colors",
                 activeTab === "unread"
-                  ? "bg-white text-primary shadow-[0_10px_24px_-18px_rgba(70,72,212,0.4)]"
+                  ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -129,7 +130,7 @@ export function MentionsList() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -144,26 +145,7 @@ export function MentionsList() {
             ))}
           </div>
         ) : mentions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-6 px-4 py-8">
-            <div className="text-center space-y-3">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">No mentions found</h2>
-              <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto">
-                {activeTab === "all"
-                  ? "When someone mentions you with @ in a channel or direct message, they'll show up here."
-                  : "You've read all your mentions. Excellent!"}
-              </p>
-            </div>
-
-            <div className="opacity-30">
-              <img
-                src="/assets/messy.svg"
-                alt="Empty mentions illustration"
-                width={200}
-                height={100}
-                className="dark:invert"
-              />
-            </div>
-          </div>
+          <div className="p-4 sm:p-6"><PageEmptyState icon={IconAt} title="No mentions found" description={activeTab === "all" ? "When someone mentions you in a channel or direct message, you can find it here." : "You are up to date. New mentions will appear here."} /></div>
         ) : (
           <div className="divide-y divide-border/30">
             {mentions.map((mention: Message) => (

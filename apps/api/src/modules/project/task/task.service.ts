@@ -5,13 +5,16 @@ import { agent } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import {
   milestoneTask,
+  label,
+  milestone,
+  sprint,
   status,
   task,
   taskActivity,
   taskAssignee,
   taskLabel,
 } from "@teamlyf/db/project-schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateTaskDto, TaskAssigneeInputDto, UpdateTaskDto } from "./dto";
@@ -61,6 +64,15 @@ export class TaskService {
 
   // fallow-ignore-next-line complexity -- task creation coordinates status, ordering, relations and activity in one transaction flow
   async createTask(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
+    return this.db.transaction(async (tx) => {
+      const db = tx as unknown as Database;
+      return new TaskService(db, new ProjectAccessService(db)).createTaskInTransaction(orgId, projectId, dto, memberId);
+    });
+  }
+
+  private async createTaskInTransaction(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
+    await this.db.execute(sql`select pg_advisory_xact_lock(hashtext(${projectId}))`);
+    await this.validateRelations(projectId, dto);
     await this.access.requireProject(orgId, projectId);
 
     const [statusRecord, last, lastSorted] = await Promise.all([
@@ -93,6 +105,7 @@ export class TaskService {
         sortOrder: nextValue(lastSorted?.sortOrder),
         // Left off the statement when absent, so the column keeps its default.
         parentId: dto.parentId,
+        sprintId: dto.sprintId,
         description: dto.description,
         priority: dto.priority,
         createdById: memberId,
@@ -110,13 +123,22 @@ export class TaskService {
     });
   }
 
-  async updateTask(
+  async updateTask(orgId: string, projectId: string, taskId: string, dto: UpdateTaskDto, memberId: string) {
+    return this.db.transaction(async (tx) => {
+      const db = tx as unknown as Database;
+      return new TaskService(db, new ProjectAccessService(db)).updateTaskInTransaction(orgId, projectId, taskId, dto, memberId);
+    });
+  }
+
+  private async updateTaskInTransaction(
     orgId: string,
     projectId: string,
     taskId: string,
     dto: UpdateTaskDto,
     memberId: string,
   ) {
+    await this.db.execute(sql`select pg_advisory_xact_lock(hashtext(${projectId}))`);
+    await this.validateRelations(projectId, dto, taskId);
     const existing = await this.access.requireTask(orgId, projectId, taskId);
     const statusRecord = await this.resolveStatus(projectId, dto.statusId);
 
@@ -130,6 +152,7 @@ export class TaskService {
         description: dto.description,
         statusId: dto.statusId,
         parentId: dto.parentId,
+        sprintId: dto.sprintId,
         priority: dto.priority,
         updatedAt: new Date(),
       })
@@ -140,6 +163,36 @@ export class TaskService {
     await this.createFieldChanges(taskId, memberId, existing, dto);
 
     return updated;
+  }
+
+  private async validateRelations(projectId: string, dto: UpdateTaskDto, taskId?: string) {
+    if (dto.name !== undefined && !dto.name.trim()) throw new BadRequestException("Task name is required");
+    if (dto.sprintId) {
+      const record = await this.db.query.sprint.findFirst({ where: and(eq(sprint.id, dto.sprintId), eq(sprint.projectId, projectId)) });
+      if (!record) throw new BadRequestException("Sprint must belong to this project");
+    }
+    let parentId = dto.parentId;
+    const visited = new Set(taskId ? [taskId] : []);
+    while (parentId) {
+      if (visited.has(parentId)) throw new BadRequestException("Task hierarchy cannot contain cycles");
+      visited.add(parentId);
+      const parent = await this.db.query.task.findFirst({ where: and(eq(task.id, parentId), eq(task.projectId, projectId)) });
+      if (!parent) throw new BadRequestException("Parent task must belong to this project");
+      parentId = parent.parentId ?? undefined;
+    }
+    if (dto.labelIds?.length) {
+      const ids = [...new Set(dto.labelIds)];
+      const found = await this.db.select({ id: label.id }).from(label).where(and(eq(label.projectId, projectId), inArray(label.id, ids)));
+      if (found.length !== ids.length) throw new BadRequestException("Labels must belong to this project");
+      dto.labelIds = ids;
+    }
+    if (dto.milestoneIds?.length) {
+      const ids = [...new Set(dto.milestoneIds)];
+      const found = await this.db.select({ id: milestone.id }).from(milestone).where(and(eq(milestone.projectId, projectId), inArray(milestone.id, ids)));
+      if (found.length !== ids.length) throw new BadRequestException("Milestones must belong to this project");
+      dto.milestoneIds = ids;
+    }
+    if (dto.assignees) dto.assignees = [...new Map(dto.assignees.map((a) => [a.kind + ":" + a.id, a])).values()];
   }
 
   /** A status change must name a status that belongs to this project. */
@@ -236,10 +289,11 @@ export class TaskService {
       priority: string;
       startDate: Date | null;
       targetDate: Date | null;
+      sprintId: string | null;
     },
     dto: UpdateTaskDto,
   ) {
-    const fields = ["name", "statusId", "priority", "startDate", "targetDate"] as const;
+    const fields = ["name", "statusId", "priority", "startDate", "targetDate", "sprintId"] as const;
     const changes = fields
       .filter((f) => dto[f] !== undefined && String(dto[f] ?? "") !== String(existing[f] ?? ""))
       .map((f) => ({

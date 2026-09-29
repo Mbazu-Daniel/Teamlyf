@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from "class-validator";
 
 export class CreateNoteDto {
+  @IsOptional() @IsBoolean() private?: boolean;
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -24,6 +25,9 @@ export class CreateNoteDto {
 }
 
 export class UpdateNoteDto {
+  @IsOptional() @IsBoolean() private?: boolean;
+  @IsOptional() @IsBoolean() archived?: boolean;
+  @IsOptional() @IsInt() @Min(1) revision?: number;
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -45,3 +49,6 @@ export class UpdateNoteDto {
   @IsUUID()
   taskId?: string | null;
 }
+
+export class NoteFavoriteDto { @IsBoolean() enabled!: boolean; }
+export class RestoreNoteDto { @IsInt() @Min(1) revision!: number; }

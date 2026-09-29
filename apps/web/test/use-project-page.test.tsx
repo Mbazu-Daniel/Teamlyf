@@ -5,6 +5,7 @@ import type { ProjectTask } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import {
   TASKS_URL,
+  PROJECTS_URL,
   countCalls,
   done,
   existingTask,
@@ -29,7 +30,8 @@ function stubDetailFetch(options: { createdTask?: ProjectTask; patchResponse?: P
     ...patchTaskRoute(tasks, options),
     { url: TASKS_URL, respond: () => tasks },
     { url: "/projects/p1/statuses", respond: () => [todo, done] },
-    { url: "/projects/p1", respond: () => project },
+    { url: PROJECTS_URL, respond: () => [project] },
+    { url: "/projects/p1/milestones", respond: () => [] },
   ]);
 }
 
@@ -76,7 +78,7 @@ function patchTaskRoute(
 
 async function renderDetail(options: Parameters<typeof stubDetailFetch>[0]) {
   const fetchMock = stubDetailFetch(options);
-  const rendered = renderWithQueryClient(() => useProjectPage("org-1", "p1"));
+  const rendered = renderWithQueryClient(() => useProjectPage("org-1", project.identifier));
   await waitFor(() => expect(rendered.result.current.project).not.toBeNull());
   await waitFor(() => expect(rendered.result.current.tasks).toHaveLength(1));
   return { fetchMock, ...rendered };

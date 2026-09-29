@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import type { SessionMember } from "../../../common/types";
 import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
-import type { ThreadsQueryDto } from "./dto/threads-query.dto";
+import { ThreadsQueryDto } from "./dto/threads-query.dto";
 import { ThreadsService } from "./threads.service";
 
 @ApiTags("Chat")

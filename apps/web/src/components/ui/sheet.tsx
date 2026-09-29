@@ -39,7 +39,9 @@ const sheetContentVariants = cva("", {
       default: "",
       flush: "p-0",
       flushRoundedLeft: "p-0 rounded-l-2xl",
-      sidebar: "bg-sidebar text-sidebar-foreground p-0",
+      task: "p-0 rounded-l-2xl border-border/70 bg-card shadow-[0_12px_32px_-22px_rgba(15,23,42,0.26)]",
+      sidebar: "bg-sidebar text-sidebar-foreground gap-0 p-0",
+      form: "bg-card shadow-[0_12px_32px_-22px_rgba(15,23,42,0.26)]",
     },
   },
   defaultVariants: { variant: "default" },
@@ -50,10 +52,12 @@ function SheetContent({
   children,
   side = "right",
   variant = "default",
+  showCloseButton = true,
   ...props
 }: Omit<SheetPrimitive.Popup.Props, "className"> & {
   className?: string
   side?: "top" | "right" | "bottom" | "left"
+  showCloseButton?: boolean
 } & VariantProps<typeof sheetContentVariants>) {
   return (
     <SheetPortal>
@@ -75,16 +79,18 @@ function SheetContent({
         {...props}
       >
         {children}
-        <SheetPrimitive.Close
-          className={cn(
-            side === "right"
-              ? sidePanelCloseClassName
-              : "absolute top-2 right-1 rounded-md p-1 transition-all text-muted hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-          )}
-        >
-          <IconX className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
+        {showCloseButton && (
+          <SheetPrimitive.Close
+            className={cn(
+              side === "right"
+                ? sidePanelCloseClassName
+                : "absolute top-2 right-1 rounded-md p-1 transition-all text-muted hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+            )}
+          >
+            <IconX className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
+        )}
       </SheetPrimitive.Popup>
     </SheetPortal>
   )
@@ -95,6 +101,7 @@ const sheetHeaderVariants = cva("", {
     variant: {
       default: "",
       padded: "px-4 py-4",
+      form: "border-b border-border/70 px-6 py-5 pr-14",
     },
   },
   defaultVariants: { variant: "default" },
@@ -118,17 +125,27 @@ function SheetHeader({
   )
 }
 
+const sheetTitleVariants = cva("", {
+  variants: { variant: { default: "", form: "text-xl tracking-[-0.02em]" } },
+  defaultVariants: { variant: "default" },
+})
+
 function SheetTitle({
   className,
+  variant = "default",
   ...props
-}: SheetPrimitive.Title.Props) {
+}: SheetPrimitive.Title.Props & VariantProps<typeof sheetTitleVariants>) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("text-foreground font-semibold", className)}
+      className={cn("text-foreground font-semibold", sheetTitleVariants({ variant }), className)}
       {...props}
     />
   )
+}
+
+function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
+  return <SheetPrimitive.Description data-slot="sheet-description" className={cn("text-sm leading-6 text-muted-foreground", className)} {...props} />;
 }
 
 export {
@@ -136,4 +153,5 @@ export {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 }

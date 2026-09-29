@@ -11,13 +11,13 @@ interface ChatHeaderActionsProps {
 export function ChatHeaderActions({ onSearch, onCall, onInfo }: ChatHeaderActionsProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const iconBtn = "p-1.5 rounded-md text-primary-button hover:bg-primary-button hover:text-white transition-colors";
+  const iconBtn = "grid size-9 place-items-center rounded-[10px] border border-transparent text-muted-foreground transition-colors hover:border-border/60 hover:bg-muted/50 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30";
 
   return (
     <div className="ml-auto relative flex items-center gap-1">
       {/* Desktop */}
       <div className="hidden md:flex items-center gap-1">
-        <button type="button" onClick={onSearch} className={iconBtn} title="IconSearch">
+        <button type="button" onClick={onSearch} className={iconBtn} title="Search messages">
           <IconSearch className="w-4 h-4" />
         </button>
         <button type="button" onClick={onCall} className={iconBtn} title="Start call">
@@ -45,7 +45,7 @@ export function ChatHeaderActions({ onSearch, onCall, onInfo }: ChatHeaderAction
         {showDropdown && (
           <div className="absolute right-0 top-full mt-1 w-40 bg-popover border border-border rounded-md shadow-lg z-50 overflow-hidden">
             {[
-              { label: "IconSearch", fn: onSearch, Icon: IconSearch },
+              { label: "Search messages", fn: onSearch, Icon: IconSearch },
               { label: "Start a call", fn: onCall, Icon: IconPhone },
               { label: "Details", fn: onInfo, Icon: IconInfoCircle },
             ].map(({ label, fn, Icon }) => (

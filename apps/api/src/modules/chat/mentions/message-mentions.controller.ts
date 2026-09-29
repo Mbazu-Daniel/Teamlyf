@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, ForbiddenException, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
 import type { SessionMember } from "../../../common/types";
@@ -30,7 +30,8 @@ export class MessageMentionsController {
   @ApiOperation({ summary: "A member's mentions, newest first" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "memberId" })
-  byMember(@Param("orgId") orgId: string, @Param("memberId") memberId: string) {
+  byMember(@Param("orgId") orgId: string, @Param("memberId") memberId: string, @CurrentMember() member: SessionMember) {
+    if (member.id !== memberId) throw new ForbiddenException("You can only read your own mentions");
     return this.mentions.listByMember(orgId, memberId);
   }
 }

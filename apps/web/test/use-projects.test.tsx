@@ -62,7 +62,7 @@ describe("useProjects", () => {
         expect.stringContaining(PROJECTS_URL),
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ name: "Roadmap", identifier: "rdm", description: "Q4 plan" }),
+          body: JSON.stringify({ name: "Roadmap", identifier: "rdm", description: "Q4 plan", leadIds: [] }),
         }),
       ),
     );

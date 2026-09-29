@@ -26,4 +26,6 @@ apps/web/src/routeTree.gen.ts
 .hallmark/
 *.log
 *.mjs
+!apps/api/test/parity.smoke.mjs
+!apps/web/test/realtime.smoke.mjs
 briefcase-test.svg

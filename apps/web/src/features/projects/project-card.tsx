@@ -1,14 +1,33 @@
 import { Link } from "@tanstack/react-router";
-import { IconPlus, IconStar, IconUsers } from "@tabler/icons-react";
+import { IconArrowUpRight, IconUsers } from "@tabler/icons-react";
 import type { Project } from "@/lib/api";
 
-const SHINY_PRESETS = [
-  "from-purple-500 via-indigo-400 to-blue-600",
-  "from-rose-500 via-fuchsia-400 to-purple-600",
-  "from-emerald-500 via-teal-400 to-cyan-600",
-  "from-amber-400 via-orange-500 to-rose-500",
-  "from-blue-600 via-sky-400 to-indigo-500",
-];
+const STATUS_STYLES: Record<string, string> = {
+  planned: "bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-400/20",
+  backlog: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:ring-slate-400/20",
+  in_progress: "bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-400/20",
+  paused: "bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/20",
+  completed: "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/20",
+  cancelled: "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/20",
+};
+
+const STATUS_DOT_STYLES: Record<string, string> = {
+  planned: "bg-violet-500",
+  backlog: "bg-slate-400",
+  in_progress: "bg-blue-500",
+  paused: "bg-amber-500",
+  completed: "bg-emerald-500",
+  cancelled: "bg-rose-500",
+};
+
+const CARD_STYLES: Record<string, string> = {
+  planned: "border-violet-200/80 bg-violet-50/70 hover:border-violet-400 dark:border-violet-400/20 dark:bg-violet-500/10 dark:hover:border-violet-400/50",
+  backlog: "border-slate-200/80 bg-slate-50/70 hover:border-slate-400 dark:border-slate-400/20 dark:bg-slate-500/10 dark:hover:border-slate-400/50",
+  in_progress: "border-blue-200/80 bg-blue-50/70 hover:border-blue-400 dark:border-blue-400/20 dark:bg-blue-500/10 dark:hover:border-blue-400/50",
+  paused: "border-amber-200/80 bg-amber-50/70 hover:border-amber-400 dark:border-amber-400/20 dark:bg-amber-500/10 dark:hover:border-amber-400/50",
+  completed: "border-emerald-200/80 bg-emerald-50/70 hover:border-emerald-400 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:hover:border-emerald-400/50",
+  cancelled: "border-rose-200/80 bg-rose-50/70 hover:border-rose-400 dark:border-rose-400/20 dark:bg-rose-500/10 dark:hover:border-rose-400/50",
+};
 
 export function ProjectCard({
   project,
@@ -18,107 +37,51 @@ export function ProjectCard({
   organizationSlug: string;
 }) {
   const firstLetter = project.name?.charAt(0).toUpperCase() || "P";
-  const preset = SHINY_PRESETS[
-    project.id.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0) % SHINY_PRESETS.length
-  ];
   const members = project.members ?? [];
-  const leads = project.leads ?? [];
+  const status = project.status ?? "planned";
+  const tone = STATUS_STYLES[status] ?? STATUS_STYLES.planned;
 
   return (
-    <div className="group flex min-h-[255px] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_14px_36px_-30px_rgba(15,23,42,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_44px_-30px_rgba(15,23,42,0.34)] dark:border-white/10 dark:bg-card/95 dark:hover:border-white/20">
+    <article className={`group flex min-w-0 overflow-hidden rounded-[16px] border shadow-none transition-colors duration-200 ${CARD_STYLES[status] ?? CARD_STYLES.planned}`}>
       <Link
         to="/$organizationSlug/projects/$projectId"
         params={{ organizationSlug, projectId: project.identifier }}
-        className="flex h-full flex-col"
+        aria-label={`Open ${project.name}`}
+        className="flex min-h-[192px] w-full min-w-0 flex-col p-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
-        <div className="relative h-20 w-full shrink-0 overflow-hidden">
-          <div className={`absolute inset-0 bg-gradient-to-br ${preset} transition-transform duration-500 group-hover:scale-105`}>
-            {project.coverImageURL ? (
-              <img
-                src={project.coverImageURL}
-                alt={`${project.name} project cover image`}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            ) : (
-              <>
-                <div className="absolute -left-10 -top-10 size-40 rounded-full bg-white/20 blur-3xl" />
-                <div className="absolute -bottom-5 -right-5 size-32 rounded-full bg-black/10 blur-2xl" />
-              </>
-            )}
+        <div className="flex items-center gap-3">
+          <span className={`relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-[10px] text-sm font-medium ${tone}`}>
+            {project.coverImageURL ? <img src={project.coverImageURL} alt={`${project.name} project cover`} className="size-full object-cover" /> : project.emoji || firstLetter}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-[14px] font-semibold leading-5 tracking-[-0.015em] text-foreground" title={project.name}>{project.name}</h3>
+            <span className="mt-1 block truncate text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">{project.code || project.identifier}</span>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/10 opacity-60 transition-opacity group-hover:opacity-80" />
-
-          <div className="absolute left-3 right-3 top-3 z-20 flex items-center justify-between">
-            <span className="flex size-8 items-center justify-center rounded-full text-white/80" aria-hidden="true">
-              <IconStar className="size-4 fill-current" />
-            </span>
-          </div>
-
-          <div className="absolute -bottom-5 left-5 z-20 flex size-12 items-center justify-center rounded-xl border-2 border-background bg-background text-base font-bold shadow-lg">
-            <span className={`bg-gradient-to-br ${preset} bg-clip-text text-transparent`}>{firstLetter}</span>
-          </div>
+          <IconArrowUpRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-primary" />
         </div>
 
-        <div className="flex flex-1 flex-col gap-3 p-4">
-          <div className="mb-2 flex items-start justify-between gap-4">
-            <h3 className="line-clamp-1 text-[16px] font-bold leading-snug">{project.name}</h3>
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                {project.code || project.identifier || "PRJ"}
-              </span>
-              <span className="truncate rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold capitalize text-muted-foreground">
-                {project.status?.replace("_", " ") || "planned"}
-              </span>
-            </div>
-          </div>
+        <p className="mb-4 mt-3 line-clamp-2 text-[12px] leading-5 text-muted-foreground">{project.description || "No description yet."}</p>
 
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {project.description || "No description provided for this project."}
-          </p>
-
-          <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/40 pt-3">
-            <div className="flex items-center">
-              {members.length === 0 ? (
-                <span className="inline-flex h-7 items-center gap-1.5 rounded border border-dashed border-primary/40 px-2.5 text-[10px] font-medium text-primary">
-                  <IconPlus className="size-3" /> Add member
-                </span>
-              ) : (
-                <div className="flex -space-x-2">
-                  {members.slice(0, 3).map((member, index) => (
-                    <span
-                      key={member.id}
-                      title={`${member.firstName ?? ""} ${member.lastName ?? ""}`.trim()}
-                      className="flex size-7 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-semibold"
-                      style={{ zIndex: 10 - index }}
-                    >
-                      {((member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "")) || "?"}
-                    </span>
-                  ))}
-                  {members.length > 3 && (
-                    <span className="flex size-7 items-center justify-center rounded-full border-2 border-background bg-primary/10 text-[9px] font-bold text-primary">
-                      +{members.length - 3}
-                    </span>
-                  )}
-                  <span className="ml-1 flex size-7 items-center justify-center rounded-full border border-dashed border-primary/40 text-primary">
-                    <IconPlus className="size-3" />
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/50 pt-3">
+            <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-medium capitalize ${tone}`}>
+              <span className={`size-1.5 rounded-full ${STATUS_DOT_STYLES[status] ?? STATUS_DOT_STYLES.planned}`} />
+              {status.replaceAll("_", " ")}
+            </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground"><IconUsers className="size-3.5" />{members.length} {members.length === 1 ? "member" : "members"}</span>
+            {members.length > 0 && (
+              <div className="flex -space-x-1.5" aria-label="Project members">
+                {members.slice(0, 2).map((member) => (
+                  <span key={member.id} title={`${member.firstName ?? ""} ${member.lastName ?? ""}`.trim() || "Project member"} className={`grid size-7 place-items-center overflow-hidden rounded-full border-2 border-card text-[9px] font-medium ${tone}`}>
+                    {((member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "")).toUpperCase() || "?"}
                   </span>
-                </div>
-              )}
-            </div>
-            {leads.length > 0 && (
-              <div className="border-l border-border/60 pl-3">
-                <span className="flex size-7 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-semibold" title="Project Lead">
-                  {((leads[0].firstName?.[0] ?? "") + (leads[0].lastName?.[0] ?? "")) || "?"}
-                </span>
+                ))}
+                {members.length > 2 && <span className="grid size-7 place-items-center rounded-full border-2 border-card bg-muted text-[9px] font-medium text-muted-foreground">+{members.length - 2}</span>}
               </div>
             )}
           </div>
-
-          <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
-            <IconUsers className="size-3" /> {members.length} {members.length === 1 ? "member" : "members"}
-          </div>
         </div>
       </Link>
-    </div>
+    </article>
   );
 }

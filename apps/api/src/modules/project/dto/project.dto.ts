@@ -1,7 +1,9 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ArrayUnique, IsArray, IsIn, IsNotEmpty, IsOptional, IsString, IsUUID, Matches } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class CreateProjectDto {
+  @IsOptional() @IsIn(["planned", "backlog", "in_progress", "paused", "completed", "cancelled"]) status?: string;
+  @IsOptional() @IsArray() @ArrayUnique() @IsUUID(undefined, { each: true }) leadIds?: string[];
   @ApiProperty({ example: "My Project" })
   @IsString()
   @IsNotEmpty()
@@ -24,6 +26,9 @@ export class CreateProjectDto {
 }
 
 export class UpdateProjectDto {
+  @IsOptional() @IsString() @Matches(/^[a-zA-Z0-9_-]+$/) identifier?: string;
+  @IsOptional() @IsIn(["planned", "backlog", "in_progress", "paused", "completed", "cancelled"]) status?: string;
+  @IsOptional() @IsArray() @ArrayUnique() @IsUUID(undefined, { each: true }) leadIds?: string[];
   @ApiPropertyOptional({ example: "My Project" })
   @IsOptional()
   @IsString()

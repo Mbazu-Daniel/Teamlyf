@@ -13,6 +13,12 @@ import { LeaveRequestService } from "./leave-request.service";
 export class LeaveRequestController {
   constructor(private readonly leaveRequests: LeaveRequestService) {}
 
+  @Get("review")
+  @RequirePermission("hr", "update")
+  getReviewQueue(@Param("orgId") orgId: string) {
+    return this.leaveRequests.getReviewQueue(orgId);
+  }
+
   @Get()
   @RequirePermission("hr", "read")
   @ApiOperation({ summary: "Get the leave requests of the current member" })
@@ -21,7 +27,7 @@ export class LeaveRequestController {
   }
 
   @Post()
-  @RequirePermission("hr", "create")
+  @RequirePermission("hr", "read")
   @ApiOperation({ summary: "Request leave" })
   createLeaveRequest(
     @Param("orgId") orgId: string,
