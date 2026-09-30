@@ -21,6 +21,12 @@ apps/web/src/routeTree.gen.ts
 .cursor/
 .scratch/
 .fallowrc.json
+apps/web/test/*
+apps/api/test/*
+apps/web/.wrangler/*
+.wrangler/*
+parity*.mjs
+storage-keys.check.ts
 
 # Local tooling output / build noise (never commit)
 .hallmark/
@@ -29,3 +35,4 @@ apps/web/src/routeTree.gen.ts
 !apps/api/test/parity.smoke.mjs
 !apps/web/test/realtime.smoke.mjs
 briefcase-test.svg
+*txt

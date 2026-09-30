@@ -6,7 +6,6 @@ import {
   ownerAc,
 } from "better-auth/plugins/organization/access";
 
-/** Full CRUD, shared by every resource. Roles below only narrow what they expose. */
 const crud = ["create", "read", "update", "delete"] as const;
 
 const fullCrud = {
@@ -19,13 +18,8 @@ const fullCrud = {
   agents: crud,
 };
 
-/**
- * Role-level permissions (user subjects only).
- * Instance overrides + agent grants live in `permission_grant`, not here.
- */
 const statement = { ...defaultStatements, ...fullCrud } as const;
 
-/** Resources → allowed actions, for the roles permission-catalog endpoint. */
 export const permissionCatalog = statement;
 
 export const ac = createAccessControl(statement);

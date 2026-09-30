@@ -1,11 +1,14 @@
 import { Module } from "@nestjs/common";
-import { LocalStorageService } from "./local-storage.service";
-import { StorageController } from "./storage.controller";
+import { API_ENV } from "../config/env.module";
+import { PresignedUploadService } from "./presigned-upload.service";
+import { R2StorageService } from "./r2-storage.service";
 import { STORAGE_SERVICE } from "./storage.types";
 
 @Module({
-  controllers: [StorageController],
-  providers: [{ provide: STORAGE_SERVICE, useClass: LocalStorageService }],
-  exports: [STORAGE_SERVICE],
+  providers: [
+    { provide: STORAGE_SERVICE, inject: [API_ENV], useFactory: (env) => new R2StorageService(env) },
+    PresignedUploadService,
+  ],
+  exports: [STORAGE_SERVICE, PresignedUploadService],
 })
 export class StorageModule {}
