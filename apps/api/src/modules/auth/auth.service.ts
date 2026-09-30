@@ -23,10 +23,7 @@ export class AuthService {
     this.auth = createAuth({
       db,
       secret: env.BETTER_AUTH_SECRET,
-      // Origin only — a path in baseURL takes precedence over basePath
-      // (better-auth docs), which would move the HTTP routes off
-      // /api/v1/auth/* and 404 every middleware route (social sign-in,
-      // update-user, OAuth callback). The /api/v1 prefix lives in basePath.
+
       baseURL: env.BETTER_AUTH_URL,
       webOrigin: env.WEB_ORIGIN,
       google:
@@ -75,12 +72,6 @@ export class AuthService {
     });
   }
 
-  /**
-   * Starts the provider handshake. Returns the provider consent URL and sets
-   * better-auth's short-lived state cookie; the browser follows the URL and
-   * Google returns to GET /auth/callback/:provider, which the AuthMiddleware
-   * hands to better-auth raw because it has to issue a redirect.
-   */
   async signInSocial(body: SignInSocialDto, headers: Headers) {
     return this.auth.api.signInSocial({
       body: {
@@ -110,7 +101,6 @@ export class AuthService {
     });
   }
 
-  /** Signs out every other device, keeping the caller's session alive. */
   async revokeOtherSessions(headers: Headers) {
     return this.auth.api.revokeOtherSessions({
       headers,

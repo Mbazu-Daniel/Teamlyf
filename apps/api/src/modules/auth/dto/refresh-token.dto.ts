@@ -1,7 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 
-/** Mirrors better-auth's accountSelectionSchema — one of accountId or useAccountCookie. */
 export class RefreshTokenDto {
   @ApiPropertyOptional({ description: "The Better Auth account ID" })
   @IsOptional()
