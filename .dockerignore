@@ -1,0 +1,52 @@
+# The API image builds from the repo root (context: .) but only needs the
+# workspace manifests plus apps/api and packages/db. Without this, the local
+# .env, node_modules and dist trees ride along in every build context and can
+# overwrite the layers the Dockerfile copies out of earlier stages.
+
+# Secrets: never in an image, and .env is gitignored so it can be easy to miss.
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output are produced inside the image.
+node_modules
+**/node_modules
+dist
+**/dist
+.turbo
+**/.turbo
+.output
+.tanstack
+.wrangler
+**/.wrangler
+
+# Web is a separate Cloudflare Workers deploy and is not part of this image.
+apps/web
+
+# VCS, agent config and local tooling
+.git
+.github
+.agents
+.cursor
+.husky
+.fallow
+.hallmark
+.scratch
+
+# Local artifacts: logs, test output, media, scratch scripts
+*.log
+*.txt
+*.svg
+*.mjs
+*.bat
+!apps/api/test/parity.smoke.mjs
+!apps/web/test/realtime.smoke.mjs
+brag-output*
+video
+seeders
+briefcase-test.svg
+.uploads
+
+# Docs and markdown are not inputs to the build.
+*.md
+!README.md

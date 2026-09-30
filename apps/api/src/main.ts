@@ -17,6 +17,26 @@ import { webOrigins } from "./common/config/env";
 /** The deploy probe targets this path, so it must not follow the API version. */
 const UNPREFIXED_ROUTES = [{ path: "health", method: RequestMethod.GET }];
 
+/**
+ * Landing page for `GET /`. Everything else on this server sits under
+ * `/api/v1`, so without it the root answers 404 — indistinguishable from a
+ * misrouted deploy when someone opens the domain to check it is alive.
+ */
+const WELCOME_PAGE = `<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Teamlyf API</title>
+  <body>
+    <h1>Welcome to Teamlyf</h1>
+    <p>The API is running.</p>
+    <ul>
+      <li><a href="/docs">API reference</a></li>
+      <li><a href="/health">Health</a></li>
+    </ul>
+  </body>
+</html>
+`;
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
@@ -69,6 +89,12 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, config);
 
   app.use("/docs-json", (_req: Request, res: Response) => res.json(document));
+
+  // Anchored regex, and `use` not a bare "/": app.use("/") prefix-matches and
+  // would swallow every path. app.get() is Nest's router .get() here, not Express's.
+  app.use(/^\/$/, (_req: Request, res: Response) => {
+    res.type("html").send(WELCOME_PAGE);
+  });
 
   app.use(
     "/docs",
