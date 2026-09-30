@@ -13,7 +13,7 @@ export const taskAttachment = pgTable(
       .notNull()
       .references(() => task.id, { onDelete: "cascade" }),
     organizationId: organizationReference(),
-    // The uploader. Deleting an attachment is theirs alone, so the row records who owns the file.
+
     memberId: memberReference(),
     fileKey: text("file_key").notNull(),
     originalFileName: text("original_file_name").notNull(),
@@ -26,7 +26,7 @@ export const taskAttachment = pgTable(
     index("task_attachment_task_id_idx").on(t.taskId),
     index("task_attachment_organization_id_idx").on(t.organizationId),
     index("task_attachment_member_id_idx").on(t.memberId),
-    // One record per stored object: a repeated confirm cannot duplicate the file.
+
     uniqueIndex("task_attachment_file_key_uidx").on(t.fileKey),
   ],
 );

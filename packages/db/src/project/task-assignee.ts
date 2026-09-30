@@ -3,7 +3,6 @@ import { generateId } from "../id";
 import { member } from "../organization/member";
 import { task } from "./task";
 
-/** `member` now; `agent` later (BYOK agents table — agentId has no FK until E9). */
 export const taskAssignee = pgTable(
   "task_assignee",
   {
