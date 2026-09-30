@@ -3,10 +3,6 @@ import { generateId } from "../id";
 import { organization } from "../organization/organization";
 import { member } from "../organization/member";
 
-/**
- * One row per direct message. Conversations are derived from the pair
- * (sender, recipient) — there is no conversation table.
- */
 export const directMessage = pgTable(
   "direct_message",
   {

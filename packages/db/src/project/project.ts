@@ -13,6 +13,9 @@ export const project = pgTable(
     description: text("description"),
     identifier: text("identifier").notNull(),
     emoji: text("emoji"),
+
+    image: text("image"),
+    coverImageUrl: text("cover_image_url"),
     status: text("status").notNull().default("planned"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

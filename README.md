@@ -1,6 +1,6 @@
 # Teamlyf
 
-Teamlyf is a comprehensive workspace management platform that unites project tracking, human resources, real-time communication, and AI agents into a single environment. 
+Teamlyf is a comprehensive workspace management platform that unites project tracking, human resources, real-time communication, and AI agents into a single environment.
 
 ## Overview
 
@@ -33,27 +33,32 @@ flowchart LR
 Follow these steps to set up the project locally.
 
 Clone the Repository:
+
 ```bash
 git clone https://github.com/Mbazu-Daniel/Teamlyf.git
 cd Teamlyf
 ```
 
 Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 Set up your environment variables:
+
 ```bash
 cp .env.example .env
 ```
 
 Start the database using Docker:
+
 ```bash
 pnpm db:up
 ```
 
 Run database migrations:
+
 ```bash
 pnpm db:migrate
 ```
@@ -62,17 +67,19 @@ Use the committed migrations for a new or existing database. `db:generate` is
 for authoring a new schema change, not for setting up the application.
 
 Start the development server:
+
 ```bash
 pnpm dev
 ```
 
 ## Usage
 
-Once the development server is running, the API will be available on port 3101 by default. You can navigate to the API documentation route at `/api/v1/docs` in your browser to explore the available endpoints. 
+Once the development server is running, the API will be available on port 3101 by default. You can navigate to the API documentation route at `/api/v1/docs` in your browser to explore the available endpoints.
 
 To create your first workspace, you will need to sign up a new user, create an organization, and then begin inviting team members. Use the CLI tool to audit your codebase health periodically.
 
 Run a strict audit on your code changes:
+
 ```bash
 pnpm fallow:audit
 ```
@@ -84,6 +91,7 @@ for the implemented workflows, local verification commands and remaining
 provider-dependent work.
 
 ### Human Resources Management
+
 Teamlyf includes a dedicated HR module that tracks employee profiles, leave policies, and time-off balances. Team members can request time off, and managers can review, approve, or reject these requests seamlessly. Balances are calculated dynamically based on policy allowances and approved time off.
 
 ```mermaid
@@ -100,15 +108,19 @@ sequenceDiagram
 ```
 
 ### Project and Task Tracking
+
 Teams can organize their work using projects, milestones, tasks, and labels. The system supports detailed task assignments, priority levels, custom statuses, and threaded comments for focused discussions on individual deliverables.
 
 ### Real-time Communication
+
 The platform provides instant messaging through channels and direct messages, featuring threaded replies and emoji reactions. It also integrates video and audio calls by issuing secure tokens for a dedicated real-time communication server.
 
 ### AI Agent Integration
+
 Organizations can deploy managed or bring-your-own-key AI agents directly into their workspace. The platform tracks agent usage, token consumption, and estimated costs to ensure billing limits are respected.
 
 ### Automated Billing and Subscriptions
+
 The system integrates with external billing providers to handle workspace upgrades. It processes secure webhooks to automatically adjust seat limits, agent allowances, and call durations based on the active tier.
 
 ```mermaid
@@ -126,17 +138,17 @@ sequenceDiagram
 
 ## Technologies Used
 
-| Category | Technology |
-|---|---|
-| Backend Framework | [NestJS](https://nestjs.com/) |
-| Runtime | [Node.js](https://nodejs.org/) |
-| Language | [TypeScript](https://www.typescriptlang.org/) |
-| Database | [PostgreSQL](https://www.postgresql.org/) |
-| ORM | [Drizzle](https://orm.drizzle.team/) |
-| Authentication | [Better Auth](https://better-auth.com/) |
-| Package Manager | [pnpm](https://pnpm.io/) |
+| Category          | Technology                                    |
+| ----------------- | --------------------------------------------- |
+| Backend Framework | [NestJS](https://nestjs.com/)                 |
+| Runtime           | [Node.js](https://nodejs.org/)                |
+| Language          | [TypeScript](https://www.typescriptlang.org/) |
+| Database          | [PostgreSQL](https://www.postgresql.org/)     |
+| ORM               | [Drizzle](https://orm.drizzle.team/)          |
+| Authentication    | [Better Auth](https://better-auth.com/)       |
+| Package Manager   | [pnpm](https://pnpm.io/)                      |
 
 ## Author Info
 
-* Daniel Mbazu: https://github.com/Mbazu-Daniel
-* Joy Ibini: https://github.com/Nastechy
+- Daniel Mbazu: https://github.com/Mbazu-Daniel
+- Joy Ibini: https://github.com/Nastechy

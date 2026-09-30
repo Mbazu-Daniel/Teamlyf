@@ -22,4 +22,3 @@ export const invitation = pgTable(
     index("invitation_organization_id_idx").on(t.organizationId),
   ],
 );
-

@@ -2,7 +2,6 @@ import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { organizationReference } from "./membership-columns";
 
-/** Dynamic per-org roles (better-auth organization plugin when dynamicAccessControl is on). */
 export const organizationRole = pgTable(
   "organization_role",
   {

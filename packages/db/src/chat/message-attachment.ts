@@ -3,7 +3,6 @@ import { generateId } from "../id";
 import { organization } from "../organization/organization";
 import { member } from "../organization/member";
 
-/** Exactly one of `directMessageId` / `channelMessageId` points at the owning message. */
 export const messageAttachment = pgTable(
   "message_attachment",
   {

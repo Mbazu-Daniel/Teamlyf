@@ -11,9 +11,7 @@
     "**/.tanstack/**",
     "**/routeTree.gen.ts"
   ],
-  "jsPlugins": [
-    "@shadcn/lint"
-  ],
+  "jsPlugins": ["@shadcn/lint"],
   "rules": {
     "shadcn/no-restyle": [
       "error",

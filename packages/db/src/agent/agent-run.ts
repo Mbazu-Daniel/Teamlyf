@@ -20,7 +20,9 @@ import { agentRunStatus } from "./run-status";
 export const agentRun = pgTable(
   "agent_run",
   {
-    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
+    id: uuid("id")
+      .$defaultFn(() => generateId())
+      .primaryKey(),
     organizationId: organizationReference(),
     agentId: uuid("agent_id").notNull(),
     memberId: uuid("member_id").notNull(),

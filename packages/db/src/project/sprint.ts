@@ -5,10 +5,14 @@ import { organizationReference } from "./references";
 export const sprint = pgTable(
   "sprint",
   {
-    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
+    id: uuid("id")
+      .$defaultFn(() => generateId())
+      .primaryKey(),
     organizationId: organizationReference(),
     projectId: uuid("project_id").notNull(),
     name: text("name").notNull(),
+
+    goal: text("goal"),
     startDate: timestamp("start_date"),
     endDate: timestamp("end_date"),
     status: text("status").notNull().default("planned"),

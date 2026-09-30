@@ -2,7 +2,6 @@
 import { member } from "../organization/member";
 import { organizationReference } from "../organization/membership-columns";
 
-/** HR profile fields that are not part of the organization membership record. */
 export const memberProfile = pgTable(
   "member_profile",
   {

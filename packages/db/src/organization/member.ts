@@ -12,6 +12,9 @@ export const member = pgTable(
     organizationId: organizationReference(),
     firstName: text("first_name"),
     lastName: text("last_name"),
+    /** Workspace-scoped profile photo. Deliberately not `user.image` — a member's
+     *  photo belongs to this membership, not to the global auth record. */
+    avatar: text("avatar"),
     role: text("role").notNull().default("member"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
