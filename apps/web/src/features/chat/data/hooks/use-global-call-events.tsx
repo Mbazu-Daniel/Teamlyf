@@ -25,8 +25,7 @@ interface GlobalCallEventsContextType {
   prepareForNewCall: () => void;
 }
 
-const GlobalCallEventsContext =
-  createContext<GlobalCallEventsContextType | null>(null);
+const GlobalCallEventsContext = createContext<GlobalCallEventsContextType | null>(null);
 
 export function GlobalCallEventsProvider({
   children,
@@ -37,11 +36,9 @@ export function GlobalCallEventsProvider({
   tenantId: string;
   myMemberId: string;
 }) {
-  const [activeCallSession, setActiveCallSession] =
-    useState<unifiedCallSession | null>(null);
+  const [activeCallSession, setActiveCallSession] = useState<unifiedCallSession | null>(null);
   const [isRinging, setIsRinging] = useState(false);
-  const [acceptedSession, setAcceptedSession] =
-    useState<InitiatorSessionData | null>(null);
+  const [acceptedSession, setAcceptedSession] = useState<InitiatorSessionData | null>(null);
   const [callRejected, setCallRejected] = useState(0);
 
   const activeCallSessionRef = useRef<unifiedCallSession | null>(null);
@@ -71,10 +68,8 @@ export function GlobalCallEventsProvider({
       const session = data;
       if (!session) return;
 
-      // DO NOT show ringing UI for the initiator themselves
       if (session.initiatorId === myMemberId) return;
 
-      // Always handle in global context (no chatId filtering)
       hasAcceptedRef.current = false;
       setActiveCallSession(session);
       setIsRinging(true);
@@ -150,23 +145,18 @@ export function GlobalCallEventsProvider({
   };
 
   return (
-    <GlobalCallEventsContext.Provider value={value}>
-      {children}
-    </GlobalCallEventsContext.Provider>
+    <GlobalCallEventsContext.Provider value={value}>{children}</GlobalCallEventsContext.Provider>
   );
 }
 
 export function useGlobalCallEvents() {
   const context = useContext(GlobalCallEventsContext);
   if (!context) {
-    throw new Error(
-      "useGlobalCallEvents must be used within GlobalCallEventsProvider",
-    );
+    throw new Error("useGlobalCallEvents must be used within GlobalCallEventsProvider");
   }
   return context;
 }
 
-// Hook for components that need filtered call events based on chatId
 export function useCallEvents(
   chatId: string,
   props?: {
@@ -178,8 +168,7 @@ export function useCallEvents(
   const { onCallRejected, onCallAccepted } = props || {};
 
   const [localRejected, setLocalRejected] = useState(0);
-  const [localAccepted, setLocalAccepted] =
-    useState<InitiatorSessionData | null>(null);
+  const [localAccepted, setLocalAccepted] = useState<InitiatorSessionData | null>(null);
 
   useLayoutEffect(() => {
     if (global.callRejected > localRejected) {
@@ -197,7 +186,6 @@ export function useCallEvents(
     }
   }, [global.acceptedSession, localAccepted, onCallAccepted]);
 
-  // Filter activeCallSession and isRinging based on chatId
   const isRelevantCall =
     !chatId ||
     global.activeCallSession?.initiatorId === chatId ||

@@ -12,7 +12,8 @@ const GROUP_HEADING =
   "mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/90 first:mt-0";
 const LINK_BASE =
   "mb-1 flex h-11 items-center gap-2.5 rounded-[8px] border-r-[3px] border-transparent px-3 text-[13px] font-medium leading-5 whitespace-nowrap transition-colors duration-150";
-const LINK_ACTIVE = "border-primary bg-primary text-primary-foreground font-semibold shadow-[0_10px_20px_-16px_hsl(var(--primary))] hover:bg-primary/90";
+const LINK_ACTIVE =
+  "border-primary bg-primary text-primary-foreground font-semibold shadow-[0_10px_20px_-16px_hsl(var(--primary))] hover:bg-primary/90";
 const LINK_IDLE = "text-sidebar-foreground/75 hover:bg-sidebar-accent/90 hover:text-foreground";
 
 function navLinkClass(active: boolean, collapsed: boolean, available: boolean) {
@@ -47,7 +48,14 @@ function NavItemLink({
   }
 
   return (
-    <Link to={href} title={item.label} aria-label={item.label} aria-current={active ? "page" : undefined} className={navLinkClass(active, collapsed, true)}>
+    <Link
+      to={href}
+      search={item.search}
+      title={item.label}
+      aria-label={item.label}
+      aria-current={active ? "page" : undefined}
+      className={navLinkClass(active, collapsed, true)}
+    >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       {label && <span className="truncate">{item.label}</span>}
     </Link>
@@ -55,7 +63,7 @@ function NavItemLink({
 }
 
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
-  const { pathname } = useLocation();
+  const { pathname, searchStr } = useLocation();
   const { organization } = useOrganization();
   const organizationSlug = organization?.slug || organization?.id || "";
 
@@ -66,19 +74,31 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         collapsed ? "w-16" : "w-[248px]",
       )}
     >
-      <div className="border-b border-sidebar-border px-2 py-3">
-        <OrganizationSwitcher collapsed={collapsed} />
+      {/* h-16 matches the app header, so the two bottom borders meet as one line, and the toggle sits beside the workspace switcher rather than at the foot of the rail. */}
+      <div className="flex h-16 shrink-0 items-center gap-1 border-b border-sidebar-border px-2">
+        <div className="min-w-0 flex-1">
+          <OrganizationSwitcher collapsed={collapsed} />
+        </div>
+        <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
       </div>
 
-      <nav className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-1.5 pb-4 pt-5" aria-label="Primary">
+      <nav
+        className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-1.5 pb-4 pt-5"
+        aria-label="Primary"
+      >
         {NAV_SECTIONS.map((section) => (
-          <div key={section.id} className={cn(collapsed && section.id !== "workspace" && "mt-4 border-t border-sidebar-border pt-4")}>
-            {!collapsed && <p className={GROUP_HEADING}>{section.label}</p>}
+          <div
+            key={section.id}
+            className={cn(
+              collapsed && section.id !== "workspace" && "mt-4 border-t border-sidebar-border pt-4",
+            )}
+          >
+            {!collapsed && section.label && <p className={GROUP_HEADING}>{section.label}</p>}
             {section.items.map((item) => (
               <NavItemLink
                 key={item.id}
                 item={item}
-                active={findActiveNavItem(pathname)?.id === item.id}
+                active={findActiveNavItem(pathname, searchStr)?.id === item.id}
                 href={item.to ? "/" + organizationSlug + "/" + item.to : "/" + organizationSlug}
                 collapsed={collapsed}
               />
@@ -86,29 +106,25 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           </div>
         ))}
       </nav>
-
-      <div className="border-t border-sidebar-border">
-        <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
-      </div>
     </aside>
   );
 }
 
-function CollapseToggle({ collapsed, onToggle }: Readonly<{ collapsed: boolean; onToggle: () => void }>) {
+function CollapseToggle({
+  collapsed,
+  onToggle,
+}: Readonly<{ collapsed: boolean; onToggle: () => void }>) {
   return (
     <button
       type="button"
       onClick={onToggle}
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      className="flex h-12 w-full items-center justify-center gap-2 text-[13px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent/90 hover:text-foreground"
+      className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-sidebar-accent/90 hover:text-foreground"
     >
       {collapsed ? (
         <IconChevronRight className="size-4" aria-hidden="true" />
       ) : (
-        <>
-          <IconChevronLeft className="size-4" aria-hidden="true" />
-          <span>Collapse</span>
-        </>
+        <IconChevronLeft className="size-4" aria-hidden="true" />
       )}
     </button>
   );

@@ -4,7 +4,15 @@ import { projectsApi, type Project } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 
-type CreateProjectInput = { name: string; identifier: string; description?: string; leadIds?: string[] };
+type CreateProjectInput = {
+  name: string;
+  identifier: string;
+  description?: string;
+  leadIds?: string[];
+};
+
+export const PROJECT_CODE_MIN = 2;
+export const PROJECT_CODE_MAX = 5;
 
 export function useProjects(organizationId: string | undefined) {
   const queryClient = useQueryClient();
@@ -53,7 +61,9 @@ export function useProjects(organizationId: string | undefined) {
     getErrorMessage(projectsQuery.error, "Unable to load projects");
 
   return {
-    organizationId, leadIds, setLeadIds,
+    organizationId,
+    leadIds,
+    setLeadIds,
     projects: projectsQuery.data ?? [],
     createdProject,
     name,
@@ -70,5 +80,6 @@ export function useProjects(organizationId: string | undefined) {
 }
 
 function isProjectFormValid(name: string, identifier: string) {
-  return Boolean(name.trim() && identifier.trim());
+  const code = identifier.trim();
+  return Boolean(name.trim() && code.length >= PROJECT_CODE_MIN && code.length <= PROJECT_CODE_MAX);
 }

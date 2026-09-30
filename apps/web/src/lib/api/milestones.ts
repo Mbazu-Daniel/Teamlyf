@@ -81,12 +81,25 @@ export const milestonesApi = {
       method: "DELETE",
     });
   },
-  createMilestoneTask(organizationId: string, projectId: string, milestoneId: string, taskId: string) {
-    return client.request<MilestoneTask>(milestoneTaskPath(organizationId, projectId, milestoneId, taskId), {
-      method: "POST",
-    });
+  createMilestoneTask(
+    organizationId: string,
+    projectId: string,
+    milestoneId: string,
+    taskId: string,
+  ) {
+    return client.request<MilestoneTask>(
+      milestoneTaskPath(organizationId, projectId, milestoneId, taskId),
+      {
+        method: "POST",
+      },
+    );
   },
-  deleteMilestoneTask(organizationId: string, projectId: string, milestoneId: string, taskId: string) {
+  deleteMilestoneTask(
+    organizationId: string,
+    projectId: string,
+    milestoneId: string,
+    taskId: string,
+  ) {
     return client.request<null>(milestoneTaskPath(organizationId, projectId, milestoneId, taskId), {
       method: "DELETE",
     });

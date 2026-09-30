@@ -3,7 +3,6 @@ import { taskActivityApi } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 
-/** Read-only timeline of one task; the API exposes no write endpoint for it. */
 export function useTaskActivity(
   organizationId: string | undefined,
   projectId: string,

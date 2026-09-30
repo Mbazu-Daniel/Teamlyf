@@ -36,11 +36,25 @@ export function TaskProperties({
   updateTask,
 }: TaskPropertiesProps) {
   return (
-    <section aria-label="Properties" className="space-y-4 rounded-xl border border-border/70 bg-card p-4">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Properties</h3>
+    <section
+      aria-label="Properties"
+      className="space-y-4 rounded-xl border border-border/70 bg-card p-4"
+    >
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Properties
+      </h3>
       <Field label="Status" htmlFor="task-status">
-        <select id="task-status" value={task.statusId} onChange={(event) => updateTask({ statusId: event.target.value })} className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm">
-          {statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+        <select
+          id="task-status"
+          value={task.statusId}
+          onChange={(event) => updateTask({ statusId: event.target.value })}
+          className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm"
+        >
+          {statuses.map((status) => (
+            <option key={status.id} value={status.id}>
+              {status.name}
+            </option>
+          ))}
         </select>
       </Field>
       <Field label="Priority" htmlFor="task-priority">
@@ -53,20 +67,57 @@ export function TaskProperties({
           }}
           className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm"
         >
-          {PRIORITIES.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+          {PRIORITIES.map((priority) => (
+            <option key={priority} value={priority}>
+              {priority}
+            </option>
+          ))}
         </select>
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Start date" htmlFor="task-start-date">
-          <input id="task-start-date" type="date" value={toDateValue(task.startDate)} onChange={(event) => { if (event.target.value) updateTask({ startDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm" />
+          <input
+            id="task-start-date"
+            type="date"
+            value={toDateValue(task.startDate)}
+            onChange={(event) => {
+              if (event.target.value) updateTask({ startDate: event.target.value });
+            }}
+            className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm"
+          />
         </Field>
         <Field label="Target date" htmlFor="task-target-date">
-          <input id="task-target-date" type="date" value={toDateValue(task.targetDate)} onChange={(event) => { if (event.target.value) updateTask({ targetDate: event.target.value }); }} className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm" />
+          <input
+            id="task-target-date"
+            type="date"
+            value={toDateValue(task.targetDate)}
+            onChange={(event) => {
+              if (event.target.value) updateTask({ targetDate: event.target.value });
+            }}
+            className="w-full rounded-md border bg-background px-2 h-control py-0 text-sm"
+          />
         </Field>
       </div>
-      <SprintPicker org={organizationId} project={projectId} value={task.sprintId} onChange={(sprintId) => updateTask({ sprintId })} />
-      <AssigneePicker organizationId={organizationId} projectId={projectId} task={task} members={members} membersLoading={membersLoading} updateTask={updateTask} />
-      <TaskLabels org={organizationId} project={projectId} selected={task.taskLabels?.map((l) => l.labelId) ?? []} onChange={(labelIds) => updateTask({ labelIds })} />
+      <SprintPicker
+        org={organizationId}
+        project={projectId}
+        value={task.sprintId}
+        onChange={(sprintId) => updateTask({ sprintId })}
+      />
+      <AssigneePicker
+        organizationId={organizationId}
+        projectId={projectId}
+        task={task}
+        members={members}
+        membersLoading={membersLoading}
+        updateTask={updateTask}
+      />
+      <TaskLabels
+        org={organizationId}
+        project={projectId}
+        selected={task.taskLabels?.map((l) => l.labelId) ?? []}
+        onChange={(labelIds) => updateTask({ labelIds })}
+      />
     </section>
   );
 }
@@ -90,14 +141,17 @@ function AssigneePicker({
   });
 
   const assignedMembers = new Set(
-    task.taskAssignees.flatMap((row) => row.kind === "member" && row.memberId ? [row.memberId] : []),
+    task.taskAssignees.flatMap((row) =>
+      row.kind === "member" && row.memberId ? [row.memberId] : [],
+    ),
   );
   const assignedAgents = new Set(
-    task.taskAssignees.flatMap((row) => row.kind === "agent" && row.agentId ? [row.agentId] : []),
+    task.taskAssignees.flatMap((row) => (row.kind === "agent" && row.agentId ? [row.agentId] : [])),
   );
 
   if (membersLoading || agentsLoading) return <MutedMessage message="Loading assignees..." />;
-  if (!members.length && !(agents?.length)) return <MutedMessage message="No members or agents available to assign." />;
+  if (!members.length && !agents?.length)
+    return <MutedMessage message="No members or agents available to assign." />;
 
   function saveAssignees(nextMembers: Set<string>, nextAgents: Set<string>, runAgentId?: string) {
     const assignees: TaskAssigneeInput[] = [
@@ -112,7 +166,8 @@ function AssigneePicker({
         projectId,
         taskName: task.name,
         description: task.description,
-        instruction: "Work on this assigned task. Inspect the available Teamlyf context, take the actions you are permitted to take, and report the work and any blockers.",
+        instruction:
+          "Work on this assigned task. Inspect the available Teamlyf context, take the actions you are permitted to take, and report the work and any blockers.",
       });
     }
   }
@@ -136,21 +191,44 @@ function AssigneePicker({
       <legend className="text-sm font-semibold">Assignees</legend>
       <div className="space-y-1">
         {members.map((member) => (
-          <label key={member.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60">
-            <input type="checkbox" checked={assignedMembers.has(member.id)} onChange={(event) => toggleMember(member.id, event.target.checked)} />
-            <span className="truncate">{member.user?.name ?? member.user?.email ?? member.userId}</span>
+          <label
+            key={member.id}
+            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60"
+          >
+            <input
+              type="checkbox"
+              checked={assignedMembers.has(member.id)}
+              onChange={(event) => toggleMember(member.id, event.target.checked)}
+            />
+            <span className="truncate">
+              {[member.firstName, member.lastName].filter(Boolean).join(" ") ||
+                member.user?.name ||
+                member.user?.email ||
+                member.userId}
+            </span>
           </label>
         ))}
       </div>
       {!!agents?.length && (
         <div className="border-t pt-3">
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">AI agents</p>
-          {agents.filter((agent) => agent.enabled).map((agent: Agent) => (
-            <label key={agent.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60">
-              <input type="checkbox" checked={assignedAgents.has(agent.id)} onChange={(event) => toggleAgent(agent.id, event.target.checked)} />
-              <span className="truncate">🤖 {agent.name}</span>
-            </label>
-          ))}
+          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            AI agents
+          </p>
+          {agents
+            .filter((agent) => agent.enabled)
+            .map((agent: Agent) => (
+              <label
+                key={agent.id}
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60"
+              >
+                <input
+                  type="checkbox"
+                  checked={assignedAgents.has(agent.id)}
+                  onChange={(event) => toggleAgent(agent.id, event.target.checked)}
+                />
+                <span className="truncate">🤖 {agent.name}</span>
+              </label>
+            ))}
           <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
             Assigning an enabled agent starts a run with this task as its work context.
           </p>
@@ -160,10 +238,20 @@ function AssigneePicker({
   );
 }
 
-function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) {
+function Field({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+}) {
   return (
     <div className="space-y-1">
-      <label htmlFor={htmlFor} className="text-sm text-muted-foreground">{label}</label>
+      <label htmlFor={htmlFor} className="text-sm text-muted-foreground">
+        {label}
+      </label>
       {children}
     </div>
   );

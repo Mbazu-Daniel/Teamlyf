@@ -7,6 +7,7 @@ import {
   IconRobot,
   IconUsers,
 } from "@tabler/icons-react";
+import { BrandMark } from "../ui/brand";
 
 const features: Array<{
   title: string;
@@ -14,12 +15,22 @@ const features: Array<{
   tone: string;
   position: string;
 }> = [
-  { title: "Projects", icon: IconLayoutKanban, tone: "landing-icon-violet", position: "landing-feature-projects" },
+  {
+    title: "Projects",
+    icon: IconLayoutKanban,
+    tone: "landing-icon-violet",
+    position: "landing-feature-projects",
+  },
   { title: "Chat", icon: IconMessage, tone: "landing-icon-blue", position: "landing-feature-chat" },
   { title: "Notes", icon: IconNotes, tone: "landing-icon-lime", position: "landing-feature-notes" },
   { title: "HR", icon: IconUsers, tone: "landing-icon-violet", position: "landing-feature-people" },
   { title: "Calls", icon: IconPhone, tone: "landing-icon-blue", position: "landing-feature-calls" },
-  { title: "AI agents", icon: IconRobot, tone: "landing-icon-magenta", position: "landing-feature-ai" },
+  {
+    title: "AI agents",
+    icon: IconRobot,
+    tone: "landing-icon-magenta",
+    position: "landing-feature-ai",
+  },
 ];
 
 export function Features() {
@@ -29,8 +40,13 @@ export function Features() {
         <div className="landing-feature-stage">
           <div className="landing-feature-copy">
             <p className="landing-kicker">Everything connected</p>
-            <h2 className="landing-section-title mt-3 max-w-xl">One place for the work that moves your company.</h2>
-            <p className="landing-section-copy mt-4 max-w-lg">Projects, conversations, knowledge, people, calls, and AI stay connected inside the same organization.</p>
+            <h2 className="landing-section-title mt-3 max-w-xl">
+              One place for the work that moves your company.
+            </h2>
+            <p className="landing-section-copy mt-4 max-w-lg">
+              Projects, conversations, knowledge, people, calls, and AI stay connected inside the
+              same organization.
+            </p>
           </div>
 
           <div className="landing-feature-orbit" aria-label="Teamlyf features">
@@ -43,8 +59,10 @@ export function Features() {
               </div>
             ))}
             <div className="landing-feature-core">
-              <span className="landing-feature-core-mark">T</span>
-              <span>Teamlyf</span>
+              <BrandMark />
+              <span className="text-base font-bold tracking-[-0.02em] text-[var(--landing-ink)]">
+                Teamlyf
+              </span>
             </div>
           </div>
         </div>

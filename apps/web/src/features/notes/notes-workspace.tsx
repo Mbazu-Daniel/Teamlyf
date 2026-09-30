@@ -6,6 +6,7 @@ import { NoteEditor } from "./note-editor";
 import { noteText } from "./rich-content";
 import {
   PageHeader,
+  ToolbarSearch,
   WorkspacePage,
   pageInput,
   pagePrimaryAction,
@@ -60,41 +61,16 @@ export function NotesPage({
   return (
     <WorkspacePage>
       <PageHeader
-        title="Notes"
-        description="Ideas, decisions and knowledge, connected."
         actions={
-          <button disabled={mutation.isPending} className={pagePrimaryAction} onClick={create}>
-            New note
-          </button>
-        }
-      />
-      <WorkflowError error={notes.error ?? selected.error ?? mutation.error} />
-      {selectedId ? (
-        selectedNote ? (
-          <NoteEditor
-            key={selectedId}
-            org={org}
-            note={selectedNote}
-            notes={notes.data ?? []}
-            onClose={() => onSelect(undefined)}
-          />
-        ) : (
-          <p className="text-sm">
-            {selected.isPending ? "Loading note…" : "This note is unavailable."}
-          </p>
-        )
-      ) : (
-        <>
-          <div className="flex flex-wrap gap-3">
-            <input
-              className={`${pageInput} sm:max-w-sm`}
-              aria-label="Search notes"
-              placeholder="Search notes…"
+          <>
+            <ToolbarSearch
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={setSearch}
+              placeholder="Search notes…"
+              label="Search notes"
             />
             <select
-              className={`${pageInput} sm:max-w-48`}
+              className={`${pageInput} !w-auto cursor-pointer`}
               aria-label="Notes filter"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
@@ -114,7 +90,29 @@ export function NotesPage({
                 Up one level
               </button>
             )}
-          </div>
+            <button disabled={mutation.isPending} className={pagePrimaryAction} onClick={create}>
+              New note
+            </button>
+          </>
+        }
+      />
+      <WorkflowError error={notes.error ?? selected.error ?? mutation.error} />
+      {selectedId ? (
+        selectedNote ? (
+          <NoteEditor
+            key={selectedId}
+            org={org}
+            note={selectedNote}
+            notes={notes.data ?? []}
+            onClose={() => onSelect(undefined)}
+          />
+        ) : (
+          <p className="text-sm">
+            {selected.isPending ? "Loading note…" : "This note is unavailable."}
+          </p>
+        )
+      ) : (
+        <>
           {notes.isPending ? (
             <p className="text-sm">Loading notes…</p>
           ) : (

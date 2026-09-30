@@ -11,19 +11,16 @@ export function useMarkChannelAsRead(tenantId: string, channelId: string) {
       return markChannelAsRead(tenantId, channelId);
     },
     onSuccess: () => {
-      // Optionally invalidate conversations to update read status
-      queryClient.setQueryData(
-          queryKeys.chat.channels(tenantId),
-          (old: Channel[] = []) =>
-            old.map((c) =>
-              c.id === channelId
-                ? {
-                    ...c,
-                    unreadCount: 0,
-                  }
-                : c
-            )
-        );
+      queryClient.setQueryData(queryKeys.chat.channels(tenantId), (old: Channel[] = []) =>
+        old.map((c) =>
+          c.id === channelId
+            ? {
+                ...c,
+                unreadCount: 0,
+              }
+            : c,
+        ),
+      );
     },
   });
 }

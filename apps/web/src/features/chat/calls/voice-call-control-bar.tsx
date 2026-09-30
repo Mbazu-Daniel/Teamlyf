@@ -1,4 +1,14 @@
-import { IconDeviceDesktop, IconDeviceDesktopOff, IconHandStop, IconMicrophone, IconMicrophoneOff, IconPhoneOff, IconUsers, IconVideoOff, IconVideoPlus } from "@tabler/icons-react";
+import {
+  IconDeviceDesktop,
+  IconDeviceDesktopOff,
+  IconHandStop,
+  IconMicrophone,
+  IconMicrophoneOff,
+  IconPhoneOff,
+  IconUsers,
+  IconVideoOff,
+  IconVideoPlus,
+} from "@tabler/icons-react";
 import type { Room } from "livekit-client";
 
 import { ControlBtn } from "./voice-call-control-btn";
@@ -36,7 +46,6 @@ export function VoiceCallControlBar({
     >
       <div className="px-3 sm:px-6 pt-10 pb-6 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-center">
         <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-[40px] bg-black/60 backdrop-blur-3xl border border-white/10 shadow-2xl max-w-full overflow-x-auto no-scrollbar">
-
           {/* Mic */}
           <ControlBtn
             onClick={() => room.localParticipant.setMicrophoneEnabled(!isMicrophoneEnabled)}
@@ -90,22 +99,32 @@ export function VoiceCallControlBar({
 
           {/* Leave — disconnects self only */}
           <ControlBtn
-            onClick={() => { room.disconnect(); onLeave(); }}
+            onClick={() => {
+              room.disconnect();
+              onLeave();
+            }}
             label="Leave call"
             variant="end"
           >
             <IconPhoneOff size={18} />
-            <span className="text-xs sm:text-sm font-semibold truncate max-w-[60px] sm:max-w-none">Leave</span>
+            <span className="text-xs sm:text-sm font-semibold truncate max-w-[60px] sm:max-w-none">
+              Leave
+            </span>
           </ControlBtn>
 
           {/* End for everyone — only the initiator sees this */}
           {isInitiator && (
             <ControlBtn
-              onClick={() => { room.disconnect(); onEnd(); }}
+              onClick={() => {
+                room.disconnect();
+                onEnd();
+              }}
               label="End for everyone"
               variant="end"
             >
-              <span className="text-xs sm:text-sm font-semibold px-1 truncate max-w-[70px] sm:max-w-none">End for all</span>
+              <span className="text-xs sm:text-sm font-semibold px-1 truncate max-w-[70px] sm:max-w-none">
+                End for all
+              </span>
             </ControlBtn>
           )}
         </div>

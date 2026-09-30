@@ -1,18 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  taskRelationsApi,
-  taskSubscribersApi,
-  type TaskRelationType,
-} from "@/lib/api";
+import { taskRelationsApi, taskSubscribersApi, type TaskRelationType } from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 
-/**
- * One task's cross-task links: blockers, related work, duplicates. Relations
- * are stored once with a direction, so the list holds both the rows this task
- * created and the rows pointing at it.
- */
 export function useTaskRelations(
   organizationId: string | undefined,
   projectId: string,
@@ -64,7 +55,6 @@ export function useTaskRelations(
   };
 }
 
-/** The members watching a task for updates, plus the opt-in/out mutations. */
 export function useTaskSubscribers(
   organizationId: string | undefined,
   projectId: string,
@@ -108,10 +98,7 @@ export function useTaskSubscribers(
     loading: subscribersQuery.isLoading,
     error: getErrorMessage(subscribersQuery.error, "Unable to load subscribers"),
     subscribeError: getErrorMessage(subscribeMutation.error, "Unable to subscribe member"),
-    unsubscribeError: getErrorMessage(
-      unsubscribeMutation.error,
-      "Unable to unsubscribe member",
-    ),
+    unsubscribeError: getErrorMessage(unsubscribeMutation.error, "Unable to unsubscribe member"),
     retry: () => void subscribersQuery.refetch(),
     subscribe: subscribeMutation.mutate,
     unsubscribe: unsubscribeMutation.mutate,

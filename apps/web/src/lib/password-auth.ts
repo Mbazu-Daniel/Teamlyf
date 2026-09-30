@@ -10,11 +10,6 @@ function credentials(form: FormData): { email: string; password: string } {
   };
 }
 
-/**
- * Shared email+password submit flow for the sign-in and sign-up routes.
- * Explicit destinations are used for onboarding. Normal sign-in restores the
- * user's last workspace and only opens the picker when none is remembered.
- */
 export function usePasswordAuth(
   authenticate: (credentials: { email: string; password: string }) => Promise<unknown>,
   fallbackError: string,

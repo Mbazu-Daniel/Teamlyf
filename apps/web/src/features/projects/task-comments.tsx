@@ -20,8 +20,7 @@ export function TaskComments({ organizationId, projectId, taskId }: TaskComments
   function submitComment(event: FormEvent) {
     event.preventDefault();
     if (!draft.trim() || thread.creating) return;
-    // The draft only clears once the server owns the comment; a failure keeps
-    // the text in the composer while the optimistic row rolls back.
+
     thread.createComment(draft, () => setDraft(""));
   }
 
@@ -183,10 +182,6 @@ function CommentRow({ comment, own, updating, onSave, onDelete }: CommentRowProp
   );
 }
 
-/**
- * No user-lookup endpoint exists for comment authors, so an actor id stands in
- * for a name: initials in the avatar and a shortened id as the display label.
- */
 function actorInitials(actorId: string) {
   return actorId
     .replace(/[^a-zA-Z0-9]/g, "")

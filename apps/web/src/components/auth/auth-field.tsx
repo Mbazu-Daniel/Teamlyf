@@ -11,7 +11,6 @@ type AuthFieldProps = Readonly<{
   minLength?: number;
 }>;
 
-/** Label + relaxed auth input. The label keeps its text and control one target. */
 export function AuthField({
   label,
   name,

@@ -8,7 +8,6 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["minute", 60 * 1000],
 ];
 
-/** "5 minutes ago" so comment and activity stamps read at a glance. */
 export function formatRelativeTime(iso: string): string {
   const timestamp = new Date(iso).getTime();
   if (Number.isNaN(timestamp)) return iso;

@@ -41,13 +41,19 @@ export function VoiceCallPresentationLayout({
 
       {/* Screen share area - Using transparent bg to show main gradient and adding subtle shadow */}
       <div
-        className={`flex-1 relative overflow-hidden grid gap-4 p-4 ${activeScreenShares.length > 1
-          ? activeScreenShares.length <= 2 ? "grid-cols-2" : "grid-cols-2 grid-rows-2"
-          : "grid-cols-1"
-          }`}
+        className={`flex-1 relative overflow-hidden grid gap-4 p-4 ${
+          activeScreenShares.length > 1
+            ? activeScreenShares.length <= 2
+              ? "grid-cols-2"
+              : "grid-cols-2 grid-rows-2"
+            : "grid-cols-1"
+        }`}
       >
         {activeScreenShares.map((share) => (
-          <div key={share.participant.identity} className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/5 bg-black/20">
+          <div
+            key={share.participant.identity}
+            className="relative w-full h-full rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/5 bg-black/20"
+          >
             <VideoTrack
               trackRef={share.trackRef}
               className="absolute inset-0 w-full h-full object-contain"
@@ -70,7 +76,10 @@ export function VoiceCallPresentationLayout({
           const cam = cameraTrack(p.identity);
           const trackRef = cam;
           return (
-            <div key={p.identity} className="shrink-0 w-28 h-20 rounded-xl overflow-hidden relative bg-[#0d111f] ring-1 ring-white/8">
+            <div
+              key={p.identity}
+              className="shrink-0 w-28 h-20 rounded-xl overflow-hidden relative bg-[#0d111f] ring-1 ring-white/8"
+            >
               {trackRef ? (
                 <VideoTrack
                   trackRef={trackRef}
@@ -83,9 +92,11 @@ export function VoiceCallPresentationLayout({
               )}
               <div className="absolute bottom-0 inset-x-0 h-6 bg-gradient-to-t from-black/70 to-transparent" />
               <span className="absolute bottom-1 left-1.5 text-[9px] text-white/75 font-medium truncate max-w-[80px]">
-                {isLocal ? "You" : (p.name || p.identity)}
+                {isLocal ? "You" : p.name || p.identity}
               </span>
-              {p.isSpeaking && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+              {p.isSpeaking && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              )}
             </div>
           );
         })}

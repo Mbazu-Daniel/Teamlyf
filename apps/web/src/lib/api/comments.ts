@@ -11,7 +11,12 @@ export type Comment = {
   updatedAt: string;
 };
 
-const commentsPath = (organizationId: string, projectId: string, taskId: string, commentId?: string) =>
+const commentsPath = (
+  organizationId: string,
+  projectId: string,
+  taskId: string,
+  commentId?: string,
+) =>
   commentId
     ? `${taskPath(organizationId, projectId, taskId)}/comments/${commentId}`
     : `${taskPath(organizationId, projectId, taskId)}/comments`;

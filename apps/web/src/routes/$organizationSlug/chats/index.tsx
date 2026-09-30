@@ -5,12 +5,10 @@ import { useNavigationStore, useThreadStore } from "@/lib/store/ui-stores";
 import { useNewChatStore } from "@/lib/store/new-chat-store";
 import { EmptyChat } from "@/features/chat/empty-chat";
 
-
 function RouteComponent() {
   const setCurrentPage = useNavigationStore((s) => s.setCurrentPage);
   const setChatId = useThreadStore((s) => s.setChatId);
   const selectedUser = useNewChatStore((state) => state.selectedUser);
-
 
   useEffect(() => {
     setCurrentPage("Chats");
@@ -27,7 +25,6 @@ function RouteComponent() {
   );
 }
 
-
-export const Route = createFileRoute('/$organizationSlug/chats/')({
+export const Route = createFileRoute("/$organizationSlug/chats/")({
   component: RouteComponent,
 });

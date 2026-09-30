@@ -56,13 +56,17 @@ describe("useProjects", () => {
       result.current.createProject(submitEvent());
     });
 
-    // Trims only; the identifier casing the user typed is what gets sent.
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         expect.stringContaining(PROJECTS_URL),
         expect.objectContaining({
           method: "POST",
-          body: JSON.stringify({ name: "Roadmap", identifier: "rdm", description: "Q4 plan", leadIds: [] }),
+          body: JSON.stringify({
+            name: "Roadmap",
+            identifier: "rdm",
+            description: "Q4 plan",
+            leadIds: [],
+          }),
         }),
       ),
     );
@@ -71,7 +75,6 @@ describe("useProjects", () => {
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
 
-    // Invalidation re-reads the list from the server under the reserved key.
     await waitFor(() => expect(countCalls(fetchMock, "GET", PROJECTS_URL)).toBe(2));
     expect(queryClient.getQueryData(queryKeys.projects("org-1"))).toEqual([created, existing]);
     expect(result.current.projects.map((item) => item.id)).toEqual(["p1", "p0"]);
@@ -101,6 +104,25 @@ describe("useProjects", () => {
     expect(result.current.name).toBe("Roadmap");
     expect(result.current.identifier).toBe("RDM");
     expect(countCalls(fetchMock, "POST", PROJECTS_URL)).toBe(1);
+  });
+
+  it("createProject_whenTheCodeIsOutsideTwoToFiveCharacters_neverCallsApi", async () => {
+    const fetchMock = stubFetch(() => jsonResponse([]));
+
+    for (const code of ["R", "ABCDEF"]) {
+      const { result } = renderWithQueryClient(() => useProjects("org-1"));
+      act(() => {
+        result.current.setName("Roadmap");
+        result.current.setIdentifier(code);
+      });
+      act(() => {
+        result.current.createProject(submitEvent());
+      });
+
+      await waitFor(() => expect(result.current.projectsLoading).toBe(false));
+      expect(countCalls(fetchMock, "POST", PROJECTS_URL)).toBe(0);
+      cleanup();
+    }
   });
 
   it("createProject_whenOrganizationMissing_neverCallsApi", async () => {

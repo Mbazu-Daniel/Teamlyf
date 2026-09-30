@@ -56,22 +56,14 @@ export function useChannelChatData(channelId: string) {
     enabled: isMember,
   });
 
-  const { typingUsers } = useChatEvents(
-    tenantId!,
-    channelId,
-    "channel",
-    accessToken!,
-    isMember,
-  );
+  const { typingUsers } = useChatEvents(tenantId!, channelId, "channel", accessToken!, isMember);
 
   const __searchStr = useRouterState({
     select: (s) => s.location.searchStr || s.location.search || "",
   });
   const searchParams = useMemo(
     () =>
-      new URLSearchParams(
-        typeof __searchStr === "string" ? __searchStr.replace(/^\?/, "") : "",
-      ),
+      new URLSearchParams(typeof __searchStr === "string" ? __searchStr.replace(/^\?/, "") : ""),
     [__searchStr],
   );
   const threadId = searchParams.get("threadId");
@@ -93,9 +85,7 @@ export function useChannelChatData(channelId: string) {
         if (u.name) return u.name;
         if (u.firstName) return u.firstName;
         const id = u.id;
-        const member = channelMembers.find(
-          (m: TenantMember) => m.id === id || m.userId === id,
-        );
+        const member = channelMembers.find((m: TenantMember) => m.id === id || m.userId === id);
         const globalMember = members?.records?.find(
           (m: TenantMember) => m.id === id || m.userId === id,
         );

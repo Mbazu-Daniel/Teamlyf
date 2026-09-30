@@ -40,7 +40,13 @@ type SelectTriggerProps = Omit<SelectPrimitive.Trigger.Props, "className"> & {
   size?: "sm" | "default";
 } & VariantProps<typeof selectTriggerVariants>;
 
-function SelectTrigger({ className, size = "default", variant = "default", children, ...props }: SelectTriggerProps) {
+function SelectTrigger({
+  className,
+  size = "default",
+  variant = "default",
+  children,
+  ...props
+}: SelectTriggerProps) {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -111,7 +117,10 @@ function SelectItem({ className, children, ...props }: SelectItemProps) {
       {...props}
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-      <span data-slot="select-item-indicator" className="absolute right-2.5 flex size-4 items-center justify-center">
+      <span
+        data-slot="select-item-indicator"
+        className="absolute right-2.5 flex size-4 items-center justify-center"
+      >
         <SelectPrimitive.ItemIndicator>
           <IconCheck className="size-4 text-primary" />
         </SelectPrimitive.ItemIndicator>
@@ -120,10 +129,4 @@ function SelectItem({ className, children, ...props }: SelectItemProps) {
   );
 }
 
-export {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-};
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };

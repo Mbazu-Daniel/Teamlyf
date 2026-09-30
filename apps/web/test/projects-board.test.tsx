@@ -45,23 +45,36 @@ afterEach(() => {
 });
 
 describe("Board layout", () => {
-  it.each(["project", "grouped"])("keeps the %s board compact with hidden, usable scroll areas", (kind) => {
-    const tasks = [makeTask("t1", "Write spec", "s1")];
-    const { container } = render(kind === "project" ? (
-      <KanbanBoard statuses={statuses} tasks={tasks} onMove={vi.fn()} onSelect={vi.fn()} />
-    ) : (
-      <GroupedBoard columns={[{ id: "today", name: "Today", color: "orange", tasks }]} allTasks={tasks} statusesFor={() => statuses} onDropColumn={vi.fn()} onSelect={vi.fn()} />
-    ));
+  it.each(["project", "grouped"])(
+    "keeps the %s board compact with hidden, usable scroll areas",
+    (kind) => {
+      const tasks = [makeTask("t1", "Write spec", "s1")];
+      const { container } = render(
+        kind === "project" ? (
+          <KanbanBoard statuses={statuses} tasks={tasks} onMove={vi.fn()} onSelect={vi.fn()} />
+        ) : (
+          <GroupedBoard
+            columns={[{ id: "today", name: "Today", color: "orange", tasks }]}
+            allTasks={tasks}
+            statusesFor={() => statuses}
+            onDropColumn={vi.fn()}
+            onSelect={vi.fn()}
+          />
+        ),
+      );
 
-    const board = container.firstElementChild!;
-    expect(board.classList.contains("h-[380px]")).toBe(true);
-    expect(board.classList.contains("scrollbar-hidden")).toBe(true);
-    expect(board.classList.contains("overflow-x-auto")).toBe(true);
-    for (const column of container.querySelectorAll("section")) {
-      expect(column.classList.contains("min-h-0")).toBe(true);
-      expect(column.querySelector(".overflow-y-auto")?.classList.contains("scrollbar-hidden")).toBe(true);
-    }
-  });
+      const board = container.firstElementChild!;
+      expect(board.classList.contains("h-[380px]")).toBe(true);
+      expect(board.classList.contains("scrollbar-hidden")).toBe(true);
+      expect(board.classList.contains("overflow-x-auto")).toBe(true);
+      for (const column of container.querySelectorAll("section")) {
+        expect(column.classList.contains("min-h-0")).toBe(true);
+        expect(
+          column.querySelector(".overflow-y-auto")?.classList.contains("scrollbar-hidden"),
+        ).toBe(true);
+      }
+    },
+  );
 });
 
 describe("StatusColumn", () => {

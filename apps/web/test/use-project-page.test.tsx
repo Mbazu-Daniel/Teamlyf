@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { useProjectPage } from "@/features/projects";
 import type { ProjectTask } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { projectSlug } from "@/lib/slug";
 import {
   TASKS_URL,
   PROJECTS_URL,
@@ -23,7 +24,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function stubDetailFetch(options: { createdTask?: ProjectTask; patchResponse?: Promise<Response> }) {
+function stubDetailFetch(options: {
+  createdTask?: ProjectTask;
+  patchResponse?: Promise<Response>;
+}) {
   const tasks = [existingTask];
   return stubRoutes([
     ...createTaskRoute(tasks, options),
@@ -35,11 +39,7 @@ function stubDetailFetch(options: { createdTask?: ProjectTask; patchResponse?: P
   ]);
 }
 
-/** The create endpoint only exists for the test that asks for one. */
-function createTaskRoute(
-  tasks: ProjectTask[],
-  options: { createdTask?: ProjectTask },
-): Route[] {
+function createTaskRoute(tasks: ProjectTask[], options: { createdTask?: ProjectTask }): Route[] {
   if (!options.createdTask) return [];
   return [
     {
@@ -53,7 +53,6 @@ function createTaskRoute(
   ];
 }
 
-/** The patch endpoint only exists for the test that supplies its response. */
 function patchTaskRoute(
   tasks: ProjectTask[],
   options: { patchResponse?: Promise<Response> },
@@ -78,7 +77,7 @@ function patchTaskRoute(
 
 async function renderDetail(options: Parameters<typeof stubDetailFetch>[0]) {
   const fetchMock = stubDetailFetch(options);
-  const rendered = renderWithQueryClient(() => useProjectPage("org-1", project.identifier));
+  const rendered = renderWithQueryClient(() => useProjectPage("org-1", projectSlug(project)));
   await waitFor(() => expect(rendered.result.current.project).not.toBeNull());
   await waitFor(() => expect(rendered.result.current.tasks).toHaveLength(1));
   return { fetchMock, ...rendered };
@@ -133,7 +132,6 @@ describe("useProjectPage", () => {
       result.current.moveTask(existingTask, done.id);
     });
 
-    // The board reflects the move while the server has not answered yet.
     await waitFor(() => expect(result.current.tasks[0]?.statusId).toBe(done.id));
     const cachedTasks = queryClient.getQueryData<ProjectTask[]>(queryKeys.tasks("org-1", "p1"));
     expect(cachedTasks?.[0]?.statusId).toBe(done.id);

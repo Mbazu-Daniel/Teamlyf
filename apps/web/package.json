@@ -3,14 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3100 --host",
+    "dev": "vite dev",
     "build": "vite build",
+    "deploy": "pnpm run build && wrangler deploy",
+		"cf-typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:realtime": "node test/realtime.smoke.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@cloudflare/vite-plugin": "^1.62.0",
     "@livekit/components-react": "^2.9.24",
     "@livekit/components-styles": "^1.2.0",
     "@tabler/icons-react": "^3.46.0",

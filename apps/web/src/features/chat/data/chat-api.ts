@@ -76,62 +76,77 @@ export async function getChannelMessages(
   return normalizePaginatedMessages(res.data);
 }
 
-export async function getDirectThreadMessages (tenantId: string, chatId: string, parentMessageId: string): Promise<ThreadMessage[]> {
-    const res = await api.get(`/organization/${tenantId}/direct-messages/conversations/${chatId}/threads/${parentMessageId}`);
-    return(res.data.records);      
+export async function getDirectThreadMessages(
+  tenantId: string,
+  chatId: string,
+  parentMessageId: string,
+): Promise<ThreadMessage[]> {
+  const res = await api.get(
+    `/organization/${tenantId}/direct-messages/conversations/${chatId}/threads/${parentMessageId}`,
+  );
+  return res.data.records;
 }
 
-export async function getChannelThreadMessages (tenantId: string, chatId: string, parentMessageId: string): Promise<ThreadMessage[]> {
-    const res = await api.get(`/organization/${tenantId}/channels/${chatId}/messages/threads/${parentMessageId}`);
-    return(res.data.records);      
+export async function getChannelThreadMessages(
+  tenantId: string,
+  chatId: string,
+  parentMessageId: string,
+): Promise<ThreadMessage[]> {
+  const res = await api.get(
+    `/organization/${tenantId}/channels/${chatId}/messages/threads/${parentMessageId}`,
+  );
+  return res.data.records;
 }
 
-
-export async function getConversations (tenantId: string) {
-    const res = await api.get(`/organization/${tenantId}/direct-messages/conversations`);
-    return(res.data.records);
-        
+export async function getConversations(tenantId: string) {
+  const res = await api.get(`/organization/${tenantId}/direct-messages/conversations`);
+  return res.data.records;
 }
 
-export async function createChannel (tenantId: string, name: string, description: string) {
-    const res = await api.post(`/organization/${tenantId}/channels`, {
-        name,
-        description
-    });
-    return(res.data);
-        
+export async function createChannel(tenantId: string, name: string, description: string) {
+  const res = await api.post(`/organization/${tenantId}/channels`, {
+    name,
+    description,
+  });
+  return res.data;
 }
 
-export async function getChannels (tenantId: string): Promise<Channel[]> {
-    const res = await api.get(`/organization/${tenantId}/channels`);
-    return(res.data);    
+export async function getChannels(tenantId: string): Promise<Channel[]> {
+  const res = await api.get(`/organization/${tenantId}/channels`);
+  return res.data;
 }
 
-export async function joinChannel (tenantId: string, channelId: string) {
-    const res = await api.post(`/organization/${tenantId}/channels/${channelId}/join`);
-    return(res.data);    
+export async function joinChannel(tenantId: string, channelId: string) {
+  const res = await api.post(`/organization/${tenantId}/channels/${channelId}/join`);
+  return res.data;
 }
 
-export async function markConversationAsRead (tenantId: string, conversationId: string) {
-    const res = await api.post(`/organization/${tenantId}/direct-messages/conversations/${conversationId}/read`);
-    return res.data;
+export async function markConversationAsRead(tenantId: string, conversationId: string) {
+  const res = await api.post(
+    `/organization/${tenantId}/direct-messages/conversations/${conversationId}/read`,
+  );
+  return res.data;
 }
 
-export async function markChannelAsRead (tenantId: string, channelId: string) {
-    const res = await api.post(`/organization/${tenantId}/channels/${channelId}/read`);
-    return res.data;
+export async function markChannelAsRead(tenantId: string, channelId: string) {
+  const res = await api.post(`/organization/${tenantId}/channels/${channelId}/read`);
+  return res.data;
 }
 
-export async function getChannelMembers (tenantId: string, channelId: string) {
-    const res = await api.get(`/organization/${tenantId}/channels/${channelId}/members`);
-    return res.data;
+export async function getChannelMembers(tenantId: string, channelId: string) {
+  const res = await api.get(`/organization/${tenantId}/channels/${channelId}/members`);
+  return res.data;
 }
 
-export async function getUnifiedThreads (tenantId: string, page: number = 1, limit: number = 50): Promise<{ records: Message[] }> {
-    const res = await api.get(`/organization/${tenantId}/chat/threads`, {
-        params: { page, limit }
-    });
-    return res.data;
+export async function getUnifiedThreads(
+  tenantId: string,
+  page: number = 1,
+  limit: number = 50,
+): Promise<{ records: Message[] }> {
+  const res = await api.get(`/organization/${tenantId}/chat/threads`, {
+    params: { page, limit },
+  });
+  return res.data;
 }
 
 export async function getMentions(

@@ -1,4 +1,5 @@
 import { IconCalendar, IconCheck, IconMessage, IconSparkles, IconUsers } from "@tabler/icons-react";
+import { BrandMark } from "../ui/brand";
 
 function SidebarItem({ label, active }: { label: string; active?: boolean }) {
   return (
@@ -46,10 +47,12 @@ export function HeroCards() {
       <div className="grid min-h-[430px] lg:grid-cols-[190px_1fr]">
         <aside className="hidden border-r border-[var(--landing-line)] bg-[var(--landing-sidebar)] p-3 lg:block">
           <div className="mb-5 flex items-center gap-2 px-2">
-            <span className="grid size-7 place-items-center rounded-lg bg-[var(--landing-primary)] text-[var(--landing-primary-foreground)]">
-              <IconSparkles className="size-3.5" />
+            <span className="grid size-7 place-items-center rounded-lg">
+              <BrandMark />
             </span>
-            <span className="text-xs font-bold text-[var(--landing-ink)]">Teamlyf</span>
+            <span className="text-base font-bold tracking-[-0.02em] text-[var(--landing-ink)]">
+              Teamlyf
+            </span>
           </div>
           <p className="px-2 pb-2 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--landing-muted)]">
             Workspace

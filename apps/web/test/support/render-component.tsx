@@ -9,7 +9,6 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 
-/** Renders a feature component under a fresh QueryClient, the way the app mounts it. */
 export function renderComponent(node: ReactNode) {
   const queryClient = new QueryClient();
   return {
@@ -18,14 +17,6 @@ export function renderComponent(node: ReactNode) {
   };
 }
 
-/**
- * Renders `node` inside a router context so its <Link>s resolve.
- *
- * RouterProvider renders matched routes rather than children, which is wrong
- * for a test that already holds the component; the context provider is the
- * seam the library exposes for exactly this. The stub route exists only so the
- * router has something to match.
- */
 export function renderWithRouter(node: ReactNode) {
   const rootRoute = createRootRoute();
   const stubRoute = createRoute({ getParentRoute: () => rootRoute, path: "/" });

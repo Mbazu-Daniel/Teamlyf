@@ -12,11 +12,16 @@ interface FilePreviewProps {
 function getFileMeta(file: File) {
   const ext = file.name.split(".").pop()?.toLowerCase();
   if (ext === "pdf") return { label: "PDF", bg: "bg-red-500/90", text: "text-white" };
-  if (ext === "doc" || ext === "docx") return { label: "DOC", bg: "bg-blue-500/90", text: "text-white" };
-  if (ext === "xls" || ext === "xlsx") return { label: "XLS", bg: "bg-green-600/90", text: "text-white" };
-  if (ext === "ppt" || ext === "pptx") return { label: "PPT", bg: "bg-orange-500/90", text: "text-white" };
-  if (ext === "zip" || ext === "rar") return { label: "ZIP", bg: "bg-violet-500/90", text: "text-white" };
-  if (ext === "mp3" || ext === "webm" || ext === "ogg") return { label: "AUD", bg: "bg-pink-500/90", text: "text-white" };
+  if (ext === "doc" || ext === "docx")
+    return { label: "DOC", bg: "bg-blue-500/90", text: "text-white" };
+  if (ext === "xls" || ext === "xlsx")
+    return { label: "XLS", bg: "bg-green-600/90", text: "text-white" };
+  if (ext === "ppt" || ext === "pptx")
+    return { label: "PPT", bg: "bg-orange-500/90", text: "text-white" };
+  if (ext === "zip" || ext === "rar")
+    return { label: "ZIP", bg: "bg-violet-500/90", text: "text-white" };
+  if (ext === "mp3" || ext === "webm" || ext === "ogg")
+    return { label: "AUD", bg: "bg-pink-500/90", text: "text-white" };
   return { label: "FILE", bg: "bg-muted-foreground/70", text: "text-white" };
 }
 
@@ -31,9 +36,10 @@ export function FilePreview({ file, onRemove, status = "pending", retryUpload }:
 
   return (
     <div className="relative flex items-center gap-2.5 bg-muted/60 border border-border/60 rounded-md px-3 py-2 w-56 group">
-
       {/* File type badge */}
-      <div className={`w-9 h-9 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0 ${meta.bg} ${meta.text}`}>
+      <div
+        className={`w-9 h-9 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0 ${meta.bg} ${meta.text}`}
+      >
         {meta.label}
       </div>
 
@@ -45,10 +51,16 @@ export function FilePreview({ file, onRemove, status = "pending", retryUpload }:
 
       {/* Status indicator */}
       <div className="shrink-0">
-        {status === "uploading" && <IconLoader className="w-3.5 h-3.5 text-primary-button animate-spin" />}
+        {status === "uploading" && (
+          <IconLoader className="w-3.5 h-3.5 text-primary-button animate-spin" />
+        )}
         {status === "success" && <IconCircleCheckFilled className="w-3.5 h-3.5 text-green-500" />}
         {status === "failed" && (
-          <button onClick={retryUpload} title="Retry" className="text-destructive hover:text-destructive/80 transition-colors">
+          <button
+            onClick={retryUpload}
+            title="Retry"
+            className="text-destructive hover:text-destructive/80 transition-colors"
+          >
             <IconRefresh className="w-3.5 h-3.5" />
           </button>
         )}
@@ -64,9 +76,7 @@ export function FilePreview({ file, onRemove, status = "pending", retryUpload }:
       </button>
 
       {/* Uploading dim overlay */}
-      {status === "uploading" && (
-        <div className="absolute inset-0 bg-background/40 rounded-md" />
-      )}
+      {status === "uploading" && <div className="absolute inset-0 bg-background/40 rounded-md" />}
     </div>
   );
 }

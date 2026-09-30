@@ -20,28 +20,27 @@ export function MessageReactionsRenderer({
 }) {
   const tenantId = useTenantStore((s) => s.tenantId);
 
-  // Fetch initial reactions from DB
   const { data: dbReactions } = useMessageReactions(tenantId!, chatId, msg.id, type);
 
-  // If a socket event occurred, `msg.reactions` will be populated and defined.
-  // Otherwise, we fallback to our DB fetch.
-  // If `msg.reactions` was explicitly set to an empty array by a socket event, we use that over dbReactions.
-  const combinedReactions = msg.reactions !== undefined ? msg.reactions : (dbReactions || []);
+  const combinedReactions = msg.reactions !== undefined ? msg.reactions : dbReactions || [];
 
   if (!combinedReactions || combinedReactions.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-1 mt-1.5 relative z-10" onClick={(e) => e.stopPropagation()}>
       {Object.entries(
-        combinedReactions.reduce((acc, r) => {
-          acc[r.reaction] = acc[r.reaction] || [];
-          if (!acc[r.reaction].includes(r.tenantMemberId)) {
-            acc[r.reaction].push(r.tenantMemberId);
-          }
-          return acc;
-        }, {} as Record<string, string[]>)
-      ).map(([emoji, userIds]) => {
-        const hasReacted = currentMemberId ? userIds.includes(currentMemberId) : false;
+        combinedReactions.reduce(
+          (acc, r) => {
+            acc[r.reaction] = acc[r.reaction] || [];
+            if (!acc[r.reaction].includes(r.tenantMemberId)) {
+              acc[r.reaction].push(r.tenantMemberId);
+            }
+            return acc;
+          },
+          {} as Record<string, string[]>,
+        ),
+      ).map(([emoji, memberIds]) => {
+        const hasReacted = currentMemberId ? memberIds.includes(currentMemberId) : false;
         return (
           <button
             key={emoji}
@@ -57,11 +56,11 @@ export function MessageReactionsRenderer({
               "flex items-center gap-1.5 px-1.5 py-0.5 rounded-full text-caption-xs font-medium border transition-colors",
               hasReacted
                 ? "bg-primary-button/10 border-primary-button/30 text-primary-button"
-                : "bg-primary-button/10 border-primary-button/30 text-primary-button hover:bg-primary-button/20"
+                : "bg-primary-button/10 border-primary-button/30 text-primary-button hover:bg-primary-button/20",
             )}
           >
             <span>{emoji}</span>
-            <span className="opacity-80 font-semibold">{userIds.length}</span>
+            <span className="opacity-80 font-semibold">{memberIds.length}</span>
           </button>
         );
       })}

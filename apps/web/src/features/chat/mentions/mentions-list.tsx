@@ -1,7 +1,12 @@
 import { PageEmptyState } from "@/components/workspace/page-layout";
-import { IconAt, IconChevronRight, IconClock, IconHash, IconMessageQuestion } from "@tabler/icons-react";
+import {
+  IconAt,
+  IconChevronRight,
+  IconClock,
+  IconHash,
+  IconMessageQuestion,
+} from "@tabler/icons-react";
 import { useAppRouter } from "@/lib/navigation";
-
 
 import { useMemo, useState } from "react";
 
@@ -16,7 +21,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Message } from "@/features/chat/types/messages/types";
 import { getAvatarColor } from "@/lib/utils/avatar-colors";
 
-function mapMentionToMessage(mention: MessageMentionRecord, currentMemberId: string): Message | null {
+function mapMentionToMessage(
+  mention: MessageMentionRecord,
+  currentMemberId: string,
+): Message | null {
   const channelMsg = mention.channelMessage;
   const directMsg = mention.directMessage;
   const mentionedBy = mention.mentionedBy;
@@ -145,7 +153,17 @@ export function MentionsList() {
             ))}
           </div>
         ) : mentions.length === 0 ? (
-          <div className="p-4 sm:p-6"><PageEmptyState icon={IconAt} title="No mentions found" description={activeTab === "all" ? "When someone mentions you in a channel or direct message, you can find it here." : "You are up to date. New mentions will appear here."} /></div>
+          <div className="p-4 sm:p-6">
+            <PageEmptyState
+              icon={IconAt}
+              title="No mentions found"
+              description={
+                activeTab === "all"
+                  ? "When someone mentions you in a channel or direct message, you can find it here."
+                  : "You are up to date. New mentions will appear here."
+              }
+            />
+          </div>
         ) : (
           <div className="divide-y divide-border/30">
             {mentions.map((mention: Message) => (

@@ -3,9 +3,7 @@ import { useMediaRecorder } from "@/features/chat/data/hooks/use-media-recorder-
 import { audioBlobToFile } from "../composer-utils";
 import type { ComposerAttachment } from "../types";
 
-type SetAttachments = React.Dispatch<
-  React.SetStateAction<ComposerAttachment[]>
->;
+type SetAttachments = React.Dispatch<React.SetStateAction<ComposerAttachment[]>>;
 
 export function useComposerRecording(setAttachments: SetAttachments) {
   const [recordingTime, setRecordingTime] = useState(0);
@@ -31,10 +29,7 @@ export function useComposerRecording(setAttachments: SetAttachments) {
         const exists = prev.some((a) => a.file.type.startsWith("audio/"));
         if (exists) return prev;
 
-        return [
-          ...prev,
-          { file: audioBlobToFile(blob), status: "pending" },
-        ];
+        return [...prev, { file: audioBlobToFile(blob), status: "pending" }];
       });
     },
   });

@@ -21,8 +21,11 @@ export function ParticipantTile({
 }) {
   return (
     <div
-      className={`relative rounded-2xl overflow-hidden bg-[#0d111f] flex items-center justify-center transition-all duration-300 ${isSpeaking ? "ring-2 ring-emerald-400/70 shadow-[0_0_24px_#34d39930]" : "ring-1 ring-white/5"
-        }`}
+      className={`relative rounded-2xl overflow-hidden bg-[#0d111f] flex items-center justify-center transition-all duration-300 ${
+        isSpeaking
+          ? "ring-2 ring-emerald-400/70 shadow-[0_0_24px_#34d39930]"
+          : "ring-1 ring-white/5"
+      }`}
     >
       {trackRef ? (
         <VideoTrack
@@ -30,18 +33,13 @@ export function ParticipantTile({
           className={`absolute inset-0 w-full h-full object-cover ${mirrored ? "scale-x-[-1]" : ""}`}
         />
       ) : (
-        <Avatar
-          name={name}
-          colorIndex={colorIndex}
-          size="md"
-          isSpeaking={isSpeaking}
-        />
+        <Avatar name={name} colorIndex={colorIndex} size="md" isSpeaking={isSpeaking} />
       )}
       {/* Name badge */}
       <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-black/70 to-transparent" />
       <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
         <span className="text-caption-xs font-semibold text-white/90 drop-shadow">
-          {isLocal ? "You" : (name || "Participant")}
+          {isLocal ? "You" : name || "Participant"}
         </span>
         {isMuted && <IconMicrophoneOff size={10} className="text-red-400" />}
         {isSpeaking && !isMuted && (

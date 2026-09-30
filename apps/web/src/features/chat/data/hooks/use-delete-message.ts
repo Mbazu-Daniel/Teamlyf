@@ -5,7 +5,7 @@ export function useDeleteMessage(tenantId: string, token: string) {
     if (!tenantId || !token || !messageId) return;
 
     const socket = getSocket(token, tenantId);
-    
+
     return new Promise((resolve, reject) => {
       socket.emit(
         "delete-message",
@@ -16,7 +16,7 @@ export function useDeleteMessage(tenantId: string, token: string) {
           } else {
             reject(response?.error || "Failed to delete message");
           }
-        }
+        },
       );
     });
   };

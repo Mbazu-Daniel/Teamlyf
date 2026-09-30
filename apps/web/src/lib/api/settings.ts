@@ -4,12 +4,20 @@ export type OrganizationMember = {
   id: string;
   userId: string;
   role: string;
+
+  firstName?: string | null;
+  lastName?: string | null;
+  /** Workspace-scoped profile photo (data URL) stored on the membership itself. */
+  avatar?: string | null;
   user?: { name?: string | null; email?: string | null } | null;
 };
 type OrganizationMembersResponse = { members: OrganizationMember[]; total: number };
 type ActiveMemberRole = { role?: string | string[] };
 export type BillingSummary = {
-  plans?: Record<"starter" | "growth" | "scale", { seatLimit: number; agentLimit: number; callDurationMinutes: number }>;
+  plans?: Record<
+    "starter" | "growth" | "scale",
+    { seatLimit: number; agentLimit: number; callDurationMinutes: number }
+  >;
   checkoutAvailable?: boolean;
   plan: "starter" | "growth" | "scale";
   status: string;
@@ -22,7 +30,8 @@ export type BillingSummary = {
 };
 export type CheckoutResponse = { url?: string; checkoutUrl?: string };
 
-const organizationPath = (organizationId: string, suffix = "") => "/organization/" + organizationId + suffix;
+const organizationPath = (organizationId: string, suffix = "") =>
+  "/organization/" + organizationId + suffix;
 
 export const settingsApi = {
   async members(organizationId: string) {
@@ -43,39 +52,56 @@ export const settingsApi = {
     return { members, total } satisfies OrganizationMembersResponse;
   },
   updateOrganization(organizationId: string, input: { name: string; logo?: string }) {
-    return client.request<Organization>(
-      organizationPath(organizationId),
-      { method: "PATCH", body: JSON.stringify(input) },
-    );
+    return client.request<Organization>(organizationPath(organizationId), {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
   },
   inviteMember(organizationId: string, input: { email: string; role: string }) {
-    return client.request(
-      organizationPath(organizationId, "/invitations"),
-      { method: "POST", body: JSON.stringify(input) },
-    );
+    return client.request(organizationPath(organizationId, "/invitations"), {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
   },
   updateMemberRole(organizationId: string, memberId: string, role: string) {
-    return client.request(
-      organizationPath(organizationId, "/members/update-role"),
-      { method: "POST", body: JSON.stringify({ memberId, role: [role] }) },
-    );
+    return client.request(organizationPath(organizationId, "/members/update-role"), {
+      method: "POST",
+      body: JSON.stringify({ memberId, role: [role] }),
+    });
   },
   removeMember(organizationId: string, memberId: string) {
-    return client.request(
-      organizationPath(organizationId, "/members/remove"),
-      { method: "POST", body: JSON.stringify({ memberIdOrEmail: memberId }) },
-    );
+    return client.request(organizationPath(organizationId, "/members/remove"), {
+      method: "POST",
+      body: JSON.stringify({ memberIdOrEmail: memberId }),
+    });
+  },
+
+  updateProfile(
+    organizationId: string,
+    input: { firstName?: string; lastName?: string; avatar?: string | null },
+  ) {
+    return client.request(organizationPath(organizationId, "/members/profile"), {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
   },
   activeMemberRole(organizationId: string) {
-    return client.request<ActiveMemberRole>(organizationPath(organizationId, "/members/active-role"));
+    return client.request<ActiveMemberRole>(
+      organizationPath(organizationId, "/members/active-role"),
+    );
   },
   billing(organizationId: string) {
     return client.request<BillingSummary>(organizationPath(organizationId, "/billing"));
   },
-  checkout(organizationId: string, plan: BillingSummary["plan"], successUrl: string, cancelUrl: string) {
-    return client.request<CheckoutResponse>(
-      organizationPath(organizationId, "/billing/checkout"),
-      { method: "POST", body: JSON.stringify({ plan, successUrl, cancelUrl }) },
-    );
+  checkout(
+    organizationId: string,
+    plan: BillingSummary["plan"],
+    successUrl: string,
+    cancelUrl: string,
+  ) {
+    return client.request<CheckoutResponse>(organizationPath(organizationId, "/billing/checkout"), {
+      method: "POST",
+      body: JSON.stringify({ plan, successUrl, cancelUrl }),
+    });
   },
 };

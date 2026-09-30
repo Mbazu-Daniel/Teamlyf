@@ -43,7 +43,7 @@ export function useDirectMessageActions({
 
   const handleSend = async (
     attachmentIds?: string[],
-    mentionedUserIds?: string[],
+    mentionedMemberIds?: string[],
     finalContent?: string,
   ) => {
     const hasAttachments = attachmentIds && attachmentIds.length > 0;
@@ -76,7 +76,7 @@ export function useDirectMessageActions({
     setMessage("");
     typing.stop();
 
-    await sendMessage(finalContent || message, attachmentIds, tempId, mentionedUserIds);
+    await sendMessage(finalContent || message, attachmentIds, tempId, mentionedMemberIds);
   };
 
   const cancelSending = (id: string) => {

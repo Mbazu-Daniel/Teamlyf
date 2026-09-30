@@ -1,15 +1,15 @@
+﻿import { useState } from "react";
+import { toast } from "sonner";
+import { IconMenu, IconMessage, IconSend, IconSparkles } from "@tabler/icons-react";
+import { EmptyStateArt } from "@/components/ui/empty-state-art";
+import { useStartConversation } from "@/features/chat/data/mutations/dm/use-start-conversation-hook";
 import { useTenantStore } from "@/lib/store/tenant-store";
 import { useThreadStore } from "@/lib/store/ui-stores";
-import { useStartConversation } from "@/features/chat/data/mutations/dm/use-start-conversation-hook";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { IconSend, IconMenu, IconMessage } from "@tabler/icons-react";
 
 interface User {
-  firstName: string,
-  lastName: string,
-  id: string
+  firstName: string;
+  lastName: string;
+  id: string;
 }
 
 interface EmptyChatProps {
@@ -17,162 +17,140 @@ interface EmptyChatProps {
 }
 
 export function EmptyChat({ selectedUser }: EmptyChatProps) {
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const { tenantId, subdomain } = useTenantStore();
   const setIsChatSidebarOpen = useThreadStore((state) => state.setIsChatSidebarOpen);
 
   const startConversation = useStartConversation(tenantId!, subdomain as string);
-
-  const { mutate: sendFirstMessage } = startConversation
-
-
+  const { mutate: sendFirstMessage } = startConversation;
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) {
       toast.error("Message cannot be empty");
       return;
     }
-
     if (!selectedUser) {
       toast.error("Please select a user to message");
       return;
     }
-
-    const payload = {
-      recipientId: selectedUser.id,
-      content: newMessage.trim()
-    }
-    sendFirstMessage(payload, {
-      onError: () => {
-        toast.error("Failed to start conversation");
-      }
-    })
-  }
+    sendFirstMessage(
+      { recipientId: selectedUser.id, content: newMessage.trim() },
+      { onError: () => toast.error("Failed to start conversation") },
+    );
+  };
 
   if (!selectedUser) {
     return (
       <div className="flex h-full min-h-0 flex-col overflow-hidden">
-        {/* Mobile menu header */}
-        <div className="flex items-center border-b px-3 sm:px-4 py-3 shrink-0 md:hidden">
+        <div className="flex shrink-0 items-center border-b px-3 py-3 sm:px-4 md:hidden">
           <button
-            className="p-1 hover:bg-muted rounded-lg transition-colors"
+            type="button"
+            className="rounded-lg p-1 transition-colors hover:bg-muted"
             aria-label="Open chat menu"
             onClick={() => setIsChatSidebarOpen(true)}
           >
-            <IconMenu className="h-5 w-5" />
+            <IconMenu className="size-5" />
           </button>
         </div>
 
-        {/* Empty state message */}
-        <div className="flex min-h-0 flex-1 px-4 py-4 sm:px-6 md:py-6">
-          <div className="relative flex h-full w-full flex-col items-center justify-start overflow-y-auto rounded-[16px] border border-dashed border-[var(--app-panel-border)] bg-gradient-to-b from-card to-primary/5 px-6 py-12 text-center">
-            <div className="relative z-10 max-w-xl pt-8 md:pt-12">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[linear-gradient(135deg,rgba(70,72,212,0.14),rgba(132,85,239,0.18))] shadow-[0_20px_44px_-32px_rgba(70,72,212,0.4)]">
-                <IconMessage className="h-9 w-9 text-primary" />
-              </div>
+        <div className="flex min-h-0 flex-1 items-center justify-center px-4 py-8 sm:px-6">
+          <div className="flex w-full max-w-md flex-col items-center text-center">
+            <EmptyStateArt variant="chat" className="max-w-[220px]" />
 
-              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
-                No conversation selected
-              </h2>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground md:text-base">
-                Select a group or person from the chat list to start messaging and follow updates.
-              </p>
-
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button
-                  size="app-wide"
-                  variant="soft-body"
-                  className="md:hidden"
-                  onClick={() => setIsChatSidebarOpen(true)}
-                >
-                  Open Chat Menu
-                </Button>
-              </div>
-
-              <div className="mt-8 opacity-40">
-                <img
-                  className="dark:invert"
-                  src="/assets/messy.svg"
-                  alt="Empty chat illustration"
-                  width={200}
-                  height={100}
-                />
-              </div>
-            </div>
+            <h2 className="mt-6 text-lg font-semibold tracking-[-0.02em] text-foreground">
+              Nothing open yet
+            </h2>
+            <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted-foreground">
+              Pick a channel or a teammate to pick up where your team left off.
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsChatSidebarOpen(true)}
+              className="mt-6 inline-flex h-9 items-center gap-1.5 rounded-[9px] border border-border bg-background px-3.5 text-xs font-semibold transition hover:bg-muted md:hidden"
+            >
+              <IconMenu className="size-4" />
+              Browse chats
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
+  const firstName = selectedUser.firstName?.trim() || "there";
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Header - responsive padding and layout */}
-      <div className="flex items-center gap-2 sm:gap-3 border-b px-3 sm:px-4 py-3 shrink-0">
-        {/* Mobile menu trigger */}
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 items-center gap-2.5 border-b px-3 py-3 sm:gap-3 sm:px-4">
         <button
-          className="p-1 hover:bg-muted rounded-lg transition-colors shrink-0 md:hidden"
+          type="button"
+          className="shrink-0 rounded-lg p-1 transition-colors hover:bg-muted md:hidden"
           aria-label="Open chat menu"
           onClick={() => setIsChatSidebarOpen(true)}
         >
-          <IconMenu className="h-5 w-5" />
+          <IconMenu className="size-5" />
         </button>
 
-        <div className="h-8 sm:h-9 w-8 sm:w-9 rounded-full overflow-hidden bg-gray-200 shrink-0">
-          <span className="flex items-center justify-center w-full h-full text-xs text-gray-600 font-semibold">
-            {selectedUser.firstName[0]}
-          </span>
+        <div className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-muted text-xs font-semibold sm:size-9">
+          {firstName[0]?.toUpperCase()}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium text-sm truncate">{[selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(" ")}</p>
-          <p className="text-xs sm:text-sm text-muted-foreground truncate">@{selectedUser.firstName.toLowerCase()}</p>
-        </div>
+        <p className="min-w-0 flex-1 truncate text-sm font-medium">
+          {[selectedUser.firstName, selectedUser.lastName].filter(Boolean).join(" ")}
+        </p>
       </div>
 
-      {/* Empty conversation state */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 sm:gap-6 px-4 py-8">
-        <div className="text-center space-y-3">
-          <h2 className="text-lg sm:text-xl font-semibold text-foreground">
-            Say hello to {selectedUser.firstName}
+      <div className="flex flex-1 flex-col items-center justify-center gap-5 px-4 py-8">
+        <div className="grid size-14 place-items-center rounded-2xl bg-primary/10">
+          <IconMessage className="size-6 text-primary" />
+        </div>
+        <div className="space-y-1.5 text-center">
+          <h2 className="text-base font-semibold text-foreground sm:text-lg">
+            Say hello to {firstName}
           </h2>
-          <p className="text-sm sm:text-base text-muted-foreground max-w-sm">
-            Start the conversation by sending your first message
+          <p className="mx-auto max-w-sm text-sm leading-6 text-muted-foreground">
+            This conversation is empty. Send the first message to start it.
           </p>
         </div>
 
-        {/* Optional: Illustration */}
-        <div className="opacity-40">
-          <img
-            className="dark:invert"
-            src="/assets/messy.svg"
-            alt="Start conversation illustration"
-            width={200}
-            height={100}
-          />
-        </div>
+        <ul className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted-foreground">
+          {["@mention teammates", "Share files and links", "Start a thread"].map((hint) => (
+            <li
+              key={hint}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2.5 py-1"
+            >
+              <IconSparkles className="size-3 opacity-60" />
+              {hint}
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Message Input - responsive padding */}
-      <div className="border-t px-3 sm:px-4 py-3 sm:py-4 shrink-0">
+      <div className="shrink-0 border-t px-3 py-3 sm:px-4 sm:py-4">
         <div className="flex items-center gap-2 rounded-[14px] border border-border/70 bg-card px-3 py-3">
           <input
+            aria-label={`Message ${firstName}`}
             className="flex-1 bg-transparent text-sm outline-none"
+            placeholder={`Message ${firstName}`}
+            value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
           />
           <button
-            disabled={!newMessage}
+            type="button"
+            aria-label="Send message"
+            disabled={!newMessage.trim()}
             onClick={handleSendMessage}
-            className="rounded-md bg-primary p-1.5 sm:p-2 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+            className="shrink-0 rounded-md bg-primary p-1.5 text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:p-2"
           >
-            <IconSend className="h-4 w-4 sm:h-5 sm:w-5" />
+            <IconSend className="size-4 sm:size-5" />
           </button>
         </div>
       </div>
     </div>
   );
 }
-
-//   <div className="flex-1">
-//     {/* Pass a temporary "null" chatId until message is sent */}
-//     <ChatContent chatId={selectedUser.id /* temp, real chatId assigned after first message */} />
-//   </div>

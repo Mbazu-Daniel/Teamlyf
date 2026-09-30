@@ -10,7 +10,7 @@ export function PersonIcon() {
 export function TypingDots() {
   return (
     <div className="flex items-center gap-[3px] px-0.5 py-0.5">
-      {[0, 1, 2].map(i => (
+      {[0, 1, 2].map((i) => (
         <span
           key={i}
           className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce"

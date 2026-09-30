@@ -6,14 +6,9 @@ const BRIEFCASE = "https://cdn.getteamlyf.com/teamlyf/briefcase.svg";
 type AuthLayoutProps = Readonly<{
   children: ReactNode;
   title: string;
-  description: string;
+  description?: string;
 }>;
 
-/**
- * Shared auth shell inspired by the existing Teamlyf client: a quiet product
- * story sits alongside a crisp, focused form. Keeping it shared prevents the
- * sign-in, sign-up and password-recovery journeys from drifting apart.
- */
 export function AuthLayout({ children, title, description }: AuthLayoutProps) {
   return (
     <main className="auth-shell grid min-h-svh grid-cols-1 lg:grid-cols-2">
@@ -49,9 +44,11 @@ export function AuthLayout({ children, title, description }: AuthLayoutProps) {
               <h1 className="text-2xl font-semibold tracking-[-0.03em] text-foreground sm:text-[30px] sm:leading-tight">
                 {title}
               </h1>
-              <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-                {description}
-              </p>
+              {description && (
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+                  {description}
+                </p>
+              )}
             </header>
 
             <div className="auth-form-content mt-8">{children}</div>

@@ -8,6 +8,10 @@ import { OrganizationProvider } from "@/lib/organization";
 import { UserFooter } from "@/components/sidebar/user-footer";
 
 const ORG: Organization = { id: "org-a", name: "Acme Inc", slug: "acme" };
+const AVATAR = "data:image/webp;base64,UklGRg==";
+const ME = { id: "member-1", firstName: "Ada", lastName: "Lovelace", avatar: AVATAR };
+/** Cold-start environment creation can eat the default 1s `findByRole` window. */
+const FIND_TIMEOUT = { timeout: 5_000 };
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -17,11 +21,7 @@ const mocks = vi.hoisted(() => ({
   getOrganizations: vi.fn(),
 }));
 
-// Router and API are seams here: the test reads the sign-out outcome from the
-// navigate/storage mocks instead of booting a real app under them.
 vi.mock("@tanstack/react-router", () => ({
-  // Base UI merges the menuitem props onto the render element; forward them
-  // the way the real Link does, or the role never reaches the DOM.
   Link: ({ to, children, ...rest }: { to: string } & ComponentPropsWithRef<"a">) => (
     <a href={to} {...rest}>
       {children}
@@ -36,6 +36,11 @@ vi.mock("@/lib/api", () => ({
   getOrganizations: mocks.getOrganizations,
   getSession: mocks.getSession,
   signOut: mocks.signOut,
+}));
+
+// `useGetCurrentUser` imports the client directly rather than through the barrel.
+vi.mock("@/lib/api/client", () => ({
+  client: { request: mocks.request },
 }));
 
 function renderFooter() {
@@ -53,7 +58,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   localStorage.setItem("teamlyf:last-organization-id:user-1", ORG.id);
-  mocks.request.mockResolvedValue(ORG);
+  mocks.request.mockImplementation((path: string) =>
+    Promise.resolve(path.includes("/members/me") ? ME : ORG),
+  );
   mocks.getOrganizations.mockResolvedValue([ORG]);
   mocks.getSession.mockResolvedValue({
     user: { id: "user-1", name: "Ada Lovelace", email: "ada@example.com" },
@@ -65,26 +72,61 @@ describe("UserFooter", () => {
   it("showsTheSignedInIdentity_whenSessionLoaded_rendersNameAndEmail", async () => {
     renderFooter();
 
-    const trigger = await screen.findByRole("button", { name: /Ada Lovelace/ });
+    const trigger = await screen.findByRole(
+      "button",
+      { name: /Ada Lovelace/ },
+      FIND_TIMEOUT,
+    );
     expect(trigger).toHaveTextContent("ada@example.com");
   });
 
-  it("exposesSettings_whenMenuOpened_linksToTheSettingsRoute", async () => {
+  it("rendersTheWorkspaceAvatar_whenMembershipHasOne_showsTheStoredPhoto", async () => {
+    const { container } = renderFooter();
+
+    const trigger = await screen.findByRole(
+      "button",
+      { name: /Ada Lovelace/ },
+      FIND_TIMEOUT,
+    );
+    // The photo comes from `member.avatar`, never from the global user record.
+    await waitFor(() => expect(container.querySelector(`img[src="${AVATAR}"]`)).not.toBeNull());
+    expect(trigger).toBeInTheDocument();
+  });
+
+  it("exposesProfileAndWorkspaceSettings_whenMenuOpened_linksToBoth", async () => {
     const user = userEvent.setup();
     renderFooter();
 
-    await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }));
+    await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }, FIND_TIMEOUT));
 
-    const settings = await screen.findByRole("menuitem", { name: "Settings" });
+    const profile = await screen.findByRole("menuitem", { name: "Profile" });
+    expect(profile).toHaveAttribute("href", "/$organizationSlug/settings/profile");
+
+    const settings = await screen.findByRole("menuitem", { name: "Workspace settings" });
     expect(settings).toHaveAttribute("href", "/$organizationSlug/settings");
     expect(screen.getByRole("menuitem", { name: "Log out" })).toBeInTheDocument();
+  });
+
+  it("exposesAppearanceInsideTheMenu_whenOpen_rendersTheThemeControls", async () => {
+    const user = userEvent.setup();
+    renderFooter();
+
+    expect(screen.queryByRole("button", { name: "Change appearance" })).not.toBeInTheDocument();
+
+    await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }, FIND_TIMEOUT));
+
+    expect(await screen.findByText("Appearance")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Light" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Dark" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "System" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Custom accent color")).toBeInTheDocument();
   });
 
   it("forgetsSessionAndWorkspace_whenLogOutChosen_signsOutAndLeaves", async () => {
     const user = userEvent.setup();
     renderFooter();
 
-    await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }));
+    await user.click(await screen.findByRole("button", { name: /Ada Lovelace/ }, FIND_TIMEOUT));
     await user.click(await screen.findByRole("menuitem", { name: "Log out" }));
 
     await waitFor(() => expect(mocks.navigate).toHaveBeenCalledWith({ to: "/sign-in" }));

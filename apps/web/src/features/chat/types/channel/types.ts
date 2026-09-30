@@ -3,7 +3,7 @@ export interface ChannelCreator {
   createdAt: string;
   tenantId: string;
   userId: string;
-  role: 'owner' | 'admin' | 'member' | string;
+  role: "owner" | "admin" | "member" | string;
   firstName: string;
   lastName: string;
   updatedAt: string;
@@ -21,8 +21,8 @@ export interface Channel {
   createdBy: ChannelCreator;
   unreadCount: number;
   isMember: boolean;
-  avatar?: string
-  lastProcessedMessageId?: string
+  avatar?: string;
+  lastProcessedMessageId?: string;
 }
 
 export interface ChannelMember {
@@ -34,8 +34,6 @@ export interface ChannelMember {
     id: string;
     firstName: string;
     lastName: string;
-    user?: {
-      image: string | null;
-    }
+    avatar?: string | null;
   };
 }

@@ -5,7 +5,7 @@ export function useTyping(
   tenantId: string,
   token: string,
   chatId: string,
-  type: "channel" | "direct"
+  type: "channel" | "direct",
 ) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const socket = getSocket(token, tenantId);
@@ -15,7 +15,6 @@ export function useTyping(
       [type === "channel" ? "channelId" : "recipientId"]: chatId,
     });
 
-    // reset stop timer
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -24,7 +23,7 @@ export function useTyping(
       socket.emit("typing-stop", {
         [type === "channel" ? "channelId" : "recipientId"]: chatId,
       });
-    }, 1000); // 👈 debounce duration
+    }, 1000);
   }, [socket, chatId, type]);
 
   const stop = useCallback(() => {

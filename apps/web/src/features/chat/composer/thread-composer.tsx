@@ -29,7 +29,7 @@ export function ThreadComposer({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
+  const [mentionedMemberIds, setmentionedMemberIds] = useState<string[]>([]);
   const [mentionSearch, setMentionSearch] = useState("");
 
   const {
@@ -52,8 +52,7 @@ export function ThreadComposer({
     mentionSearch,
   );
 
-  const { isRecording, recordingTime, handleMic } =
-    useComposerRecording(setAttachments);
+  const { isRecording, recordingTime, handleMic } = useComposerRecording(setAttachments);
 
   useOutsideClickClose(
     showMentions,
@@ -99,11 +98,7 @@ export function ThreadComposer({
     if (!showMentions) setMentionSearch("");
   };
 
-  const addMention = (
-    memberId: string,
-    firstName: string,
-    lastName: string,
-  ) => {
+  const addMention = (memberId: string, firstName: string, lastName: string) => {
     const fullName = `${firstName} ${lastName}`.trim();
     const words = value.split(/\s+/);
     const lastWord = words[words.length - 1];
@@ -118,7 +113,7 @@ export function ThreadComposer({
     }
 
     onChange(newValue);
-    setMentionedUserIds((prev) => Array.from(new Set([...prev, memberId])));
+    setmentionedMemberIds((prev) => Array.from(new Set([...prev, memberId])));
     setShowMentions(false);
     textareaRef.current?.focus();
   };
@@ -130,24 +125,16 @@ export function ThreadComposer({
         setIsUploading(true);
         attachmentIds = await uploadFiles();
       }
-      const failedAttachments = attachments.filter(
-        (att) => att.status === "failed",
-      );
+      const failedAttachments = attachments.filter((att) => att.status === "failed");
       if (failedAttachments.length > 0) {
-        throw new Error(
-          "Please retry or remove failed attachments before sending",
-        );
+        throw new Error("Please retry or remove failed attachments before sending");
       }
 
-      const finalContent = structureMentionContent(
-        value,
-        mentionedUserIds,
-        membersToUse,
-      );
+      const finalContent = structureMentionContent(value, mentionedMemberIds, membersToUse);
 
-      await onSend(attachmentIds, mentionedUserIds, finalContent);
+      await onSend(attachmentIds, mentionedMemberIds, finalContent);
       clearAttachments();
-      setMentionedUserIds([]);
+      setmentionedMemberIds([]);
       onChange("");
     } finally {
       setIsUploading(false);

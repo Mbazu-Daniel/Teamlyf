@@ -6,11 +6,6 @@ export const Route = createFileRoute("/$organizationSlug/projects/$projectId")({
   component: ProjectLayout,
 });
 
-/**
- * Project screens are children — `/tasks` for the board and list, `/settings`
- * for configuration. This route only hosts them, so the URL and the breadcrumb
- * agree on where the user is; it renders no chrome of its own.
- */
 function ProjectLayout() {
   return <Outlet />;
 }

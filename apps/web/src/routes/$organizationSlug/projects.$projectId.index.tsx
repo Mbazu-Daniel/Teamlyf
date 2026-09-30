@@ -6,11 +6,6 @@ export const Route = createFileRoute("/$organizationSlug/projects/$projectId/")(
   component: ProjectIndex,
 });
 
-/**
- * A project opens on its tasks. The bare URL forwards to `/tasks` so the
- * breadcrumb reads `Projects / <project> / Tasks` and every deep link
- * (`?task=`, `?view=`) survives the hop.
- */
 function ProjectIndex() {
   const { organizationSlug, projectId } = Route.useParams();
   const { task, view } = Route.useSearch();

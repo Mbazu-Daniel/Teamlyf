@@ -14,7 +14,6 @@ afterEach(() => {
 
 type Call = { method: string; url: string; body: string | null };
 
-/** Stub fetch and capture the single call a client method must have made. */
 async function captureCall(run: () => Promise<unknown>): Promise<Call> {
   const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) =>
     Promise.resolve(

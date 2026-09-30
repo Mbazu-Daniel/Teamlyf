@@ -1,1 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router"; import { DocumentsPage } from "@/features/documents"; export const Route=createFileRoute("/$organizationSlug/documents")({component:DocumentsPage});
+import { createFileRoute } from "@tanstack/react-router";
+import { DocumentsPage } from "@/features/documents";
+export const Route = createFileRoute("/$organizationSlug/documents")({ component: DocumentsPage });

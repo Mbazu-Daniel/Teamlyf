@@ -28,15 +28,10 @@ export function DirectCallConnectingOverlay({
           </div>
         </div>
         <div className="text-center">
-          <p className="text-xl font-bold">
-            Calling {conversation?.otherMember?.firstName}...
-          </p>
+          <p className="text-xl font-bold">Calling {conversation?.otherMember?.firstName}...</p>
           <p className="text-sm text-gray-300">Waiting for answer</p>
         </div>
-        <button
-          onClick={onCancel}
-          className="mt-4 px-6 py-2 bg-red-500 rounded-full font-semibold"
-        >
+        <button onClick={onCancel} className="mt-4 px-6 py-2 bg-red-500 rounded-full font-semibold">
           Cancel
         </button>
       </div>

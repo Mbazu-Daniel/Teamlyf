@@ -21,7 +21,11 @@ export function ImagePreview({ file, status = "pending", onRemove, onRetry }: Im
     <div className="relative w-[72px] h-[72px] rounded-md overflow-hidden bg-muted border border-border/60 group shrink-0">
       {objectUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- local blob preview
-        <img src={objectUrl} alt={file.name} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={objectUrl}
+          alt={file.name}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
       ) : (
         <span className="absolute inset-0 animate-pulse bg-muted" aria-hidden="true" />
       )}

@@ -10,7 +10,7 @@ export interface RecipientSessionData {
   initiatorId: string;
   initiatorPhoto: string | null;
   roomName: string;
-  channelId?: string | null; // Added for channel calls
+  channelId?: string | null;
 }
 
 export interface CallParticipant {
@@ -79,7 +79,6 @@ export interface CallHistoryRecord {
     user: {
       name: string;
       email: string;
-      image: string | null;
     };
   };
   recipient: {
@@ -91,7 +90,6 @@ export interface CallHistoryRecord {
     user: {
       name: string;
       email: string;
-      image: string | null;
     };
   } | null;
   channel: {
@@ -101,16 +99,16 @@ export interface CallHistoryRecord {
 }
 
 export interface unifiedCallSession {
-    id?: string;       // from CallSession (initiator path — server returns CallSession with .id)
-    callId?: string;   // from socket events (RecipientSessionData / InitiatorSessionData)
-    callType?: "voice" | "video";
-    initiatorId?: string;
-    initiatorPhoto?: string | null;
-    roomName?: string;
-    channelId?: string | null;
-    participantId?: string;
-    participantPhoto?: string | null;
-    token?: string;
-    callSession?: CallSession;
-    success?: boolean;
+  id?: string;
+  callId?: string;
+  callType?: "voice" | "video";
+  initiatorId?: string;
+  initiatorPhoto?: string | null;
+  roomName?: string;
+  channelId?: string | null;
+  participantId?: string;
+  participantPhoto?: string | null;
+  token?: string;
+  callSession?: CallSession;
+  success?: boolean;
 }

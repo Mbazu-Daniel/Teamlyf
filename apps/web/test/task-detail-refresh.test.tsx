@@ -64,7 +64,6 @@ function stubPanelFetch() {
   return { fetchMock, comments };
 }
 
-/** Both panel sections plus the task write, the way the real panel composes them. */
 function PanelSections() {
   const detail = useTaskDetail("org-1", "p1", "task-1");
   return (

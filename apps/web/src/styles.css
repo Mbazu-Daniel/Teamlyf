@@ -353,6 +353,14 @@ html[data-theme-palette="forest"] {
     @apply border-border outline-ring/50;
   }
 
+  /* Tailwind v4's preflight no longer points the cursor on interactive
+     controls, so buttons/selects render with the default arrow. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
   body {
     @apply bg-background font-body text-foreground antialiased;
     font-family: var(--font-body);
@@ -502,16 +510,32 @@ html[data-theme-palette="forest"] {
   place-items: center;
   border-radius: var(--radius-sm);
   color: var(--muted-foreground);
-  transition: color 150ms ease, background-color 150ms ease;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
 }
 
-.auth-password-toggle:hover { background: var(--muted); color: var(--foreground); }
-.auth-password-toggle:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.auth-password-toggle:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.auth-password-toggle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
 
 .auth-showcase {
   background:
-    radial-gradient(circle at 85% 12%, color-mix(in oklab, var(--primary) 16%, transparent), transparent 35%),
-    linear-gradient(145deg, color-mix(in oklab, var(--primary) 7%, var(--background)), var(--background));
+    radial-gradient(
+      circle at 85% 12%,
+      color-mix(in oklab, var(--primary) 16%, transparent),
+      transparent 35%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--primary) 7%, var(--background)),
+      var(--background)
+    );
   color: var(--foreground);
 }
 
@@ -521,7 +545,11 @@ html[data-theme-palette="forest"] {
   opacity: 0.42;
   background-image:
     linear-gradient(color-mix(in oklab, var(--primary) 11%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in oklab, var(--primary) 11%, transparent) 1px, transparent 1px);
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--primary) 11%, transparent) 1px,
+      transparent 1px
+    );
   background-size: 38px 38px;
   mask-image: linear-gradient(to bottom, black, transparent 85%);
 }
@@ -587,15 +615,21 @@ html[data-theme-palette="forest"] {
 }
 
 @keyframes auth-illustration-float {
-  to { transform: translateY(-11px) rotate(1deg); }
+  to {
+    transform: translateY(-11px) rotate(1deg);
+  }
 }
 
 @keyframes auth-ring-turn {
-  to { transform: rotate(1turn); }
+  to {
+    transform: rotate(1turn);
+  }
 }
 
 @keyframes auth-glow-drift {
-  to { transform: translate3d(-20px, 18px, 0) scale(1.12); }
+  to {
+    transform: translate3d(-20px, 18px, 0) scale(1.12);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

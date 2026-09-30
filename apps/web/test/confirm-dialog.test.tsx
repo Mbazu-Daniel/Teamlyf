@@ -4,7 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
-function renderConfirm({ onConfirm, destructive = true }: { onConfirm: () => void; destructive?: boolean }) {
+function renderConfirm({
+  onConfirm,
+  destructive = true,
+}: {
+  onConfirm: () => void;
+  destructive?: boolean;
+}) {
   return render(
     <ConfirmDialog
       trigger={<Button>Remove</Button>}

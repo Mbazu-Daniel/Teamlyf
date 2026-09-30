@@ -18,7 +18,6 @@ export interface MessageReaction {
   tenantMemberId: string;
 }
 
-/** Deep-link context attached to workspace notifications. */
 export type NotificationMetadata = {
   projectId?: string;
   taskId?: string;
@@ -31,17 +30,16 @@ export interface Message {
   channelId?: string;
   conversationId?: string;
   content: string;
-  createdAt: string; // ISO Date String
+  createdAt: string;
   editedAt?: string | null;
   isCurrentUserMessage?: boolean;
   sender: MessageSender;
   attachments?: MessageAttachment[];
   parentMessageId?: string | null;
-  
-  // Threading Metadata
+
   hasThreadedMessage?: boolean;
-  threadCount?: number;         
-  lastReplyTime?: string | null; 
+  threadCount?: number;
+  lastReplyTime?: string | null;
   type?: "channel" | "direct" | "task" | "alert" | "error" | "system" | "info" | string;
   channel?: {
     id: string;
@@ -51,9 +49,8 @@ export interface Message {
     id: string;
     otherMember: MessageSender;
   };
-  
-  // UI State
-  status?: 'sending' | 'success' | 'failed';
+
+  status?: "sending" | "success" | "failed";
   attachmentIds?: string[];
   reactions?: MessageReaction[];
   isRead?: boolean;

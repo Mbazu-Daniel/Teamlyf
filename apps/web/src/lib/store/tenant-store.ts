@@ -1,12 +1,6 @@
 import { useMemo } from "react";
 import { useOrganization } from "@/lib/organization";
 
-/**
- * Chat feature view over the active organization.
- *
- * `tenantId` is the organization id — chat routes are org-scoped, and the
- * feature's REST paths are `/organization/:orgId/...`.
- */
 interface TenantState {
   tenantId: string | null;
   subdomain: string | null;

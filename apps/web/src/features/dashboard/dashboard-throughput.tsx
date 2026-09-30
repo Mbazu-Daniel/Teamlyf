@@ -1,10 +1,6 @@
 import { DashboardPanel } from "./dashboard-panel";
 import type { WeekThroughput } from "./dashboard-metrics";
 
-/**
- * Created vs completed per week. Both series share one scale so a week where
- * intake outruns delivery is visible as a gap, not two independent spikes.
- */
 export function DashboardThroughput({
   weeks,
   summary,
@@ -31,7 +27,10 @@ export function DashboardThroughput({
           className="flex h-36 items-end gap-1.5"
         >
           {weeks.map((week, index) => (
-            <div key={week.weekStart} className="flex h-full min-w-0 flex-1 flex-col justify-end gap-1">
+            <div
+              key={week.weekStart}
+              className="flex h-full min-w-0 flex-1 flex-col justify-end gap-1"
+            >
               <div className="flex h-full items-end justify-center gap-1">
                 <span
                   className="w-1/2 max-w-3 rounded-sm bg-muted-foreground/35"

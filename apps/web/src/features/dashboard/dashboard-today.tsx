@@ -4,7 +4,6 @@ import { DashboardPanel } from "./dashboard-panel";
 import { DashboardTaskRow } from "./dashboard-task-row";
 import type { TaskRow } from "./dashboard-metrics";
 
-/** What the signed-in member owes today, plus anything that slipped past a date. */
 export function DashboardToday({
   organizationSlug,
   rows,

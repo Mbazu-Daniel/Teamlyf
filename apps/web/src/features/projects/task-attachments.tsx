@@ -11,11 +11,6 @@ type TaskAttachmentsProps = {
   taskId: string;
 };
 
-/**
- * The attachments section of the task panel. Layout and copy mirror the
- * reference implementation; the buttons are this repo's design-system
- * primitives rather than hand-styled elements.
- */
 export function TaskAttachments({ organizationId, projectId, taskId }: TaskAttachmentsProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const files = useTaskAttachments(organizationId, projectId, taskId);

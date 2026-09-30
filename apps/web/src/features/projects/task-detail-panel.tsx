@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { IconArrowsMaximize, IconArrowsMinimize, IconX, IconGripVertical, IconLink, IconShare2 } from "@tabler/icons-react";
+import {
+  IconArrowsMaximize,
+  IconArrowsMinimize,
+  IconX,
+  IconGripVertical,
+  IconLink,
+  IconShare2,
+} from "@tabler/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { Status } from "@/lib/api";
@@ -20,7 +27,13 @@ export type TaskDetailPanelProps = {
   onClose: () => void;
 };
 
-export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, onClose }: TaskDetailPanelProps) {
+export function TaskDetailPanel({
+  organizationId,
+  projectId,
+  taskId,
+  statuses,
+  onClose,
+}: TaskDetailPanelProps) {
   const [mobile, setMobile] = useState(false);
 
   useEffect(() => {
@@ -35,23 +48,54 @@ export function TaskDetailPanel({ organizationId, projectId, taskId, statuses, o
   if (mobile) {
     return (
       <Sheet open onOpenChange={(open) => !open && onClose()}>
-        <SheetContent side="right" variant="task" showCloseButton={false} className="w-full sm:max-w-none">
+        <SheetContent
+          side="right"
+          variant="task"
+          showCloseButton={false}
+          className="w-full sm:max-w-none"
+        >
           <SheetTitle className="sr-only">Task details</SheetTitle>
           <div className="flex items-center justify-between border-b bg-background px-5 py-3">
-            <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{taskId.slice(0, 8)}</span></div>
-            <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Task
+              </span>
+              <span className="ml-2 text-xs font-semibold text-foreground">
+                #{taskId.slice(0, 8)}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Close"
+            >
               <IconX className="size-4" />
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <TaskDetailContent organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} />
+            <TaskDetailContent
+              organizationId={organizationId}
+              projectId={projectId}
+              taskId={taskId}
+              statuses={statuses}
+              onClose={onClose}
+            />
           </div>
         </SheetContent>
       </Sheet>
     );
   }
 
-  return <DesktopTaskPanel organizationId={organizationId} projectId={projectId} taskId={taskId} statuses={statuses} onClose={onClose} />;
+  return (
+    <DesktopTaskPanel
+      organizationId={organizationId}
+      projectId={projectId}
+      taskId={taskId}
+      statuses={statuses}
+      onClose={onClose}
+    />
+  );
 }
 
 function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId: string }) {
@@ -103,12 +147,33 @@ function DesktopTaskPanel(props: Omit<TaskDetailPanelProps, "taskId"> & { taskId
           </button>
         )}
         <div className="flex items-center justify-between border-b px-5 py-3">
-          <div className="min-w-0"><span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task</span><span className="ml-2 text-xs font-semibold text-foreground">#{props.taskId.slice(0, 8)}</span></div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Task
+            </span>
+            <span className="ml-2 text-xs font-semibold text-foreground">
+              #{props.taskId.slice(0, 8)}
+            </span>
+          </div>
           <div className="flex items-center gap-1">
-            <button type="button" onClick={() => setMaximized((value) => !value)} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={maximized ? "Restore" : "Maximize"}>
-              {maximized ? <IconArrowsMinimize className="size-4" /> : <IconArrowsMaximize className="size-4" />}
+            <button
+              type="button"
+              onClick={() => setMaximized((value) => !value)}
+              className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label={maximized ? "Restore" : "Maximize"}
+            >
+              {maximized ? (
+                <IconArrowsMinimize className="size-4" />
+              ) : (
+                <IconArrowsMaximize className="size-4" />
+              )}
             </button>
-            <button type="button" onClick={props.onClose} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Close">
+            <button
+              type="button"
+              onClick={props.onClose}
+              className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Close"
+            >
               <IconX className="size-4" />
             </button>
           </div>
@@ -140,20 +205,54 @@ function TaskDetailContent({
           <section className="space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Task #{task.sequenceId}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Task #{task.sequenceId}
+                </p>
                 <h2 className="mt-1 text-2xl font-semibold tracking-tight">{task.name}</h2>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <button type="button" onClick={() => navigator.clipboard.writeText(buildTaskUrl(task.id))} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Copy task link"><IconLink className="size-4" /></button>
-                <button type="button" onClick={async () => { if (navigator.share) await navigator.share({ title: task.name, url: buildTaskUrl(task.id) }); else await navigator.clipboard.writeText(window.location.href); }} className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Share task"><IconShare2 className="size-4" /></button>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(buildTaskUrl(task.id))}
+                  className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Copy task link"
+                >
+                  <IconLink className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (navigator.share)
+                      await navigator.share({ title: task.name, url: buildTaskUrl(task.id) });
+                    else await navigator.clipboard.writeText(window.location.href);
+                  }}
+                  className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Share task"
+                >
+                  <IconShare2 className="size-4" />
+                </button>
               </div>
             </div>
             <TaskDetailsForm detail={detail} />
           </section>
 
           {detail.saveError && <ErrorMessage message={detail.saveError} />}
-          <TaskProperties organizationId={organizationId} projectId={projectId} task={task} statuses={statuses} members={detail.members} membersLoading={detail.membersLoading} updateTask={detail.updateTask} />
-          <TaskRelations organizationId={organizationId} projectId={projectId} taskId={taskId} members={detail.members} membersLoading={detail.membersLoading} />
+          <TaskProperties
+            organizationId={organizationId}
+            projectId={projectId}
+            task={task}
+            statuses={statuses}
+            members={detail.members}
+            membersLoading={detail.membersLoading}
+            updateTask={detail.updateTask}
+          />
+          <TaskRelations
+            organizationId={organizationId}
+            projectId={projectId}
+            taskId={taskId}
+            members={detail.members}
+            membersLoading={detail.membersLoading}
+          />
           <TaskComments organizationId={organizationId} projectId={projectId} taskId={taskId} />
           <Subtasks org={organizationId} project={projectId} task={taskId} />
           <TaskActivity organizationId={organizationId} projectId={projectId} taskId={taskId} />
@@ -185,15 +284,35 @@ function TaskDetailsForm({ detail }: { detail: TaskDetail }) {
 
   function save(event: FormEvent) {
     event.preventDefault();
-    if (!name.trim() || detail.saving || (name === task.name && description === (task.description ?? ""))) return;
+    if (
+      !name.trim() ||
+      detail.saving ||
+      (name === task.name && description === (task.description ?? ""))
+    )
+      return;
     detail.updateTask({ name: name.trim(), description });
   }
 
   return (
     <form onSubmit={save} className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
-      <input value={name} onChange={(event) => setName(event.target.value)} className="w-full border-0 bg-transparent px-0 text-lg font-semibold outline-none" aria-label="Task name" />
-      <textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={4} placeholder="Add a description..." className="w-full resize-none rounded-lg border bg-background p-3 text-sm outline-none focus:border-primary" />
-      <button type="submit" disabled={detail.saving || !name.trim()} className="rounded-lg bg-primary px-4 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50">
+      <input
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        className="w-full border-0 bg-transparent px-0 text-lg font-semibold outline-none"
+        aria-label="Task name"
+      />
+      <textarea
+        value={description}
+        onChange={(event) => setDescription(event.target.value)}
+        rows={4}
+        placeholder="Add a description..."
+        className="w-full resize-none rounded-lg border bg-background p-3 text-sm outline-none focus:border-primary"
+      />
+      <button
+        type="submit"
+        disabled={detail.saving || !name.trim()}
+        className="rounded-lg bg-primary px-4 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50 cursor-pointer"
+      >
         {detail.saving ? "Saving..." : "Save changes"}
       </button>
     </form>

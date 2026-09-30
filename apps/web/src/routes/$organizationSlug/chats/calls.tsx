@@ -10,7 +10,7 @@ function RouteComponent() {
 
   useEffect(() => {
     setCurrentPage("Chats");
-    setChatId(null); 
+    setChatId(null);
   }, [setCurrentPage, setChatId]);
 
   return (
@@ -22,7 +22,6 @@ function RouteComponent() {
   );
 }
 
-
-export const Route = createFileRoute('/$organizationSlug/chats/calls')({
+export const Route = createFileRoute("/$organizationSlug/chats/calls")({
   component: RouteComponent,
 });

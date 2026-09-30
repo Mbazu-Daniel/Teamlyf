@@ -14,7 +14,8 @@ export function CallTimer() {
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
     <span className="font-mono text-white/50 text-xs tabular-nums">
-      {h > 0 ? `${pad(h)}:` : ""}{pad(m)}:{pad(s)}
+      {h > 0 ? `${pad(h)}:` : ""}
+      {pad(m)}:{pad(s)}
     </span>
   );
 }

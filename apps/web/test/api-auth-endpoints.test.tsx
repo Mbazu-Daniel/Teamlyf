@@ -31,7 +31,6 @@ function stubFetch(response: Response) {
   return fetchMock;
 }
 
-/** Stub fetch with a 200 and capture the single call the client must have made. */
 async function captureCall(run: () => Promise<unknown>): Promise<Call> {
   const fetchMock = stubFetch(
     new Response(JSON.stringify([]), {
@@ -157,12 +156,6 @@ describe("auth endpoints", () => {
   });
 });
 
-/**
- * better-auth only mounts /sign-in/social for providers that have credentials,
- * so an unconfigured Google answers 404 with an *empty* body. SocialSignIn
- * branches on the status to say "add GOOGLE_CLIENT_ID"; that only works if the
- * status survives an empty body, which is what these pin down.
- */
 describe("auth error mapping", () => {
   it("signInSocial_whenProviderIsNotConfigured_keepsThe404StatusFromAnEmptyBody", async () => {
     stubFetch(new Response("", { status: 404 }));

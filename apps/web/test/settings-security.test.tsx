@@ -27,7 +27,6 @@ const SESSIONS = [
   },
 ];
 
-/** Answers GET /auth/sessions with `sessions` and records every call. */
 function stubApi(sessions: unknown[] = SESSIONS) {
   const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
     if (!init?.method || init.method === "GET") {
@@ -184,7 +183,9 @@ describe("SecuritySettingsPage password change", () => {
       }),
     );
     renderComponent(<SecuritySettingsPage />);
-    await waitFor(() => expect(screen.queryAllByRole("button", { name: "Revoke" })).toHaveLength(0));
+    await waitFor(() =>
+      expect(screen.queryAllByRole("button", { name: "Revoke" })).toHaveLength(0),
+    );
 
     await fillForm(user, "NewPass12345");
 

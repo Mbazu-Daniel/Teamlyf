@@ -24,17 +24,15 @@ export function useUploadAttachment() {
 
       const targetPayload = channelId ? { channelId } : conversationId ? { conversationId } : {};
 
-      // Get upload URL
       const res = await api.post(CONFIG.API_ENDPOINTS.FILES.ATTACHMENTS(tenantId), {
         fileName,
         mimeType,
         fileSize,
-        ...targetPayload
+        ...targetPayload,
       });
 
       const { attachmentId, uploadUrl } = res.data as UploadResult;
 
-      // Upload file
       const response = await fetch(resolveApiPath(uploadUrl), {
         method: "PUT",
         body: file,
@@ -44,6 +42,6 @@ export function useUploadAttachment() {
       if (!response.ok) throw new Error(`Upload failed (${response.status})`);
 
       return attachmentId;
-    }
+    },
   });
 }

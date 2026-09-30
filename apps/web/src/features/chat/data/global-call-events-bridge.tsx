@@ -4,10 +4,6 @@ import { useFetchTenantMembers } from "@/features/chat/data/queries/use-fetch-te
 import { useOrganization } from "@/lib/organization";
 import { useAuthStore } from "@/lib/store/auth-store";
 
-/**
- * Mounts GlobalCallEventsProvider at the app root so incoming-call events are
- * received on every route, with the current member resolved once and reused.
- */
 export function GlobalCallEventsBridge({ children }: { children: ReactNode }) {
   const tenantId = useOrganization().organization?.id ?? "";
   const user = useAuthStore((s) => s.user);

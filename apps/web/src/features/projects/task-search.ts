@@ -1,11 +1,3 @@
-/**
- * `?task=<task-id>` deep-links the task detail panel; IDs remain accepted for
- * backwards compatibility.
- *
- * `?view=board|list` is the active tasks view. It lives in the URL so a view is
- * a link somebody else can open — the sidebar's Board/List children and the
- * segmented control both write to it.
- */
 export type TaskSearch = {
   task?: string;
   view?: TaskView;

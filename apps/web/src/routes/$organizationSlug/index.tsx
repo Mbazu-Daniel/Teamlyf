@@ -12,16 +12,39 @@ function OrganizationDashboard() {
   const state = useProjects(organization?.id);
 
   if (!organization) {
-    return <main className="mx-auto max-w-6xl px-6 py-12"><h1 className="text-2xl font-semibold">Dashboard</h1><p className="mt-2 text-muted-foreground">Select an organization before opening the dashboard.</p></main>;
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <p className="mt-2 text-muted-foreground">
+          Select an organization before opening the dashboard.
+        </p>
+      </main>
+    );
   }
 
   if (state.projectsLoading) {
-    return <main className="mx-auto flex h-full max-w-6xl items-center justify-center px-6 py-12 text-sm text-muted-foreground">Loading projects…</main>;
+    return (
+      <main className="mx-auto flex h-full max-w-6xl items-center justify-center px-6 py-12 text-sm text-muted-foreground">
+        Loading projects…
+      </main>
+    );
   }
 
   if (state.error) {
-    return <main className="mx-auto max-w-6xl px-6 py-12"><h1 className="text-2xl font-semibold">Dashboard</h1><p className="mt-2 text-sm text-destructive">{state.error}</p></main>;
+    return (
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <p className="mt-2 text-sm text-destructive">{state.error}</p>
+      </main>
+    );
   }
 
-  return <DashboardPage organizationId={organization.id} organizationName={organization.name} organizationSlug={organizationSlug} projects={state.projects} />;
+  return (
+    <DashboardPage
+      organizationId={organization.id}
+      organizationName={organization.name}
+      organizationSlug={organizationSlug}
+      projects={state.projects}
+    />
+  );
 }

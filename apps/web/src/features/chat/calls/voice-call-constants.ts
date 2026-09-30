@@ -9,7 +9,6 @@ export const AVATAR_COLORS = [
 
 export type LayoutMode = "huddle" | "one-on-one" | "conference" | "presentation";
 
-/** LiveKit participant metadata written by our call clients. */
 export type VoiceCallParticipantMeta = {
   isHandRaised?: boolean;
   image?: string;

@@ -35,7 +35,6 @@ const senderColors = [
   "#0284C7",
   "#BE185D",
 ];
-// ... (colors and senderColors arrays stay exactly the same)
 
 export function MessageBubble({
   message,
@@ -64,13 +63,18 @@ export function MessageBubble({
   const isFailed = message.status === "failed";
 
   return (
-    <div className={`group flex hover:bg-sidebar-accent rounded-md px-2 gap-2 relative ${isCompact ? "py-1" : "pt-1"}`}>
+    <div
+      className={`group flex hover:bg-sidebar-accent rounded-md px-2 gap-2 relative ${isCompact ? "py-1" : "pt-1"}`}
+    >
       {/* If compact, we show an empty div of the same width as the Avatar to maintain alignment */}
-      {showAvatar && (
-        isCompact ? (
+      {showAvatar &&
+        (isCompact ? (
           <div className="w-8 shrink-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <span className="text-[10px] text-muted">
-              {new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {new Date(message.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
           </div>
         ) : (
@@ -79,7 +83,10 @@ export function MessageBubble({
             className="h-8 w-8 shrink-0 rounded-md cursor-pointer"
           >
             <Avatar className="h-8 w-8 shrink-0">
-              <AvatarImage src={sender?.avatar || "default"} alt={`${sender?.firstName} ${sender?.lastName} avatar`} />
+              <AvatarImage
+                src={sender?.avatar || "default"}
+                alt={`${sender?.firstName} ${sender?.lastName} avatar`}
+              />
               <AvatarFallback
                 style={{ backgroundColor: getAvatarColor(sender.id) }}
                 rounded="md"
@@ -92,22 +99,20 @@ export function MessageBubble({
               </AvatarFallback>
             </Avatar>
           </button>
-        )
-      )}
+        ))}
 
       <div className="flex-1 pb-1">
         {/* Header - Only show if NOT compact */}
         {!isCompact && (
           <div className="flex items-center gap-3 text-xs mb-1">
-            <span
-              className="font-bold text-sm"
-              style={{ color: getSenderColor(sender.id) }}
-            >
+            <span className="font-bold text-sm" style={{ color: getSenderColor(sender.id) }}>
               {name}
             </span>
 
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground bg-muted-foreground w-1 h-1 rounded-full"> </span>
+              <span className="text-[10px] text-muted-foreground bg-muted-foreground w-1 h-1 rounded-full">
+                {" "}
+              </span>
               <span className="text-muted-foreground">
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: "2-digit",
@@ -118,9 +123,7 @@ export function MessageBubble({
 
             {isSending && (
               <>
-                <span className="italic animate-pulse">
-                  Sending...
-                </span>
+                <span className="italic animate-pulse">Sending...</span>
 
                 <button
                   onClick={() => onCancelSend?.(message.id)}
@@ -163,12 +166,20 @@ export function MessageBubble({
                 if (match) {
                   const name = match[1];
                   const memberId = match[2];
-                  const matchingMember = membersToUse?.find((m: TenantMember) => String(m.id) === String(memberId));
+                  const matchingMember = membersToUse?.find(
+                    (m: TenantMember) => String(m.id) === String(memberId),
+                  );
 
                   return (
-                    <span key={i} className="inline-flex items-center gap-1.5 font-semibold text-primary-button bg-chat-primary-bg border border-border/40 shadow-sm rounded-md px-1.5 py-0.5 -ml-0.5 mr-0.5 align-middle transition-colors hover:border-primary-button/30">
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-1.5 font-semibold text-primary-button bg-chat-primary-bg border border-border/40 shadow-sm rounded-md px-1.5 py-0.5 -ml-0.5 mr-0.5 align-middle transition-colors hover:border-primary-button/30"
+                    >
                       <Avatar elevation="inner" className="h-4 w-4 shrink-0 -ml-0.5">
-                        <AvatarImage src={matchingMember?.avatar || undefined} alt={`${matchingMember?.firstName} ${matchingMember?.lastName} avatar`} />
+                        <AvatarImage
+                          src={matchingMember?.avatar || undefined}
+                          alt={`${matchingMember?.firstName} ${matchingMember?.lastName} avatar`}
+                        />
                         <AvatarFallback
                           size="7px"
                           tone="white"
@@ -189,9 +200,7 @@ export function MessageBubble({
 
           {isCompact && isSending && (
             <>
-              <span className="italic animate-pulse">
-                sending...
-              </span>
+              <span className="italic animate-pulse">sending...</span>
 
               <button
                 onClick={() => onCancelSend?.(message.id)}

@@ -66,9 +66,7 @@ export function useComposerAttachments({
       if (att.status !== "pending") continue;
       try {
         setAttachments((prev) =>
-          prev.map((a, idx) =>
-            idx === i ? { ...a, status: "uploading" } : a
-          )
+          prev.map((a, idx) => (idx === i ? { ...a, status: "uploading" } : a)),
         );
         const attachmentId = await uploadAttachment.mutateAsync({
           tenantId,
@@ -80,16 +78,12 @@ export function useComposerAttachments({
           file: att.file,
         });
         setAttachments((prev) =>
-          prev.map((a, idx) =>
-            idx === i ? { ...a, status: "success", id: attachmentId } : a
-          )
+          prev.map((a, idx) => (idx === i ? { ...a, status: "success", id: attachmentId } : a)),
         );
         ids.push(attachmentId);
       } catch {
         setAttachments((prev) =>
-          prev.map((a, idx) =>
-            idx === i ? { ...a, status: "failed" } : a
-          )
+          prev.map((a, idx) => (idx === i ? { ...a, status: "failed" } : a)),
         );
         toast.error("Failed to upload attachment");
       }
@@ -102,9 +96,7 @@ export function useComposerAttachments({
     if (!att || att.status !== "failed") return;
     try {
       setAttachments((prev) =>
-        prev.map((a, idx) =>
-          idx === index ? { ...a, status: "uploading" } : a
-        )
+        prev.map((a, idx) => (idx === index ? { ...a, status: "uploading" } : a)),
       );
       const attachmentId = await uploadAttachment.mutateAsync({
         tenantId,
@@ -116,15 +108,11 @@ export function useComposerAttachments({
         file: att.file,
       });
       setAttachments((prev) =>
-        prev.map((a, idx) =>
-          idx === index ? { ...a, status: "success", id: attachmentId } : a
-        )
+        prev.map((a, idx) => (idx === index ? { ...a, status: "success", id: attachmentId } : a)),
       );
     } catch {
       setAttachments((prev) =>
-        prev.map((a, idx) =>
-          idx === index ? { ...a, status: "failed" } : a
-        )
+        prev.map((a, idx) => (idx === index ? { ...a, status: "failed" } : a)),
       );
       toast.error("Failed to upload attachment");
     }

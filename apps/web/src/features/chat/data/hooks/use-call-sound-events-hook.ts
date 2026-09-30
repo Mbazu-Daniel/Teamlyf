@@ -1,4 +1,3 @@
-// lib/hooks/useCallSounds.ts
 import { useEffect, useRef } from "react";
 
 export function useCallSounds(isRinging: boolean, isConnecting: boolean) {
@@ -8,17 +7,19 @@ export function useCallSounds(isRinging: boolean, isConnecting: boolean) {
   useEffect(() => {
     ringtoneRef.current = new Audio("/sounds/incoming-ring.mp3");
     outgoingRef.current = new Audio("/sounds/outgoing-ring.mp3");
-    
+
     if (ringtoneRef.current) ringtoneRef.current.loop = true;
     if (outgoingRef.current) outgoingRef.current.loop = true;
 
-    // "Warm up" the audio context on first user interaction
     const unlockAudio = () => {
       if (ringtoneRef.current) {
-        ringtoneRef.current.play().then(() => {
-          ringtoneRef.current?.pause(); // Play and immediately pause to "unlock"
-          if (ringtoneRef.current) ringtoneRef.current.currentTime = 0;
-        }).catch(() => {});
+        ringtoneRef.current
+          .play()
+          .then(() => {
+            ringtoneRef.current?.pause();
+            if (ringtoneRef.current) ringtoneRef.current.currentTime = 0;
+          })
+          .catch(() => {});
       }
       window.removeEventListener("click", unlockAudio);
     };

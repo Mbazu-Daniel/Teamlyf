@@ -1,11 +1,9 @@
 import { client } from "./client";
 import { taskRelationPath, taskSubscriberPath } from "./paths";
 
-/** Mirrors TASK_RELATION_TYPES in @teamlyf/db — keep the two lists in step. */
 export const TASK_RELATION_TYPES = ["BLOCKED_BY", "RELATED_TO", "DUPLICATE_OF"] as const;
 export type TaskRelationType = (typeof TASK_RELATION_TYPES)[number];
 
-/** The related task reduced to what the relation row needs to render. */
 type RelatedTaskRef = {
   id: string;
   name: string;
@@ -54,10 +52,9 @@ export const taskRelationsApi = {
     });
   },
   deleteRelation(organizationId: string, projectId: string, taskId: string, relationId: string) {
-    return client.request<null>(
-      taskRelationPath(organizationId, projectId, taskId, relationId),
-      { method: "DELETE" },
-    );
+    return client.request<null>(taskRelationPath(organizationId, projectId, taskId, relationId), {
+      method: "DELETE",
+    });
   },
 };
 
@@ -77,9 +74,8 @@ export const taskSubscribersApi = {
     });
   },
   unsubscribe(organizationId: string, projectId: string, taskId: string, memberId: string) {
-    return client.request<null>(
-      taskSubscriberPath(organizationId, projectId, taskId, memberId),
-      { method: "DELETE" },
-    );
+    return client.request<null>(taskSubscriberPath(organizationId, projectId, taskId, memberId), {
+      method: "DELETE",
+    });
   },
 };

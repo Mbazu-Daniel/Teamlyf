@@ -1,11 +1,11 @@
 export interface ChatComposerProps {
   value: string;
   onChange: (value: string) => void;
-  /** Optional attachmentIds when files were uploaded, and optional mentionedUserIds */
+
   onSend: (
     attachmentIds?: string[],
-    mentionedUserIds?: string[],
-    finalContent?: string
+    mentionedMemberIds?: string[],
+    finalContent?: string,
   ) => void | Promise<void>;
   onTyping: () => void;
   tenantId: string;

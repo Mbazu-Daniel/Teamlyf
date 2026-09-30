@@ -11,7 +11,6 @@ function normalizePublicUrl(raw: string | undefined): string {
   return `https://${value}`;
 }
 
-/** Chat-only slice of the source repo's CONFIG: sockets, LiveKit and the two endpoints the feature calls directly. */
 export const CONFIG = {
   API_URL: normalizePublicUrl(readPublicEnv("VITE_API_URL")),
   API_BASE_PATH: "/api/v1",
@@ -41,7 +40,8 @@ export const CONFIG = {
 
   API_ENDPOINTS: {
     FILES: {
-      ATTACHMENTS: (organizationId: string) => `/organization/${organizationId}/attachments/initiate`,
+      ATTACHMENTS: (organizationId: string) =>
+        `/organization/${organizationId}/attachments/initiate`,
     },
     CALLS: {
       JOIN: (organizationId: string, callId: string) =>
@@ -50,6 +50,7 @@ export const CONFIG = {
   },
 
   WS: {
-    PATH: (organizationId: string, endpoint: string) => `/organization/${organizationId}/${endpoint}`,
+    PATH: (organizationId: string, endpoint: string) =>
+      `/organization/${organizationId}/${endpoint}`,
   },
 };

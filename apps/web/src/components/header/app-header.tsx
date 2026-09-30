@@ -11,21 +11,19 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 type AppHeaderProps = Readonly<{ onToggle: () => void }>;
 
-/** Path-derived breadcrumbs. Organization selection stays on the left; account controls stay on the right. */
 export function AppHeader({ onToggle }: AppHeaderProps) {
   const mobile = useIsMobile();
-  const { pathname } = useLocation();
+  const { pathname, searchStr } = useLocation();
   const { organization } = useOrganization();
   const organizationId = organization?.id ?? "";
-  // Project URLs show the project's name rather than its slug. Same cache key as
-  // the projects pages, so it costs nothing extra there and nothing at all elsewhere.
+
   const projectsQuery = useQuery({
     queryKey: queryKeys.projects(organizationId),
     queryFn: () => projectsApi.getProjects(organizationId),
     enabled: Boolean(organizationId) && pathname.includes("/projects/"),
     retry: false,
   });
-  const crumbs = getBreadcrumbs(pathname, projectsQuery.data ?? []);
+  const crumbs = getBreadcrumbs(pathname, projectsQuery.data ?? [], searchStr);
 
   return (
     <header className="app-topbar sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 px-4 sm:px-6">
@@ -33,7 +31,8 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
         type="button"
         onClick={onToggle}
         aria-label="Toggle sidebar"
-        className="grid size-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+
+        className="grid size-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground md:hidden"
       >
         <IconMenu2 className="size-5" aria-hidden="true" />
       </button>
@@ -43,8 +42,15 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
           <ol className="flex min-w-0 items-center gap-1.5 text-sm">
             {crumbs.map((crumb, index) => (
               <li key={crumb.to} className="flex min-w-0 items-center gap-1.5">
-                {index > 0 && <span className="text-muted-foreground/60" aria-hidden="true">/</span>}
-                <span className="truncate text-[13px] font-semibold" aria-current={index === crumbs.length - 1 ? "page" : undefined}>
+                {index > 0 && (
+                  <span className="text-muted-foreground/60" aria-hidden="true">
+                    /
+                  </span>
+                )}
+                <span
+                  className="truncate text-[13px] font-semibold"
+                  aria-current={index === crumbs.length - 1 ? "page" : undefined}
+                >
                   {crumb.label}
                 </span>
               </li>
@@ -53,7 +59,8 @@ export function AppHeader({ onToggle }: AppHeaderProps) {
         )}
       </nav>
 
-      <NotificationBell /><UserFooter collapsed={mobile} compact />
+      <NotificationBell />
+      <UserFooter collapsed={mobile} compact />
     </header>
   );
 }

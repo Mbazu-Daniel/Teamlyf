@@ -6,7 +6,6 @@ import { Hero } from "@/components/landing/hero";
 import { Features } from "@/components/landing/features";
 import { Showcase } from "@/components/landing/showcase";
 import { Pricing } from "@/components/landing/pricing";
-import { Cta } from "@/components/landing/cta";
 import { Footer } from "@/components/landing/footer";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -20,7 +19,6 @@ function Home() {
         <Features />
         <Showcase />
         <Pricing />
-        <Cta />
       </main>
       <Footer />
     </div>

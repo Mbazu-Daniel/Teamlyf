@@ -25,10 +25,7 @@ export function CallConnectingOverlay({ channel, onCancel }: CallConnectingOverl
           <p className="text-xl font-bold">Connecting to {channel?.name}...</p>
           <p className="text-sm text-gray-300">Setting up your session</p>
         </div>
-        <button
-          onClick={onCancel}
-          className="mt-4 px-6 py-2 bg-red-50 rounded-full font-semibold"
-        >
+        <button onClick={onCancel} className="mt-4 px-6 py-2 bg-red-50 rounded-full font-semibold">
           Cancel
         </button>
       </div>

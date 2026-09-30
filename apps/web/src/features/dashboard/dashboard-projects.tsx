@@ -1,12 +1,9 @@
-import { Link } from "@tanstack/react-router";
+﻿import { Link } from "@tanstack/react-router";
 import { IconLayoutKanban } from "@tabler/icons-react";
 import { DashboardPanel } from "./dashboard-panel";
 import type { ProjectRollup } from "./dashboard-metrics";
+import { projectSlug } from "@/lib/slug";
 
-/**
- * Project progress is counted from tasks: a project row carries no status or
- * progress column, so its tasks and their status categories are the signal.
- */
 export function DashboardProjects({
   organizationSlug,
   rollups,
@@ -33,12 +30,14 @@ export function DashboardProjects({
       }
     >
       {loading ? (
-        <p className="text-sm text-muted-foreground">Loading projects…</p>
+        <p className="text-sm text-muted-foreground">Loading projects</p>
       ) : visible.length === 0 ? (
         <div className="flex flex-col items-center px-6 py-10 text-center">
           <IconLayoutKanban className="size-5 text-muted-foreground" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium">No projects yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">Create a project to start tracking tasks.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Create a project to start tracking tasks.
+          </p>
         </div>
       ) : (
         <ul className="space-y-1">
@@ -46,7 +45,7 @@ export function DashboardProjects({
             <li key={rollup.project.id}>
               <Link
                 to="/$organizationSlug/projects/$projectId"
-                params={{ organizationSlug, projectId: rollup.project.identifier }}
+                params={{ organizationSlug, projectId: projectSlug(rollup.project) }}
                 className="group flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-muted/60"
               >
                 <span className="min-w-0 flex-1">
@@ -69,7 +68,10 @@ export function DashboardProjects({
                   aria-valuemax={100}
                   aria-label={`${rollup.project.name} progress`}
                 >
-                  <span className="block h-full rounded-full bg-primary" style={{ width: `${rollup.percent}%` }} />
+                  <span
+                    className="block h-full rounded-full bg-primary"
+                    style={{ width: `${rollup.percent}%` }}
+                  />
                 </span>
               </Link>
             </li>

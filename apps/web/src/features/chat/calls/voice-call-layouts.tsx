@@ -17,14 +17,15 @@ export function VoiceCallHuddleLayout({
 }) {
   return (
     <div
-      className={`grid gap-4 sm:gap-6 w-full max-w-2xl px-6 sm:px-8 ${allParticipants.length === 1
-        ? "grid-cols-1"
-        : allParticipants.length <= 2
-          ? "grid-cols-2"
-          : allParticipants.length <= 4
+      className={`grid gap-4 sm:gap-6 w-full max-w-2xl px-6 sm:px-8 ${
+        allParticipants.length === 1
+          ? "grid-cols-1"
+          : allParticipants.length <= 2
             ? "grid-cols-2"
-            : "grid-cols-2 sm:grid-cols-3"
-        }`}
+            : allParticipants.length <= 4
+              ? "grid-cols-2"
+              : "grid-cols-2 sm:grid-cols-3"
+      }`}
     >
       {allParticipants.map((p, i) => {
         const isLocal = p.identity === localIdentity;
@@ -32,16 +33,14 @@ export function VoiceCallHuddleLayout({
         return (
           <div key={p.identity} className="flex flex-col items-center gap-3">
             <Avatar
-              name={isLocal ? (localName || "You") : p.name}
+              name={isLocal ? localName || "You" : p.name}
               colorIndex={i}
               size="lg"
               isSpeaking={p.isSpeaking}
               isMuted={muted}
             />
             <div className="text-center">
-              <p className="text-sm font-semibold">
-                {isLocal ? "You" : (p.name || p.identity)}
-              </p>
+              <p className="text-sm font-semibold">{isLocal ? "You" : p.name || p.identity}</p>
               {p.isSpeaking && (
                 <p className="text-caption-xs text-emerald-400 font-medium">Speaking…</p>
               )}
@@ -89,9 +88,7 @@ export function VoiceCallOneOnOneLayout({
           <p className="text-lg font-semibold text-white">
             {remotes[0]?.name || "Waiting for participant…"}
           </p>
-          {remotes[0] && (
-            <p className="text-sm text-white/40">Camera is off</p>
-          )}
+          {remotes[0] && <p className="text-sm text-white/40">Camera is off</p>}
         </div>
       )}
 
@@ -120,17 +117,16 @@ export function VoiceCallOneOnOneLayout({
         style={{ width: "clamp(100px, 25vw, 200px)", aspectRatio: "16/10" }}
       >
         {isCameraEnabled && localCam ? (
-          <VideoTrack
-            trackRef={localCam}
-            className="h-full w-full object-cover scale-x-[-1]"
-          />
+          <VideoTrack trackRef={localCam} className="h-full w-full object-cover scale-x-[-1]" />
         ) : (
           <div className="h-full w-full bg-slate-900 flex items-center justify-center">
             <Avatar name={localName} colorIndex={0} size="sm" />
           </div>
         )}
         <div className="absolute bottom-0 inset-x-0 h-7 bg-gradient-to-t from-black/60 to-transparent" />
-        <span className="absolute bottom-1 left-1.5 text-[10px] text-white/80 font-medium">You</span>
+        <span className="absolute bottom-1 left-1.5 text-[10px] text-white/80 font-medium">
+          You
+        </span>
         {!isMicrophoneEnabled && (
           <div className="absolute top-1 left-1 p-1 rounded-full bg-red-500">
             <IconMicrophoneOff size={9} />
@@ -156,12 +152,13 @@ export function VoiceCallConferenceLayout({
 }) {
   return (
     <div
-      className={`grid gap-3 w-full h-full p-4 ${allParticipants.length <= 4
-        ? "grid-cols-2"
-        : allParticipants.length <= 6
-          ? "grid-cols-3"
-          : "grid-cols-4"
-        }`}
+      className={`grid gap-3 w-full h-full p-4 ${
+        allParticipants.length <= 4
+          ? "grid-cols-2"
+          : allParticipants.length <= 6
+            ? "grid-cols-3"
+            : "grid-cols-4"
+      }`}
     >
       {allParticipants.map((p, i) => {
         const isLocal = p.identity === localIdentity;
@@ -170,7 +167,7 @@ export function VoiceCallConferenceLayout({
           <ParticipantTile
             key={p.identity}
             trackRef={cam}
-            name={isLocal ? (localName || "You") : p.name}
+            name={isLocal ? localName || "You" : p.name}
             colorIndex={i}
             isSpeaking={p.isSpeaking}
             isMuted={isLocal ? !isMicrophoneEnabled : !p.isMicrophoneEnabled}

@@ -11,12 +11,12 @@ function organizationStorageKey(userId: string) {
 type OrganizationContextValue = {
   organization: Organization | null;
   organizations: Organization[];
-  /** False until the persisted organization has been restored (or confirmed absent). */
+
   bootstrapped: boolean;
   selectOrganization: (organization: Organization) => void;
   refreshOrganizations: () => Promise<Organization[]>;
   resolveSlug: (slug: string) => Promise<Organization | null>;
-  /** Forget the workspace in memory without deleting the user's saved workspace. */
+
   reset: () => void;
 };
 
@@ -97,7 +97,8 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       resolveSlug: async (slug) => {
         const next = await getOrganizations();
         setOrganizations(next);
-        const match = next.find((item) => organizationSlug(item) === slug || item.id === slug) ?? null;
+        const match =
+          next.find((item) => organizationSlug(item) === slug || item.id === slug) ?? null;
         if (match) {
           if (userId) localStorage.setItem(organizationStorageKey(userId), match.id);
           setOrganization(match);

@@ -9,11 +9,13 @@ interface ThreadState {
   isChatSidebarOpen: boolean;
   chatId: string | null;
 
-  // Profile panel
   profileMember: Partial<TenantMember> | null;
   isProfileOpen: boolean;
 
-  setActiveThread: (payload: { message: Message | null; type: "channel" | "direct" | null }) => void;
+  setActiveThread: (payload: {
+    message: Message | null;
+    type: "channel" | "direct" | null;
+  }) => void;
   setIsThreadOpen: (isOpen: boolean) => void;
   setIsChatSidebarOpen: (isOpen: boolean) => void;
   setChatId: (chatId: string | null) => void;

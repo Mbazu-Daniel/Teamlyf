@@ -10,15 +10,14 @@ type SocketOptions = {
   reconnectionDelayMax: number;
 };
 
-const wsBase = (import.meta.env.VITE_WS_URL as string | undefined)?.trim().replace(/\/+$/, "") ?? "";
+const wsBase =
+  (import.meta.env.VITE_WS_URL as string | undefined)?.trim().replace(/\/+$/, "") ?? "";
 
-/** Rejections from the gateway auth middleware (`ws-auth.ts`) — retrying them can never succeed. */
 const AUTH_ERRORS = new Set(["Unauthorized", "Forbidden"]);
 
 let socket: Socket | null = null;
 let socketOrganizationId: string | null = null;
 
-/** Tear the connection down and forget it, so the next `getSocket` builds a fresh one. */
 export function disconnectSocket(): void {
   socket?.disconnect();
   socket = null;
@@ -39,9 +38,6 @@ function connect(organizationId: string): Socket {
   const url = `${wsBase}/organization/${organizationId}/chat`;
   const next = io(url, options);
 
-  // Network errors retry forever (that is the point of the setting above).
-  // Auth errors do not: an expired cookie or a revoked membership would
-  // otherwise retry forever against a handshake that can never succeed.
   next.on("connect_error", (error: Error) => {
     if (!AUTH_ERRORS.has(error.message)) return;
     if (socket === next) disconnectSocket();
@@ -63,8 +59,6 @@ export function getSocket(_token: string | null, organizationId: string): Socket
   return socket;
 }
 
-// Dev only: drop the socket on hot reload so module re-evaluation does not
-// strand the previous connection.
 if (import.meta.hot) {
   import.meta.hot.dispose(() => disconnectSocket());
 }

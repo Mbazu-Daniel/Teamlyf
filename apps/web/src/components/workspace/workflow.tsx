@@ -78,13 +78,12 @@ export function WorkflowSubmit({
   label?: string;
 }) {
   return (
-    <button type="submit" disabled={pending} className={pagePrimaryAction}>
+    <button type="submit" disabled={pending} className={pagePrimaryAction + " cursor-pointer"}>
       {pending ? "Saving…" : label}
     </button>
   );
 }
 
-/** A single submitted operation; callers keep dialogs open on failure. */
 export function useWorkflowMutation(keys: QueryKey[], onSuccess?: () => void | Promise<void>) {
   const queryClient = useQueryClient();
   return useMutation({
