@@ -7,10 +7,6 @@ import { permissionCatalog } from "../../common/better-auth/permissions";
 import { DATABASE } from "../../common/db/db.provider";
 import type { CreatePermissionGrantDto, GetPermissionGrantsQueryDto } from "./dto";
 
-/**
- * CRUD over `permission_grant` — the narrow grants better-auth's roles cannot express
- * (instance overrides for users, and all agent grants). Previously read-only.
- */
 @Injectable()
 export class PermissionGrantService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
@@ -37,7 +33,9 @@ export class PermissionGrantService {
         eq(permissionGrant.subjectId, dto.subjectId),
         eq(permissionGrant.module, dto.module),
         eq(permissionGrant.action, dto.action),
-        dto.resourceId ? eq(permissionGrant.resourceId, dto.resourceId) : isNull(permissionGrant.resourceId),
+        dto.resourceId
+          ? eq(permissionGrant.resourceId, dto.resourceId)
+          : isNull(permissionGrant.resourceId),
       ),
       columns: { id: true },
     });
@@ -67,7 +65,6 @@ export class PermissionGrantService {
     await this.db.delete(permissionGrant).where(eq(permissionGrant.id, grantId));
   }
 
-  /** The subject must exist inside this organization, or the grant would never match. */
   private async assertSubject(orgId: string, subjectKind: "user" | "agent", subjectId: string) {
     if (subjectKind === "user") {
       const found = await this.db.query.member.findFirst({

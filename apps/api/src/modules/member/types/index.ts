@@ -1,1 +1,5 @@
-export { type OrganizationRole, parseOrganizationRoles } from "./organization-role";
+export {
+  type OrganizationRole,
+  ORGANIZATION_OWNER_ROLE,
+  parseOrganizationRoles,
+} from "./organization-role";
