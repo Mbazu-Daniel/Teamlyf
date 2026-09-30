@@ -1,4 +1,16 @@
-import { Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { Request, Response as ExpressResponse } from "express";
 import { proxyBetterAuth } from "../../common/better-auth/better-auth-proxy";
@@ -37,9 +49,10 @@ export class MemberController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) =>
+    const body = await proxyBetterAuth(req, res, (headers) =>
       this.memberService.getMembers(orgId, query, headers),
     );
+    return this.memberService.withMemberAvatars(orgId, body);
   }
 
   @Post("remove")
@@ -96,13 +109,8 @@ export class MemberController {
   @ApiParam({ name: "orgId", description: "Organization ID" })
   @ApiResponse({ status: 200, description: "Member returned" })
   @ApiResponse({ status: 400, description: "No active organization or member not found" })
-  async getActiveMember(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: ExpressResponse,
-  ) {
-    return proxyBetterAuth(req, res, (headers) =>
-      this.memberService.getActiveMember(headers),
-    );
+  async getActiveMember(@Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
+    return proxyBetterAuth(req, res, (headers) => this.memberService.getActiveMember(headers));
   }
 
   @Get("active-role")
@@ -137,8 +145,6 @@ export class MemberController {
     );
   }
 
-  // Keep ":memberId" routes last: literal routes (profile, active, remove, ...)
-  // must keep winning the Express path match.
   @Get(":memberId")
   @UseGuards(SessionGuard, OrgMemberGuard)
   @ApiOperation({ summary: "Get a member with their linked user account" })

@@ -2,7 +2,7 @@ import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { member } from "@teamlyf/db";
 import type { Database } from "@teamlyf/db";
 import { user } from "@teamlyf/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../common/db/db.provider";
 import { requireOrganizationMemberOrNotFound } from "../../common/organization-member";
 import { AuthService } from "../auth/auth.service";
@@ -69,15 +69,15 @@ export class MemberService {
     });
   }
 
-  /**
-   * The one write behind both profile routes. PATCH /profile (the caller's own
-   * row) and PATCH /:memberId (an admin's pick) set the same two columns and
-   * miss the same way, so they share this and differ only in what they return.
-   */
   private async applyProfile(orgId: string, memberId: string, body: UpdateMemberProfileDto) {
+    const values: Partial<typeof member.$inferInsert> = { updatedAt: new Date() };
+    if (body.firstName !== undefined) values.firstName = body.firstName;
+    if (body.lastName !== undefined) values.lastName = body.lastName;
+    if (body.avatar !== undefined) values.avatar = body.avatar;
+
     const [updated] = await this.db
       .update(member)
-      .set({ firstName: body.firstName, lastName: body.lastName, updatedAt: new Date() })
+      .set(values)
       .where(and(eq(member.id, memberId), eq(member.organizationId, orgId)))
       .returning();
 
@@ -89,17 +89,44 @@ export class MemberService {
   }
 
   async updateProfile(orgId: string, memberId: string, body: UpdateMemberProfileDto) {
-    const { id, firstName, lastName } = await this.applyProfile(orgId, memberId, body);
-    return { id, firstName, lastName };
+    const { id, firstName, lastName, avatar } = await this.applyProfile(orgId, memberId, body);
+    return { id, firstName, lastName, avatar };
   }
 
-  /** Member detail: the membership row plus the linked auth account. */
+  /**
+   * better-auth's `listMembers` knows nothing about our `member.avatar` column,
+   * so overlay it from the membership rows before the payload reaches the client.
+   */
+  async withMemberAvatars(orgId: string, body: unknown): Promise<unknown> {
+    const members = (body as { members?: Record<string, unknown> } | null)?.members;
+    if (!Array.isArray(members) || members.length === 0) return body;
+
+    const ids = members
+      .map((row) => row.id)
+      .filter((id): id is string => typeof id === "string");
+    if (ids.length === 0) return body;
+
+    const rows = await this.db.query.member.findMany({
+      where: and(eq(member.organizationId, orgId), inArray(member.id, ids)),
+      columns: { id: true, avatar: true },
+    });
+    const avatars = new Map(rows.map((row) => [row.id, row.avatar]));
+
+    return {
+      ...(body as Record<string, unknown>),
+      members: members.map((row) => ({
+        ...row,
+        avatar: typeof row.id === "string" ? (avatars.get(row.id) ?? null) : null,
+      })),
+    };
+  }
+
   async getMember(orgId: string, memberId: string) {
     const memberRow = await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     const userRow = memberRow.userId
       ? await this.db.query.user.findFirst({
           where: eq(user.id, memberRow.userId),
-          columns: { id: true, email: true, name: true, image: true },
+          columns: { id: true, email: true, name: true },
         })
       : null;
     return { ...memberRow, user: userRow ?? null };
