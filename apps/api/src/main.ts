@@ -1,5 +1,5 @@
 import "reflect-metadata";
-// Required at runtime by ValidationPipe({ transform: true }) below.
+
 import "class-transformer";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
@@ -12,19 +12,18 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { apiReference } from "@scalar/nestjs-api-reference";
 import { AppModule } from "./app.module";
 import { GlobalExceptionFilter } from "./common/filters/global-exception.filter";
+import { webOrigins } from "./common/config/env";
+
+/** The deploy probe targets this path, so it must not follow the API version. */
+const UNPREFIXED_ROUTES = ["health"];
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
-  app.setGlobalPrefix("api/v1");
+  app.setGlobalPrefix("api/v1", { exclude: UNPREFIXED_ROUTES.map((route) => `GET ${route}`) });
 
-  app.enableCors({
-    origin: (process.env.WEB_ORIGIN ?? "")
-      .split(",")
-      .map((origin) => origin.trim())
-      .filter(Boolean),
-    credentials: true,
-  });
+  // Same helper the WebSocket gateway uses, so the two layers cannot disagree.
+  app.enableCors({ origin: webOrigins(), credentials: true });
 
   app.use(
     helmet({
@@ -41,7 +40,13 @@ async function bootstrap(): Promise<void> {
   app.use(compression());
   app.use(morgan("combined"));
 
-  app.use(json({ verify: (_req, _res, buffer) => { (_req as Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer); } }));
+  app.use(
+    json({
+      verify: (_req, _res, buffer) => {
+        (_req as Request & { rawBody?: Buffer }).rawBody = Buffer.from(buffer);
+      },
+    }),
+  );
   app.use(urlencoded({ extended: true }));
 
   app.useGlobalPipes(

@@ -11,8 +11,6 @@ export class FeatureGateGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Subscription enforcement is intentionally disabled for now. Keep the
-    // feature metadata and guard in place so billing can be re-enabled later.
     void context;
     void this.reflector;
     return true;

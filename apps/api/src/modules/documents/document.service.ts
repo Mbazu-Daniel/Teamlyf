@@ -17,6 +17,7 @@ import type {
   UploadDocumentDto,
 } from "./document.dto";
 import { STORAGE_SERVICE, type StorageService } from "../../common/storage/storage.types";
+import { PresignedUploadService } from "../../common/storage/presigned-upload.service";
 import { requireOrganizationMember } from "../../common/organization-member";
 
 const { document, documentPermission, documentVersion } = documentsSchema;
@@ -26,6 +27,7 @@ export class DocumentService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
+    private readonly presigned: PresignedUploadService,
   ) {}
 
   async getDocuments(organizationId: string, memberId: string, page = 1, limit = 50) {
@@ -322,18 +324,16 @@ export class DocumentService {
         .select({ id: documentVersion.id })
         .from(documentVersion)
         .where(eq(documentVersion.documentId, id));
-      await tx
-        .insert(documentVersion)
-        .values({
-          documentId: id,
-          version: String(versions.length + 1),
-          title: current.title,
-          content: current.content,
-          objectKey: current.objectKey,
-          mimeType: current.mimeType,
-          fileSize: current.fileSize,
-          createdById: memberId,
-        });
+      await tx.insert(documentVersion).values({
+        documentId: id,
+        version: String(versions.length + 1),
+        title: current.title,
+        content: current.content,
+        objectKey: current.objectKey,
+        mimeType: current.mimeType,
+        fileSize: current.fileSize,
+        createdById: memberId,
+      });
       const [updated] = await tx
         .update(document)
         .set({ ...replacement, content: null, updatedAt: new Date() })
@@ -403,24 +403,25 @@ export class DocumentService {
     if (dto.mimeType === "application/x-directory")
       throw new BadRequestException("Folders cannot be uploaded as files.");
     const id = generateId();
-    const objectKey = `${org}/documents/${memberId}/${id}`;
-    const target = await this.storage.createUploadUrl({
-      key: objectKey,
+    const target = await this.presigned.issueUploadUrl({
+      organizationId: org,
+      location: "documents",
+      scope: [id],
+      fileName: dto.title || "document",
       contentType: dto.mimeType,
     });
-    await this.db
-      .insert(document)
-      .values({
-        id,
-        organizationId: org,
-        ownerId: memberId,
-        title: dto.title,
-        mimeType: dto.mimeType,
-        fileSize: dto.fileSize,
-        parentId: dto.parentId ?? null,
-        objectKey,
-        uploadReady: false,
-      });
+    const objectKey = target.fileKey;
+    await this.db.insert(document).values({
+      id,
+      organizationId: org,
+      ownerId: memberId,
+      title: dto.title,
+      mimeType: dto.mimeType,
+      fileSize: dto.fileSize,
+      parentId: dto.parentId ?? null,
+      objectKey,
+      uploadReady: false,
+    });
     return { ...target, id };
   }
 

@@ -78,7 +78,10 @@ export class PresignedUploadService {
     const key = resolveObjectKey(input);
     const publicUrl = this.storage.publicUrl(key);
     if (publicUrl) return { url: publicUrl };
-    const target = await this.storage.createDownloadUrl(key, input.fileName ?? key.split("/").pop()!);
+    const target = await this.storage.createDownloadUrl(
+      key,
+      input.fileName ?? key.split("/").pop()!,
+    );
     return { url: target.url };
   }
 

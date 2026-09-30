@@ -68,19 +68,13 @@ export class AgentController {
 
   @Post("provider-configs")
   @RequirePermission("agents", "update")
-  configureProvider(
-    @Param("orgId") organizationId: string,
-    @Body() body: UpsertProviderConfigDto,
-  ) {
+  configureProvider(@Param("orgId") organizationId: string, @Body() body: UpsertProviderConfigDto) {
     return this.agents.upsertProviderConfig(organizationId, body);
   }
 
   @Get("usage")
   @RequirePermission("agents", "read")
-  usage(
-    @Param("orgId") organizationId: string,
-    @CurrentMember() member: SessionMember,
-  ) {
+  usage(@Param("orgId") organizationId: string, @CurrentMember() member: SessionMember) {
     return this.agents.getAgentUsage(organizationId, member.id);
   }
 
