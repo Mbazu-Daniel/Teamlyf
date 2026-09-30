@@ -21,7 +21,11 @@ export class MemberProfileController {
 
   @Patch("profiles/:memberId")
   @RequirePermission("hr", "update")
-  updateEmployee(@Param("orgId") orgId: string, @Param("memberId") memberId: string, @Body() body: UpdateEmployeeProfileDto) {
+  updateEmployee(
+    @Param("orgId") orgId: string,
+    @Param("memberId") memberId: string,
+    @Body() body: UpdateEmployeeProfileDto,
+  ) {
     return this.profiles.updateMemberProfile(orgId, memberId, body);
   }
 

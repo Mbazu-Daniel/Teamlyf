@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { leaveRequest } from "@teamlyf/db";
 import { and, desc, eq } from "drizzle-orm";
@@ -60,12 +66,25 @@ export class LeaveRequestService {
       where: and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId)),
     });
     if (!request) throw new NotFoundException("Leave request not found");
-    if (request.status !== "pending") throw new BadRequestException("Only pending requests can be reviewed");
-    if (dto.status === "rejected" && !dto.reviewReason?.trim()) throw new BadRequestException("Explain why this request is being rejected");
+    if (request.status !== "pending")
+      throw new BadRequestException("Only pending requests can be reviewed");
+    if (dto.status === "rejected" && !dto.reviewReason?.trim())
+      throw new BadRequestException("Explain why this request is being rejected");
     const [updated] = await this.db
       .update(leaveRequest)
-      .set({ status: dto.status, reviewReason: dto.reviewReason?.trim() || null, reviewedById: reviewerId, reviewedAt: new Date() })
-      .where(and(eq(leaveRequest.id, requestId), eq(leaveRequest.organizationId, orgId), eq(leaveRequest.status, "pending")))
+      .set({
+        status: dto.status,
+        reviewReason: dto.reviewReason?.trim() || null,
+        reviewedById: reviewerId,
+        reviewedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(leaveRequest.id, requestId),
+          eq(leaveRequest.organizationId, orgId),
+          eq(leaveRequest.status, "pending"),
+        ),
+      )
       .returning();
     if (!updated) throw new BadRequestException("This request was already reviewed or cancelled");
     return updated;
