@@ -9,7 +9,8 @@
     "**/dist/**",
     "**/.output/**",
     "**/.tanstack/**",
-    "**/routeTree.gen.ts"
+    "**/routeTree.gen.ts",
+    "video/**"
   ],
   "jsPlugins": ["@shadcn/lint"],
   "rules": {

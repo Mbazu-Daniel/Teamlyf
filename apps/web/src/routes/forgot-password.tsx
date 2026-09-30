@@ -42,7 +42,7 @@ function ForgotPassword() {
           </Link>
         </div>
       ) : (
-        <form className="space-y-4" onSubmit={submit}>
+        <form className="space-y-4" method="post" onSubmit={submit}>
           <AuthField
             label="Email"
             name="email"

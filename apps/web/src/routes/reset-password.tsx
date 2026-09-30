@@ -71,7 +71,7 @@ export function ResetPasswordForm({
       title="Choose a new password"
       description="Pick something you have not used before."
     >
-      <form className="space-y-4" onSubmit={submit}>
+      <form className="space-y-4" method="post" onSubmit={submit}>
         <AuthField
           label="New password"
           name="password"

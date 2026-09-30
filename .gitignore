@@ -27,6 +27,7 @@ apps/web/.wrangler/*
 .wrangler/*
 parity*.mjs
 storage-keys.check.ts
+seeders/
 
 # Local tooling output / build noise (never commit)
 .hallmark/
@@ -37,3 +38,4 @@ storage-keys.check.ts
 briefcase-test.svg
 *txt
 brag-output*
+video

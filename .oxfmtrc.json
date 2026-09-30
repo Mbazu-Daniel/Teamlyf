@@ -6,6 +6,7 @@
     "**/.output/**",
     "**/.tanstack/**",
     "**/routeTree.gen.ts",
-    "pnpm-lock.yaml"
+    "pnpm-lock.yaml",
+    "video/**"
   ]
 }

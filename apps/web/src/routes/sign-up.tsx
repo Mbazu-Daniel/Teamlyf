@@ -25,7 +25,8 @@ function SignUp() {
       title="Create your account"
       // description=""
     >
-      <form className="space-y-4" onSubmit={submit}>
+      {/* Before hydration, a native submit would append the fields to the URL query, so the fallback is POST. */}
+      <form className="space-y-4" method="post" onSubmit={submit}>
         <AuthField
           label="Email"
           name="email"
