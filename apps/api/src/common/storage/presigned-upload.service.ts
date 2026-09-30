@@ -75,7 +75,7 @@ export class PresignedUploadService {
     fileName?: string;
   }): Promise<{ url: string } | null> {
     if (!input.key) return null;
-    const key = resolveObjectKey(input);
+    const key = resolveObjectKey({ ...input, key: input.key });
     const publicUrl = this.storage.publicUrl(key);
     if (publicUrl) return { url: publicUrl };
     const target = await this.storage.createDownloadUrl(
