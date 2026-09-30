@@ -30,7 +30,11 @@ export const statusRelations = relations(status, ({ one, many }) => ({
 
 export const labelRelations = relations(label, ({ one, many }) => ({
   project: one(project, { fields: [label.projectId], references: [project.id] }),
-  parent: one(label, { fields: [label.parentId], references: [label.id], relationName: "label_tree" }),
+  parent: one(label, {
+    fields: [label.parentId],
+    references: [label.id],
+    relationName: "label_tree",
+  }),
   children: many(label, { relationName: "label_tree" }),
   taskLabels: many(taskLabel),
 }));
@@ -110,4 +114,3 @@ export const projectMemberRelations = relations(projectMember, ({ one }) => ({
   project: one(project, { fields: [projectMember.projectId], references: [project.id] }),
   member: one(member, { fields: [projectMember.memberId], references: [member.id] }),
 }));
-
