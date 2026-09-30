@@ -1,6 +1,5 @@
 export type Crumb = Readonly<{ label: string; to: string }>;
 
-/** Projects the crumb builder needs to turn a slug into the name people actually use. */
 type ProjectRef = Readonly<{ name: string; identifier?: string }>;
 
 const LABELS: Record<string, string> = {
@@ -10,6 +9,8 @@ const LABELS: Record<string, string> = {
   access: "Access",
   security: "Security",
   billing: "Billing",
+  profile: "Profile",
+  leave: "Leave",
   tasks: "Tasks",
   notes: "Notes",
   schedule: "Schedule",
@@ -20,25 +21,44 @@ const LABELS: Record<string, string> = {
   mentions: "Mentions",
   calls: "Calls",
   people: "HR",
+  members: "Members",
   documents: "Documents",
   agents: "Agents",
   appearance: "Appearance",
 };
 
-function slugify(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+/** Members has its own route, so it is not one of the HR sections. */
+const HR_SECTIONS: Record<string, string> = {
+  departments: "Departments",
+  leave: "Leave",
+  "org-chart": "Org chart",
+};
+
+function hrSectionCrumb(organizationSlug: string, section: string | null): Crumb | null {
+  if (!section) return null;
+  const label = HR_SECTIONS[section];
+  if (!label) return null;
+  return { label, to: `/${organizationSlug}/people?section=${encodeURIComponent(section)}` };
 }
 
-/** `website-redesign` in the URL reads as `Website Redesign` in the trail. */
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function projectLabel(segment: string, projects: readonly ProjectRef[]): string | null {
-  const project = projects.find((item) => item.identifier === segment || slugify(item.name) === segment);
+  const project = projects.find(
+    (item) => item.identifier === segment || slugify(item.name) === segment,
+  );
   return project?.name ?? null;
 }
 
-/** Build breadcrumbs from app route segments without exposing the workspace name. */
 export function getBreadcrumbs(
   pathname: string,
   projects: readonly ProjectRef[] = [],
+  search: string = "",
 ): readonly Crumb[] {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length <= 1) return [];
@@ -53,6 +73,12 @@ export function getBreadcrumbs(
     const isProjectId = rest[index - 1] === "projects";
     const label = (isProjectId && projectLabel(segment, projects)) || LABELS[segment] || segment;
     crumbs.push({ label, to: path });
+  }
+
+  if (rest[0] === "people") {
+    const section = new URLSearchParams(search).get("section");
+    const crumb = hrSectionCrumb(organizationSlug, section);
+    if (crumb) crumbs.push(crumb);
   }
 
   return crumbs;
