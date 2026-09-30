@@ -61,7 +61,8 @@ export class OpenAIChatModel implements AgentModel {
     tools: readonly AgentToolDefinition[],
   ): AsyncIterable<AgentModelStreamEvent> {
     const input: ChatMessage[] = [];
-    if (this.options.systemPrompt) input.push({ role: "system", content: this.options.systemPrompt });
+    if (this.options.systemPrompt)
+      input.push({ role: "system", content: this.options.systemPrompt });
     input.push(...this.toChatMessages(messages));
 
     const response = await fetch(`${this.options.baseUrl}/chat/completions`, {
@@ -183,7 +184,10 @@ export class OpenAIChatModel implements AgentModel {
 
   private toChatMessages(messages: readonly AgentMessage[]): ChatMessage[] {
     const result: ChatMessage[] = [];
-    let pendingToolCalls: Extract<ChatMessage, { role: "assistant"; tool_calls: unknown }>["tool_calls"] = [];
+    let pendingToolCalls: Extract<
+      ChatMessage,
+      { role: "assistant"; tool_calls: unknown }
+    >["tool_calls"] = [];
 
     const flushToolCalls = (): void => {
       if (!pendingToolCalls.length) return;

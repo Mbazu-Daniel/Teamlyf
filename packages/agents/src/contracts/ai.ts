@@ -27,10 +27,7 @@ export const aiUsageSchema = z.object({
 export type AiUsage = z.infer<typeof aiUsageSchema>;
 
 export interface AiProviderResolver {
-  resolve(input: {
-    organizationId: string;
-    memberId: string;
-  }): Promise<AiProvider>;
+  resolve(input: { organizationId: string; memberId: string }): Promise<AiProvider>;
 }
 
 export interface AiUsageRecorder {
