@@ -83,8 +83,9 @@ export function QuickActionButton({
   return (
     <button
       onClick={onClick}
+      title={label}
       className={cn(
-        "flex h-control items-center justify-center gap-1.5 rounded-[8px] px-2 text-[11px] font-semibold transition-colors",
+        "flex h-control min-w-0 flex-col items-center justify-center gap-0.5 rounded-[8px] px-1 py-1 text-[11px] font-semibold leading-none transition-colors cursor-pointer",
         layout === "top"
           ? active
             ? "bg-primary text-primary-foreground"
@@ -94,8 +95,10 @@ export function QuickActionButton({
             : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
-      <Icon className="w-3.5 h-3.5" />
-      <span className="truncate">{label}</span>
+      <Icon className="size-3.5 shrink-0" />
+      {/* Three actions share a 248px rail, so "Mentions" only fits on its own
+          line with the icon stacked above it. */}
+      <span className="min-w-0 max-w-full truncate">{label}</span>
     </button>
   );
 }
