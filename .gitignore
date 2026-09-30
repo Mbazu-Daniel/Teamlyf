@@ -36,3 +36,4 @@ storage-keys.check.ts
 !apps/web/test/realtime.smoke.mjs
 briefcase-test.svg
 *txt
+brag-output*

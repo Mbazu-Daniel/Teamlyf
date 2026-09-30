@@ -1,4 +1,5 @@
 import { io, type Socket } from "socket.io-client";
+import { WS_ORIGIN } from "./api/origin";
 
 type SocketOptions = {
   transports: ["websocket"];
@@ -9,9 +10,6 @@ type SocketOptions = {
   reconnectionDelay: number;
   reconnectionDelayMax: number;
 };
-
-const wsBase =
-  (import.meta.env.VITE_WS_URL as string | undefined)?.trim().replace(/\/+$/, "") ?? "";
 
 const AUTH_ERRORS = new Set(["Unauthorized", "Forbidden"]);
 
@@ -35,7 +33,7 @@ function connect(organizationId: string): Socket {
     reconnectionDelayMax: 5000,
   };
 
-  const url = `${wsBase}/organization/${organizationId}/chat`;
+  const url = `${WS_ORIGIN}/organization/${organizationId}/chat`;
   const next = io(url, options);
 
   next.on("connect_error", (error: Error) => {

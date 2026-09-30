@@ -1,9 +1,5 @@
 import { toApiError, type ApiErrorPayload } from "./errors";
-
-const API_VERSION_PATH = "/api/v1";
-
-const API_ORIGIN = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, "") ?? "";
-const API_URL = `${API_ORIGIN}${API_VERSION_PATH}`;
+import { API_BASE_URL } from "./origin";
 
 type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined>;
@@ -19,7 +15,7 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, ...init } = options;
-  const response = await fetch(API_URL + buildUrl(path, query), {
+  const response = await fetch(API_BASE_URL + buildUrl(path, query), {
     ...init,
     credentials: "include",
     headers: { "Content-Type": "application/json", ...init.headers },
@@ -48,7 +44,7 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
 export type Organization = { id: string; name: string; logo?: string | null; slug?: string };
 
 export function resolveApiPath(path: string) {
-  return /^https?:\/\//.test(path) ? path : API_URL + path;
+  return /^https?:\/\//.test(path) ? path : API_BASE_URL + path;
 }
 
 export const client = { request };

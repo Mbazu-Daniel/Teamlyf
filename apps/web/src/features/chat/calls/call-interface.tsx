@@ -1,5 +1,6 @@
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
+import { LIVEKIT_ORIGIN } from "@/lib/api/origin";
 import { VoiceCall } from "./voice-call";
 
 type CallType = "voice" | "video" | "CONFERENCE";
@@ -19,7 +20,7 @@ export const CallRoom = ({ token, callType, onLeave, onEnd, isInitiator }: CallP
       video={callType !== "voice"}
       audio={true}
       token={token}
-      serverUrl={import.meta.env.VITE_LIVEKIT_URL}
+      serverUrl={LIVEKIT_ORIGIN}
       onDisconnected={onLeave}
       data-lk-theme="default"
       style={{ height: "100dvh" }}

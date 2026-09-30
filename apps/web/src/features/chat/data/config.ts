@@ -1,21 +1,10 @@
-function readPublicEnv(key: string): string | undefined {
-  const meta = import.meta.env as unknown as Record<string, string | undefined>;
-  return meta[key]?.trim() || undefined;
-}
-
-function normalizePublicUrl(raw: string | undefined): string {
-  const value = (raw || "").trim().replace(/\/+$/, "");
-  if (!value) return "";
-  if (/^https?:\/\//i.test(value)) return value;
-  if (value.startsWith("/")) return value;
-  return `https://${value}`;
-}
+import { API_ORIGIN, API_VERSION_PATH, LIVEKIT_ORIGIN, WS_ORIGIN } from "@/lib/api/origin";
 
 export const CONFIG = {
-  API_URL: normalizePublicUrl(readPublicEnv("VITE_API_URL")),
-  API_BASE_PATH: "/api/v1",
-  WS_URL: normalizePublicUrl(readPublicEnv("VITE_WS_URL")),
-  LIVEKIT_URL: normalizePublicUrl(readPublicEnv("VITE_LIVEKIT_URL")),
+  API_URL: API_ORIGIN,
+  API_BASE_PATH: API_VERSION_PATH,
+  WS_URL: WS_ORIGIN,
+  LIVEKIT_URL: LIVEKIT_ORIGIN,
 
   STORAGE_KEYS: {
     AUTH_PERSIST: "auth",

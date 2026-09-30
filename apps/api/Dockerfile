@@ -43,4 +43,4 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
 COPY apps/api/package.json ./
 
 USER node
-CMD ["sh", "-c", "cd /app/packages/db && ./node_modules/.bin/drizzle-kit migrate && node dist/main.js"]
+CMD ["sh", "-c", "cd /app/packages/db && ./node_modules/.bin/drizzle-kit migrate && cd /app/apps/api && node dist/main.js"]
