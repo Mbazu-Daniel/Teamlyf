@@ -26,11 +26,13 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app/apps/api
 ENV NODE_ENV=production
-ENV API_PORT=3101
-EXPOSE 3101
+ENV PORT=9001
+EXPOSE 9001
 
+# Liveness only (/health): uptime + Redis status, never the DB — a slow database
+# must not restart a container that is serving fine.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3101/docs-json || exit 1
+  CMD curl -f "http://localhost:${PORT:-9001}/health" || exit 1
 
 COPY --from=dependencies /app/node_modules /app/node_modules
 COPY --from=dependencies /app/apps/api/node_modules ./node_modules
@@ -42,5 +44,6 @@ COPY --from=builder /app/packages/db /app/packages/db
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
 COPY apps/api/package.json ./
 
+RUN npm install -g pm2@latest
 USER node
-CMD ["sh", "-c", "cd /app/packages/db && ./node_modules/.bin/drizzle-kit migrate && cd /app/apps/api && node dist/main.js"]
+CMD ["sh", "-c", "cd /app/packages/db && ./node_modules/.bin/drizzle-kit migrate && cd /app/apps/api && pm2 start -s dist/main.js --name teamlyf-api -i 1 --no-daemon"]

@@ -74,7 +74,7 @@ pnpm dev
 
 ## Usage
 
-Once the development server is running, the API will be available on port 3101 by default. You can navigate to the API documentation route at `/api/v1/docs` in your browser to explore the available endpoints.
+Once the development server is running, the API will be available on port 9001 by default. You can navigate to the API documentation route at `/docs` in your browser to explore the available endpoints.
 
 To create your first workspace, you will need to sign up a new user, create an organization, and then begin inviting team members. Use the CLI tool to audit your codebase health periodically.
 

@@ -2,7 +2,7 @@ import "reflect-metadata";
 
 import "class-transformer";
 import { NestFactory } from "@nestjs/core";
-import { ValidationPipe } from "@nestjs/common";
+import { Logger, RequestMethod, ValidationPipe } from "@nestjs/common";
 import compression from "compression";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -15,12 +15,12 @@ import { GlobalExceptionFilter } from "./common/filters/global-exception.filter"
 import { webOrigins } from "./common/config/env";
 
 /** The deploy probe targets this path, so it must not follow the API version. */
-const UNPREFIXED_ROUTES = ["health"];
+const UNPREFIXED_ROUTES = [{ path: "health", method: RequestMethod.GET }];
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
-  app.setGlobalPrefix("api/v1", { exclude: UNPREFIXED_ROUTES.map((route) => `GET ${route}`) });
+  app.setGlobalPrefix("api/v1", { exclude: UNPREFIXED_ROUTES });
 
   // Same helper the WebSocket gateway uses, so the two layers cannot disagree.
   app.enableCors({ origin: webOrigins(), credentials: true });
@@ -79,7 +79,11 @@ async function bootstrap(): Promise<void> {
   );
 
   app.enableShutdownHooks();
-  await app.listen(process.env.API_PORT ?? 3101);
+  const port = process.env.PORT ?? 9001;
+  await app.listen(port, "::");
+  // The deploy platform maps a container port to the domain; printing it makes
+  // a Traefik 502 ("started, yet unreachable") a one-line diagnosis.
+  Logger.log(`Teamlyf API listening on port ${port}`, "Bootstrap");
 }
 
 void bootstrap();

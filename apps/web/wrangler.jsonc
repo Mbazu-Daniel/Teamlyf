@@ -4,4 +4,37 @@
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  "workers_dev": true,
+  "preview_urls": true,
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    {
+      "pattern": "ui.getteamlyf.com",
+      "custom_domain": true
+    }
+  ],
+  "env": {
+    "production": {
+      "name": "teamlyf-prod",
+      "compatibility_date": "2026-09-01",
+      "compatibility_flags": ["nodejs_compat"],
+      "workers_dev": false,
+      "preview_urls": false,
+      "observability": {
+        "enabled": true
+      },
+      "routes": [
+        {
+          "pattern": "getteamlyf.com",
+          "custom_domain": true
+        },
+        {
+          "pattern": "www.getteamlyf.com",
+          "custom_domain": true
+        }
+      ]
+    }
+  }
 }

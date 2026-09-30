@@ -8,7 +8,7 @@ function loadEnv(): void {
 }
 
 const apiEnvSchema = z.object({
-  API_PORT: z.coerce.number().int().positive().default(3101),
+  PORT: z.coerce.number().int().positive().default(9001),
   WEB_ORIGIN: z
     .string()
     .default("http://localhost:3100")
@@ -23,7 +23,7 @@ const apiEnvSchema = z.object({
   BETTER_AUTH_URL: z
     .string()
     .url()
-    .default("http://localhost:3101")
+    .default("http://localhost:9001")
     .transform((url) => url.replace(/\/+$/, "")),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
