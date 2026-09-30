@@ -4,17 +4,17 @@ Each branch contains at most 50 changed files **relative to the preceding branch
 including added and deleted files. A branch inherits the earlier commits; do not
 open every PR against `dev`, which would show cumulative changes.
 
-| Branch | PR base | Conventional commit |
-| --- | --- | --- |
-| `fix/ui-fixes-task` (existing) | `dev` | Existing authentication/theme commits |
-| `chore/preview-stack-workflow` | `fix/ui-fixes-task` | `chore(git): support parent-based preview stack checks` |
-| `feat/preview-database-storage` | `chore/preview-stack-workflow` | `feat(storage): extend workspace schemas and content persistence` |
-| `feat/preview-api-workflows` | `feat/preview-database-storage` | `feat(api): complete workspace workflows and realtime authorization` |
-| `feat/preview-shared-interface` | `feat/preview-api-workflows` | `feat(ui): unify workspace shell typography and shared controls` |
-| `feat/preview-project-workflows` | `feat/preview-shared-interface` | `feat(projects): complete project boards tasks and sprint workflows` |
-| `feat/preview-knowledge-workflows` | `feat/preview-project-workflows` | `feat(knowledge): add document note and schedule workflows` |
-| `feat/preview-people-administration` | `feat/preview-knowledge-workflows` | `feat(workspace): complete people account access and billing screens` |
-| `feat/preview-connected-workspace` | `feat/preview-people-administration` | `feat(workspace): connect dashboard notifications and chat experience` |
+| Branch                               | PR base                              | Conventional commit                                                    |
+| ------------------------------------ | ------------------------------------ | ---------------------------------------------------------------------- |
+| `fix/ui-fixes-task` (existing)       | `dev`                                | Existing authentication/theme commits                                  |
+| `chore/preview-stack-workflow`       | `fix/ui-fixes-task`                  | `chore(git): support parent-based preview stack checks`                |
+| `feat/preview-database-storage`      | `chore/preview-stack-workflow`       | `feat(storage): extend workspace schemas and content persistence`      |
+| `feat/preview-api-workflows`         | `feat/preview-database-storage`      | `feat(api): complete workspace workflows and realtime authorization`   |
+| `feat/preview-shared-interface`      | `feat/preview-api-workflows`         | `feat(ui): unify workspace shell typography and shared controls`       |
+| `feat/preview-project-workflows`     | `feat/preview-shared-interface`      | `feat(projects): complete project boards tasks and sprint workflows`   |
+| `feat/preview-knowledge-workflows`   | `feat/preview-project-workflows`     | `feat(knowledge): add document note and schedule workflows`            |
+| `feat/preview-people-administration` | `feat/preview-knowledge-workflows`   | `feat(workspace): complete people account access and billing screens`  |
+| `feat/preview-connected-workspace`   | `feat/preview-people-administration` | `feat(workspace): connect dashboard notifications and chat experience` |
 
 ## Push in stack order
 

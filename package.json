@@ -18,12 +18,12 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@shadcn/lint": "^0.2.0",
     "fallow": "3.30.0",
     "husky": "^9.1.7",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
-    "turbo": "^2.10.13",
-    "@shadcn/lint": "^0.2.0"
+    "turbo": "^2.10.13"
   },
   "engines": {
     "node": ">=24"
