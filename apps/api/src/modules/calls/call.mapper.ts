@@ -1,4 +1,9 @@
-import type { CallParticipantDto, CallParticipantRow, CallSessionDto, CallSessionRow } from "./calls.types";
+import type {
+  CallParticipantDto,
+  CallParticipantRow,
+  CallSessionDto,
+  CallSessionRow,
+} from "./calls.types";
 
 export function toCallSessionDto(row: CallSessionRow, rows: CallParticipantRow[]): CallSessionDto {
   return {

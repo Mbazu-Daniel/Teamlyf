@@ -4,13 +4,23 @@ import type { ApiEnv } from "../../common/config/env";
 
 const TOKEN_TTL_SECONDS = 60 * 60;
 
-function requireLivekitConfig(env: ApiEnv): { livekitUrl: string; apiKey: string; apiSecret: string } {
+function requireLivekitConfig(env: ApiEnv): {
+  livekitUrl: string;
+  apiKey: string;
+  apiSecret: string;
+} {
   const { LIVEKIT_URL: livekitUrl, LIVEKIT_API_KEY: apiKey, LIVEKIT_API_SECRET: apiSecret } = env;
-  if (!apiKey || !apiSecret || !livekitUrl) throw new BadRequestException("LiveKit is not configured");
+  if (!apiKey || !apiSecret || !livekitUrl)
+    throw new BadRequestException("LiveKit is not configured");
   return { livekitUrl, apiKey, apiSecret };
 }
 
-function buildTokenPayload(env: ApiEnv, memberId: string, participantName: string, room: string): Record<string, unknown> {
+function buildTokenPayload(
+  env: ApiEnv,
+  memberId: string,
+  participantName: string,
+  room: string,
+): Record<string, unknown> {
   const { LIVEKIT_API_KEY: apiKey } = env;
   const now = Math.floor(Date.now() / 1000);
   return {
@@ -32,13 +42,16 @@ function signToken(apiSecret: string, payload: Record<string, unknown>): string 
   return `${input}.${signature}`;
 }
 
-/** HS256 LiveKit room token for a member joining a known room name. */
-export function signCallToken(env: ApiEnv, memberId: string, participantName: string, room: string): string {
+export function signCallToken(
+  env: ApiEnv,
+  memberId: string,
+  participantName: string,
+  room: string,
+): string {
   const { apiSecret } = requireLivekitConfig(env);
   return signToken(apiSecret, buildTokenPayload(env, memberId, participantName, room));
 }
 
-/** Pre-refactor `POST .../calls/token`: LiveKit JWT for an arbitrary room name. */
 export function issueCallToken(
   env: ApiEnv,
   organizationId: string,
@@ -53,5 +66,10 @@ export function issueCallToken(
   const room = `organization:${organizationId}:call:${normalizedRoom}`;
   const payload = buildTokenPayload(env, memberId, participantName?.trim() || memberId, room);
   const token = signToken(apiSecret, payload);
-  return { url: livekitUrl, room, token, expiresAt: new Date((now + TOKEN_TTL_SECONDS) * 1000).toISOString() };
+  return {
+    url: livekitUrl,
+    room,
+    token,
+    expiresAt: new Date((now + TOKEN_TTL_SECONDS) * 1000).toISOString(),
+  };
 }
