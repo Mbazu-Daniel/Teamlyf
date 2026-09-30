@@ -17,9 +17,7 @@ export function MentionsDropdown({ members, onSelect }: MentionsDropdownProps) {
         members.map((member) => (
           <button
             key={member.id}
-            onClick={() =>
-              onSelect(member.id, member.firstName, member.lastName)
-            }
+            onClick={() => onSelect(member.id, member.firstName, member.lastName)}
             className="w-full text-left px-2 py-1.5 hover:bg-primary-button/10 hover:text-primary-button rounded-md text-sm transition-colors flex items-center gap-2 cursor-pointer"
           >
             <Avatar className="h-5 w-5 shrink-0">

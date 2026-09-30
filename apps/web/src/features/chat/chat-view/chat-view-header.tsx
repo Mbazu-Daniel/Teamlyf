@@ -47,12 +47,17 @@ export function ChatViewHeader({
         <AvatarFallback
           rounded="md"
           className="flex items-center justify-center"
-          style={{ backgroundColor: getAvatarColor(conversation?.otherMember?.id || channel?.id || "default") }}
+          style={{
+            backgroundColor: getAvatarColor(
+              conversation?.otherMember?.id || channel?.id || "default",
+            ),
+          }}
         >
-          {type === "channel"
-            ? <span className="text-white font-bold text-xs">#</span>
-            : <PersonIcon />
-          }
+          {type === "channel" ? (
+            <span className="text-white font-bold text-xs">#</span>
+          ) : (
+            <PersonIcon />
+          )}
         </AvatarFallback>
       </Avatar>
 
@@ -61,7 +66,9 @@ export function ChatViewHeader({
           {fmt(chatTitle)}
         </p>
         {chatSubtitle && (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">{chatSubtitle}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground leading-tight">
+            {chatSubtitle}
+          </p>
         )}
       </div>
 

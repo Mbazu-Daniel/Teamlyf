@@ -9,11 +9,6 @@ type UpdateCommentVariables = { commentId: string; body: string };
 
 let draftSequence = 0;
 
-/**
- * The comment thread of one task plus the writes against it. Ownership checks
- * read the signed-in actor from the shared session: this domain exposes no
- * user-lookup endpoint, so comment authors arrive as raw actor ids.
- */
 export function useTaskComments(
   organizationId: string | undefined,
   projectId: string,
@@ -33,7 +28,6 @@ export function useTaskComments(
     retry: false,
   });
 
-  // A comment also becomes an activity row, so every write refreshes both halves.
   function invalidateThread() {
     queryClient.invalidateQueries({ queryKey: commentsKey });
     queryClient.invalidateQueries({ queryKey: activityKey });
@@ -45,7 +39,7 @@ export function useTaskComments(
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: commentsKey });
       const previous = queryClient.getQueryData<Comment[]>(commentsKey);
-      // The thread is newest-first, so the draft leads it until the server answers.
+
       queryClient.setQueryData<Comment[]>(commentsKey, (current) => [
         draftComment(taskId, variables),
         ...(current ?? []),
@@ -96,7 +90,6 @@ export function useTaskComments(
   };
 }
 
-/** Local stand-in shown until the server row replaces it; the id only has to survive one refetch. */
 function draftComment(taskId: string, variables: CreateCommentVariables): Comment {
   draftSequence += 1;
   const now = new Date().toISOString();

@@ -65,17 +65,11 @@ export function stubFetch(
 
 export type FetchMock = ReturnType<typeof stubFetch>;
 
-/** One endpoint a stubbed fetch knows how to answer. */
 export type Route = {
-  /** Defaults to GET. */
   method?: string;
-  /** A url suffix, or a pattern when the path has a variable tail. */
+
   url: string | RegExp;
-  /**
-   * Runs per call with the request, so a test can read the body or mutate the
-   * array it hands back. A bare value is JSON-encoded; return a Response (or a
-   * promise of one) when the test needs to control status or failure.
-   */
+
   respond: (url: string, init?: RequestInit) => unknown;
 };
 
@@ -87,18 +81,12 @@ function isThenable(value: unknown): value is Promise<unknown> {
   return typeof (value as Promise<unknown> | undefined)?.then === "function";
 }
 
-/** A route's return value becomes a Response, however the test produced it. */
 function toResponse(result: unknown): Response | Promise<Response> {
   if (result instanceof Response) return result;
   if (isThenable(result)) return Promise.resolve(result).then(toResponse);
   return jsonResponse(result);
 }
 
-/**
- * A fetch stub driven by a route table, so a test reads as the list of
- * endpoints the component under test is allowed to touch. Anything else throws,
- * which is what makes an unexpected request a test failure rather than a hang.
- */
 export function stubRoutes(routes: Route[]) {
   return stubFetch((url, init) => {
     const method = init?.method ?? "GET";
@@ -112,8 +100,7 @@ export function stubRoutes(routes: Route[]) {
 
 export function countCalls(fetchMock: FetchMock, method: string, urlSuffix: string) {
   return fetchMock.mock.calls.filter(
-    ([input, init]) =>
-      (init?.method ?? "GET") === method && String(input).endsWith(urlSuffix),
+    ([input, init]) => (init?.method ?? "GET") === method && String(input).endsWith(urlSuffix),
   ).length;
 }
 

@@ -1,7 +1,6 @@
 import { PageEmptyState } from "@/components/workspace/page-layout";
 import { useAppRouter } from "@/lib/navigation";
 
-
 import { useState } from "react";
 import { useFetchThreads } from "@/features/chat/data/queries/use-fetch-threads-hook";
 import { useTenantStore } from "@/lib/store/tenant-store";
@@ -23,7 +22,7 @@ export function ThreadsList() {
   const { data: threadsData, isLoading } = useFetchThreads(tenantId!);
 
   const allThreads = threadsData?.records || [];
-  const unreadThreads = allThreads.filter(t => (t.threadCount || 0) > 0); // Simplified for now, real unread logic would check last read time
+  const unreadThreads = allThreads.filter((t) => (t.threadCount || 0) > 0);
 
   const threads = activeTab === "all" ? allThreads : unreadThreads;
 
@@ -46,7 +45,9 @@ export function ThreadsList() {
             </div>
             <div>
               <h2 className="text-lg font-semibold tracking-tight text-foreground">Threads</h2>
-              <p className="text-xs text-muted-foreground">Keep track of your conversations per thread</p>
+              <p className="text-xs text-muted-foreground">
+                Keep track of your conversations per thread
+              </p>
             </div>
           </div>
 
@@ -58,7 +59,7 @@ export function ThreadsList() {
                 "inline-flex h-control-inner items-center rounded-[9px] px-4 text-[13px] font-medium transition-colors",
                 activeTab === "all"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               All
@@ -70,7 +71,7 @@ export function ThreadsList() {
                 "inline-flex h-control-inner items-center rounded-[9px] px-4 text-[13px] font-medium transition-colors",
                 activeTab === "unread"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               Unread
@@ -95,7 +96,17 @@ export function ThreadsList() {
             ))}
           </div>
         ) : threads.length === 0 ? (
-          <div className="p-4 sm:p-6"><PageEmptyState icon={IconMessage} title="No threads found" description={activeTab === "all" ? "Reply to a message to start a thread. Your conversations will stay together here." : "You are up to date. Unread thread replies will appear here."} /></div>
+          <div className="p-4 sm:p-6">
+            <PageEmptyState
+              icon={IconMessage}
+              title="No threads found"
+              description={
+                activeTab === "all"
+                  ? "Reply to a message to start a thread. Your conversations will stay together here."
+                  : "You are up to date. Unread thread replies will appear here."
+              }
+            />
+          </div>
         ) : (
           <div className="divide-y divide-border/50">
             {threads.map((thread: Message) => (
@@ -122,7 +133,7 @@ function ThreadListItem({
   thread,
   formatDate,
   subdomain,
-  onNavigate
+  onNavigate,
 }: {
   thread: Message;
   formatDate: (d: string) => string;
@@ -131,13 +142,15 @@ function ThreadListItem({
 }) {
   const router = useAppRouter();
   const sender = thread.sender;
-  const displayName = sender ? (sender.preferredName || `${sender.firstName} ${sender.lastName}`) : "Unknown";
+  const displayName = sender
+    ? sender.preferredName || `${sender.firstName} ${sender.lastName}`
+    : "Unknown";
   const displayPhoto = sender?.avatar || "";
   const initial = (sender?.preferredName?.[0] || sender?.firstName?.[0] || "?").toUpperCase();
 
   const handleNavigation = () => {
     onNavigate();
-    // Determine context (channel or direct) and ID
+
     if (thread.type === "channel" && thread.channel?.id) {
       router.push(`/${subdomain}/chats/channel/${thread.channel.id}?threadId=${thread.id}`);
     } else if (thread.type === "direct" && thread.conversation?.id) {
@@ -172,7 +185,8 @@ function ThreadListItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-foreground truncate">
-              {thread.content || (thread.attachments?.length ? "Shared an attachment" : "Threaded conversation")}
+              {thread.content ||
+                (thread.attachments?.length ? "Shared an attachment" : "Threaded conversation")}
             </p>
             <span className="text-[10px] text-muted-foreground whitespace-nowrap">
               {formatDate(thread.lastReplyTime || thread.createdAt)}

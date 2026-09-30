@@ -13,7 +13,7 @@ export function useJoinChannel(tenantId: string) {
       toast.success("Joined channel successfully");
     },
     onError: () => {
-        toast.error("Failed to join channel");
-    }
+      toast.error("Failed to join channel");
+    },
   });
 }

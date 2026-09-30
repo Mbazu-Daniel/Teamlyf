@@ -58,7 +58,12 @@ const STATUS_MESSAGES: Readonly<Record<number, string>> = {
 
 export function toApiError(status: number, payload: ApiErrorPayload | string): ApiError {
   const { message, code, details } = normalizePayload(payload);
-  return new ApiError(normalizeMessage(message, status), status, normalizeCode(code, status), details);
+  return new ApiError(
+    normalizeMessage(message, status),
+    status,
+    normalizeCode(code, status),
+    details,
+  );
 }
 
 function normalizePayload(payload: ApiErrorPayload | string) {
@@ -83,5 +88,8 @@ function statusCodeFallback(status: number): ApiErrorCode {
 }
 
 function defaultMessage(status: number) {
-  return STATUS_MESSAGES[status] ?? (status >= 500 ? "An internal server error occurred" : `Request failed with ${status}`);
+  return (
+    STATUS_MESSAGES[status] ??
+    (status >= 500 ? "An internal server error occurred" : `Request failed with ${status}`)
+  );
 }

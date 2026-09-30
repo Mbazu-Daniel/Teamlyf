@@ -1,4 +1,10 @@
-import { IconCalendar, IconChevronLeft, IconChevronRight, IconHash, IconUser } from "@tabler/icons-react";
+import {
+  IconCalendar,
+  IconChevronLeft,
+  IconChevronRight,
+  IconHash,
+  IconUser,
+} from "@tabler/icons-react";
 import { useAppRouter } from "@/lib/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,7 +74,8 @@ export function ChannelJoinScreen({
                 {channel.name}
               </h2>
               <p className="text-base text-muted-foreground font-medium leading-normal">
-                {channel.description || "Welcome to the group! This channel is ready for collaboration."}
+                {channel.description ||
+                  "Welcome to the group! This channel is ready for collaboration."}
               </p>
             </div>
           </div>
@@ -79,7 +86,9 @@ export function ChannelJoinScreen({
                 <IconUser size={18} />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Creator</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
+                  Creator
+                </span>
                 <span className="text-sm font-semibold truncate leading-tight">
                   {channel.createdBy
                     ? `${channel.createdBy.firstName} ${channel.createdBy.lastName}`
@@ -93,7 +102,9 @@ export function ChannelJoinScreen({
                 <IconCalendar size={18} />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Created On</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
+                  Created On
+                </span>
                 <span className="text-sm font-semibold truncate leading-tight">
                   {new Intl.DateTimeFormat("en-US", {
                     month: "short",
@@ -121,7 +132,10 @@ export function ChannelJoinScreen({
                 ) : (
                   <>
                     <span>Join Community</span>
-                    <IconChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                    <IconChevronRight
+                      size={20}
+                      className="group-hover:translate-x-1 transition-transform"
+                    />
                   </>
                 )}
               </div>

@@ -8,10 +8,6 @@ export const Route = createFileRoute("/$organizationSlug/tasks")({
   component: TasksRoute,
 });
 
-/**
- * My Tasks lives at `/tasks` and keeps `?view=` and `?task=` in the URL, so a
- * board, a list and an open task are all shareable links.
- */
 function TasksRoute() {
   const { task, view } = Route.useSearch();
   const { organization } = useOrganization();

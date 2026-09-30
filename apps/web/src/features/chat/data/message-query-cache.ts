@@ -1,8 +1,4 @@
-import {
-  InfiniteData,
-  QueryClient,
-  QueryKey,
-} from "@tanstack/react-query";
+import { InfiniteData, QueryClient, QueryKey } from "@tanstack/react-query";
 import { PaginatedMessages } from "./chat-api";
 import { Message } from "@/features/chat/types/messages/types";
 
@@ -10,17 +6,10 @@ export type MessagesInfiniteData = InfiniteData<PaginatedMessages>;
 
 export const DEFAULT_MESSAGE_LIMIT = 50;
 
-function isMessagesInfiniteData(
-  data: unknown,
-): data is MessagesInfiniteData {
-  return (
-    !!data &&
-    typeof data === "object" &&
-    Array.isArray((data as MessagesInfiniteData).pages)
-  );
+function isMessagesInfiniteData(data: unknown): data is MessagesInfiniteData {
+  return !!data && typeof data === "object" && Array.isArray((data as MessagesInfiniteData).pages);
 }
 
-/** Append a message to the newest page (pages[0] after DESC fetch + ASC sort). */
 export function appendMessageToInfiniteData(
   data: MessagesInfiniteData | undefined,
   message: Message,
@@ -54,7 +43,6 @@ export function appendMessageToInfiniteData(
   return { ...data, pages };
 }
 
-/** Replace or append a message in InfiniteData (e.g. temp → server ack). */
 export function upsertMessageInInfiniteData(
   data: MessagesInfiniteData | undefined,
   message: Message,
@@ -64,9 +52,7 @@ export function upsertMessageInInfiniteData(
     return appendMessageToInfiniteData(undefined, message);
   }
 
-  const matcher =
-    match ??
-    ((m: Message) => m.id === message.id);
+  const matcher = match ?? ((m: Message) => m.id === message.id);
 
   let found = false;
   const pages = data.pages.map((page) => {
@@ -110,10 +96,7 @@ export function filterMessagesInInfiniteData(
       return {
         ...page,
         messages,
-        total:
-          typeof page.total === "number"
-            ? Math.max(0, page.total - removed)
-            : page.total,
+        total: typeof page.total === "number" ? Math.max(0, page.total - removed) : page.total,
       };
     }),
   };
@@ -122,25 +105,16 @@ export function filterMessagesInInfiniteData(
 export function patchMessagesInInfiniteCaches(
   queryClient: QueryClient,
   queryKeyPrefix: QueryKey,
-  updater: (
-    data: MessagesInfiniteData | undefined,
-  ) => MessagesInfiniteData | undefined,
+  updater: (data: MessagesInfiniteData | undefined) => MessagesInfiniteData | undefined,
 ) {
-  queryClient.setQueriesData<MessagesInfiniteData>(
-    { queryKey: queryKeyPrefix },
-    (old) => {
-      if (old !== undefined && !isMessagesInfiniteData(old)) return old;
-      return updater(old);
-    },
-  );
+  queryClient.setQueriesData<MessagesInfiniteData>({ queryKey: queryKeyPrefix }, (old) => {
+    if (old !== undefined && !isMessagesInfiniteData(old)) return old;
+    return updater(old);
+  });
 }
 
-export function flattenMessagePages(
-  data: MessagesInfiniteData | undefined,
-): Message[] {
+export function flattenMessagePages(data: MessagesInfiniteData | undefined): Message[] {
   if (!data?.pages?.length) return [];
-  // pages[0] = newest window; reverse so UI is oldest → newest
-  return [...data.pages]
-    .reverse()
-    .flatMap((p) => p?.messages ?? []);
+
+  return [...data.pages].reverse().flatMap((p) => p?.messages ?? []);
 }

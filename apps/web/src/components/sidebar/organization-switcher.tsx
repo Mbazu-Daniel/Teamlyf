@@ -19,6 +19,31 @@ function organizationInitial(name: string) {
   return name.slice(0, 1).toUpperCase();
 }
 
+function OrganizationBadge({
+  name,
+  logo,
+  tint,
+  className,
+}: Readonly<{
+  name: string;
+  logo?: string | null;
+  /** Applied only while there is no logo; a real image must not sit on a tint. */
+  tint: string;
+  className: string;
+}>) {
+  return (
+    <span
+      className={cn("grid shrink-0 place-items-center overflow-hidden", !logo && tint, className)}
+    >
+      {logo ? (
+        <img src={logo} alt="" className="size-full object-cover" />
+      ) : (
+        organizationInitial(name)
+      )}
+    </span>
+  );
+}
+
 type OrganizationSwitcherProps = Readonly<{ collapsed: boolean }>;
 
 export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
@@ -57,16 +82,23 @@ export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
               collapsed && "justify-center px-0",
             )}
           >
-            <span className="grid size-8 shrink-0 place-items-center rounded-[10px] bg-gradient-to-br from-primary to-primary-400 text-[10px] font-semibold text-primary-foreground">
-              {organizationInitial(activeOrganization.name)}
-            </span>
+            <OrganizationBadge
+              name={activeOrganization.name}
+              logo={activeOrganization.logo}
+              tint="bg-gradient-to-br from-primary to-primary-400"
+              className="size-8 rounded-[10px] text-[10px] font-semibold text-primary-foreground"
+            />
             {!collapsed && (
               <>
                 <span className="min-w-0 flex-1 text-left">
-                  <span className="block truncate text-[13px] font-semibold leading-tight text-foreground">{activeOrganization.name}</span>
-                  <span className="mt-0.5 block text-[10px] leading-tight text-muted-foreground">Workspace</span>
+                  <span className="block truncate text-[13px] font-semibold leading-tight text-foreground">
+                    {activeOrganization.name}
+                  </span>
                 </span>
-                <IconSelector className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <IconSelector
+                  className="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </>
             )}
           </button>
@@ -79,15 +111,25 @@ export function OrganizationSwitcher({ collapsed }: OrganizationSwitcherProps) {
         {isPending && <p className="px-3 py-2 text-sm text-muted-foreground">Loading...</p>}
         {organizations?.map((item) => (
           <DropdownMenuItem key={item.id} onClick={() => choose(item)}>
-            <span className="grid size-6 shrink-0 place-items-center rounded-md bg-primary/15 text-[10px] font-bold text-primary">
-              {organizationInitial(item.name)}
-            </span>
+            <OrganizationBadge
+              name={item.name}
+              logo={item.logo}
+              tint="bg-primary/15"
+              className="size-6 rounded-md text-[10px] font-bold text-primary"
+            />
             <span className="min-w-0 flex-1 truncate">{item.name}</span>
             {item.id === activeOrganization.id && <IconCheck className="text-primary" />}
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => void navigate({ to: "/$organizationSlug/settings", params: { organizationSlug: activeOrganization.slug ?? activeOrganization.id } })}>
+        <DropdownMenuItem
+          onClick={() =>
+            void navigate({
+              to: "/$organizationSlug/settings",
+              params: { organizationSlug: activeOrganization.slug ?? activeOrganization.id },
+            })
+          }
+        >
           <IconPlus />
           Organization settings
         </DropdownMenuItem>

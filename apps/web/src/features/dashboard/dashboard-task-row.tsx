@@ -3,10 +3,6 @@ import { dueTone } from "../projects/task-groups";
 import { cn } from "@/lib/utils";
 import type { TaskRow } from "./dashboard-metrics";
 
-/**
- * One task line, used by the Today and Due soon panels. The destination differs:
- * the caller's own work opens on My Tasks, everyone else's on its project board.
- */
 export function DashboardTaskRow({
   row,
   organizationSlug,
@@ -17,7 +13,10 @@ export function DashboardTaskRow({
   href: "my-tasks" | "project";
 }) {
   const due = row.task.targetDate
-    ? new Date(row.task.targetDate).toLocaleDateString(undefined, { day: "numeric", month: "short" })
+    ? new Date(row.task.targetDate).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+      })
     : "No due date";
 
   const content = (

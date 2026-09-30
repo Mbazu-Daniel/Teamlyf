@@ -18,10 +18,10 @@ import { DeleteAccount } from "./delete-account";
 
 const MIN_PASSWORD_LENGTH = 8;
 
-export function SecuritySettingsPage() {
+export function SecuritySettingsPage({ organizationId }: { organizationId?: string }) {
   return (
     <div className="space-y-6">
-      <ProfileSettings />
+      {organizationId ? <ProfileSettings organizationId={organizationId} /> : null}
       <ChangePasswordCard />
       <SessionsCard />
       <DeleteAccount />
@@ -40,8 +40,7 @@ function ChangePasswordCard() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Hold the element: `currentTarget` is cleared once dispatch ends, so it is
-    // already null by the time the request resolves and the reset below throws.
+
     const element = event.currentTarget;
     const form = new FormData(element);
     const currentPassword = String(form.get("currentPassword") ?? "");
@@ -54,13 +53,16 @@ function ChangePasswordCard() {
     if ((await run(currentPassword, newPassword)).ok) {
       element.reset();
       setDone("Your password has been changed and other devices were signed out.");
-      // Revoking other sessions also rotated this one's cookie.
+
       await queryClient.invalidateQueries({ queryKey: queryKeys.sessions });
     }
   }
 
   return (
-    <SettingsSection title="Change password" description="Changing your password signs out every other device.">
+    <SettingsSection
+      title="Change password"
+      description="Changing your password signs out every other device."
+    >
       <form onSubmit={submit} className="max-w-lg space-y-5">
         <AuthField
           label="Current password"
@@ -112,14 +114,18 @@ function SessionsCard() {
         <SignOutOthersButton />
       </div>
 
-      {error && <FormMessage tone="error">{getErrorMessage(error, "Unable to load sessions")}</FormMessage>}
+      {error && (
+        <FormMessage tone="error">{getErrorMessage(error, "Unable to load sessions")}</FormMessage>
+      )}
       {isPending && <p className="mt-5 text-sm text-muted-foreground">Loading sessions...</p>}
       {!isPending && !error && (
         <div className="mt-5 divide-y">
           {(data ?? []).map((session) => (
             <SessionRow key={session.id} session={session} />
           ))}
-          {!data?.length && <p className="py-3 text-sm text-muted-foreground">No active sessions.</p>}
+          {!data?.length && (
+            <p className="py-3 text-sm text-muted-foreground">No active sessions.</p>
+          )}
         </div>
       )}
     </section>
@@ -138,7 +144,8 @@ function SessionRow({ session }: { session: SessionSummary }) {
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">{session.userAgent || "Unknown device"}</p>
         <p className="text-xs text-muted-foreground">
-          {session.ipAddress || "Unknown IP"} · started {new Date(session.createdAt).toLocaleString()}
+          {session.ipAddress || "Unknown IP"} · started{" "}
+          {new Date(session.createdAt).toLocaleString()}
         </p>
       </div>
       <Button
@@ -149,7 +156,11 @@ function SessionRow({ session }: { session: SessionSummary }) {
       >
         {revoke.isPending ? "Revoking..." : "Revoke"}
       </Button>
-      {revoke.error && <FormMessage tone="error">{getErrorMessage(revoke.error, "Unable to revoke this session")}</FormMessage>}
+      {revoke.error && (
+        <FormMessage tone="error">
+          {getErrorMessage(revoke.error, "Unable to revoke this session")}
+        </FormMessage>
+      )}
     </div>
   );
 }
@@ -174,6 +185,12 @@ function useSessions() {
 
 function FormMessage({ tone, children }: { tone: "error" | "info"; children: ReactNode }) {
   const toneClass =
-    tone === "error" ? "border-destructive/30 bg-destructive/5 text-destructive" : "border-border bg-muted/30";
-  return <p role="alert" className={`rounded-md border p-3 text-sm ${toneClass}`}>{children}</p>;
+    tone === "error"
+      ? "border-destructive/30 bg-destructive/5 text-destructive"
+      : "border-border bg-muted/30";
+  return (
+    <p role="alert" className={`rounded-md border p-3 text-sm ${toneClass}`}>
+      {children}
+    </p>
+  );
 }

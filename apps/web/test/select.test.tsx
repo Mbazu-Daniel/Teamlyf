@@ -1,11 +1,27 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-function renderRoleSelect({ onValueChange, disabled = false }: { onValueChange?: (value: string) => void; disabled?: boolean }) {
+function renderRoleSelect({
+  onValueChange,
+  disabled = false,
+}: {
+  onValueChange?: (value: string) => void;
+  disabled?: boolean;
+}) {
   return render(
-    <Select defaultValue="member" items={{ member: "Member", admin: "Admin", owner: "Owner" }} onValueChange={onValueChange}>
+    <Select
+      defaultValue="member"
+      items={{ member: "Member", admin: "Admin", owner: "Owner" }}
+      onValueChange={onValueChange}
+    >
       <SelectTrigger aria-label="Role" disabled={disabled}>
         <SelectValue />
       </SelectTrigger>
@@ -35,7 +51,11 @@ describe("Select", () => {
     await user.click(screen.getByRole("combobox", { name: "Role" }));
 
     await screen.findByRole("listbox");
-    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual(["Member", "Admin", "Owner"]);
+    expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "Member",
+      "Admin",
+      "Owner",
+    ]);
     expect(screen.getByRole("option", { name: "Member" })).toHaveAttribute("aria-selected", "true");
   });
 
@@ -47,11 +67,15 @@ describe("Select", () => {
     const trigger = screen.getByRole("combobox", { name: "Role" });
     await user.click(trigger);
     await screen.findByRole("listbox");
-    // Base UI focuses/highlights the selected item on the next animation frame.
-    await waitFor(() => expect(screen.getByRole("option", { name: "Member" })).toHaveAttribute("data-highlighted"));
+
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "Member" })).toHaveAttribute("data-highlighted"),
+    );
     await user.keyboard("{ArrowDown}");
 
-    await waitFor(() => expect(screen.getByRole("option", { name: "Admin" })).toHaveAttribute("data-highlighted"));
+    await waitFor(() =>
+      expect(screen.getByRole("option", { name: "Admin" })).toHaveAttribute("data-highlighted"),
+    );
 
     await user.keyboard("{Enter}");
 

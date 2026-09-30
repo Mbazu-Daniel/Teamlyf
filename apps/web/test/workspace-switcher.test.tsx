@@ -18,8 +18,6 @@ const mocks = vi.hoisted(() => ({
   getSession: vi.fn(),
 }));
 
-// The shell only runs inside a router and behind the API client; both are
-// seams here so the test can drive the pathname and read the switch outcome.
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mocks.navigate,
   useLocation: () => ({ pathname: mocks.pathname }),

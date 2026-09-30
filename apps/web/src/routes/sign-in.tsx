@@ -22,7 +22,7 @@ function SignIn() {
   return (
     <AuthLayout
       title="Sign in"
-      description="Enter your email and password to open your Teamlyf workspace."
+      // description=""
     >
       <form className="space-y-4" onSubmit={submit}>
         <AuthField

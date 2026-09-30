@@ -8,7 +8,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** Records the one API call the form makes and answers with `response`. */
 function stubApi(response = new Response("", { status: 200 })) {
   const fetchMock = vi.fn((_input: RequestInfo | URL, _init?: RequestInit) =>
     Promise.resolve(response),
@@ -27,7 +26,11 @@ function renderForm(overrides: Partial<{ token: string; linkError: string }> = {
   return { ...view, onDone };
 }
 
-async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>, password: string, confirm: string) {
+async function fillAndSubmit(
+  user: ReturnType<typeof userEvent.setup>,
+  password: string,
+  confirm: string,
+) {
   await user.type(screen.getByLabelText("New password"), password);
   await user.type(screen.getByLabelText("Confirm new password"), confirm);
   await user.click(screen.getByRole("button", { name: "Set new password" }));

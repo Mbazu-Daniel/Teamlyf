@@ -15,7 +15,9 @@ export function getCustomAccent() {
 
 export function accentForeground(color: string) {
   if (!/^#[0-9a-f]{6}$/i.test(color)) return "#ffffff";
-  const rgb = [1, 3, 5].map((offset) => parseInt(color.slice(offset, offset + 2), 16) / 255).map((c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const rgb = [1, 3, 5]
+    .map((offset) => parseInt(color.slice(offset, offset + 2), 16) / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
   const luminance = rgb[0]! * 0.2126 + rgb[1]! * 0.7152 + rgb[2]! * 0.0722;
   return luminance > 0.179 ? "#000000" : "#ffffff";
 }
@@ -54,13 +56,25 @@ function applyTheme(mode: ThemeMode, palette = getThemePalette()) {
   root.dataset.themePalette = palette;
   root.style.colorScheme = dark ? "dark" : "light";
   const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-  for (const name of ["--primary", "--primary-foreground", "--ring", ...shades.map((shade) => `--primary-${shade}`)]) root.style.removeProperty(name);
+  for (const name of [
+    "--primary",
+    "--primary-foreground",
+    "--ring",
+    ...shades.map((shade) => `--primary-${shade}`),
+  ])
+    root.style.removeProperty(name);
   if (palette === "custom") {
     const color = getCustomAccent();
     root.style.setProperty("--primary", color);
     root.style.setProperty("--primary-foreground", accentForeground(color));
     root.style.setProperty("--ring", color);
-    for (const shade of shades) root.style.setProperty(`--primary-${shade}`, shade === 500 ? color : `color-mix(in srgb, ${color} ${100 - Math.abs(shade - 500) / 5}%, ${shade < 500 ? "white" : "black"})`);
+    for (const shade of shades)
+      root.style.setProperty(
+        `--primary-${shade}`,
+        shade === 500
+          ? color
+          : `color-mix(in srgb, ${color} ${100 - Math.abs(shade - 500) / 5}%, ${shade < 500 ? "white" : "black"})`,
+      );
   }
 }
 

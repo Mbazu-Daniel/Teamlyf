@@ -5,20 +5,22 @@ import { AppHeader } from "@/components/header/app-header";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-/**
- * App chrome: sidebar + frosted top bar + scrolling main.
- * Mounted once by the `_app` layout route so it never remounts between pages.
- */
 export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const mobile = useIsMobile();
   const { pathname } = useLocation();
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
-  const toggle = () => mobile ? setMobileOpen((value) => !value) : setCollapsed((value) => !value);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+  const toggle = () =>
+    mobile ? setMobileOpen((value) => !value) : setCollapsed((value) => !value);
 
   return (
-    <div className="flex h-svh w-full overflow-hidden bg-background text-foreground" style={{ backgroundImage: "var(--app-page-background)" }}>
+    <div
+      className="flex h-svh w-full overflow-hidden bg-background text-foreground"
+      style={{ backgroundImage: "var(--app-page-background)" }}
+    >
       <div className="hidden h-full md:flex">
         <AppSidebar collapsed={collapsed} onToggle={toggle} />
       </div>

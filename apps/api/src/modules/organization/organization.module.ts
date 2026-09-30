@@ -6,7 +6,6 @@ import { RolesController } from "./roles.controller";
 import { RolesService } from "./roles.service";
 
 @Module({
-  // DbModule: OrgMemberGuard injects the DATABASE token in this module's context.
   imports: [DbModule],
   controllers: [OrganizationController, RolesController],
   providers: [OrganizationService, RolesService],

@@ -1,11 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import type { Request, Response as ExpressResponse } from "express";
 import { SessionGuard } from "../../common/better-auth/session.guard";
 import { permissionCatalog } from "../../common/better-auth/permissions";
 import { proxyBetterAuth } from "../../common/better-auth/better-auth-proxy";
-// Direct file imports (not the ../rbac barrel) — the barrel pulls in RbacModule,
-// which imports OrganizationModule, and that cycle would break Nest's bootstrap.
+
 import { OrgMemberGuard } from "../rbac/org-member.guard";
 import { PermissionsGuard } from "../rbac/permissions.guard";
 import { RequirePermission } from "../rbac/require-permission.decorator";
@@ -19,7 +29,6 @@ import { RolesService } from "./roles.service";
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
-  /** Static route must be declared before the ":role" param route. */
   @Get("permissions")
   @RequirePermission("ac", "read")
   @ApiOperation({ summary: "Permission catalog: resources → allowed actions" })
@@ -52,7 +61,9 @@ export class RolesController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) => this.rolesService.createRole(orgId, body, headers));
+    return proxyBetterAuth(req, res, (headers) =>
+      this.rolesService.createRole(orgId, body, headers),
+    );
   }
 
   @Get(":role")
@@ -97,6 +108,8 @@ export class RolesController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    return proxyBetterAuth(req, res, (headers) => this.rolesService.deleteRole(orgId, role, headers));
+    return proxyBetterAuth(req, res, (headers) =>
+      this.rolesService.deleteRole(orgId, role, headers),
+    );
   }
 }

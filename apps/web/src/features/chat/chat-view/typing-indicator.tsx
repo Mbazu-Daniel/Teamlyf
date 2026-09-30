@@ -25,8 +25,7 @@ export function TypingIndicator({ typingUsers }: TypingIndicatorProps) {
             ? `${typingUsers[0]} is typing`
             : typingUsers.length === 2
               ? `${typingUsers[0]} and ${typingUsers[1]} are typing`
-              : `${typingUsers.length} people are typing`
-          }
+              : `${typingUsers.length} people are typing`}
         </p>
         <TypingDots />
       </div>

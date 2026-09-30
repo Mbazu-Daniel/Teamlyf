@@ -13,8 +13,18 @@ export type Project = {
   image?: string | null;
   coverImageURL?: string | null;
   status?: string | null;
-  members?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
-  leads?: Array<{ id: string; firstName?: string; lastName?: string; user?: { image?: string | null } }>;
+  members?: Array<{
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    user?: { image?: string | null };
+  }>;
+  leads?: Array<{
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    user?: { image?: string | null };
+  }>;
   leadIds?: string[];
   taskCount?: number;
   completedCount?: number;
@@ -32,10 +42,15 @@ export type ProjectTask = {
   parentId?: string | null;
   startDate: string | null;
   targetDate: string | null;
-  /** Written by the API when the task lands in a status of the `done` group. */
+
   completedAt?: string | null;
   createdAt?: string;
-  taskAssignees?: Array<{ id: string; kind: "member" | "agent"; memberId: string | null; agentId: string | null }>;
+  taskAssignees?: Array<{
+    id: string;
+    kind: "member" | "agent";
+    memberId: string | null;
+    agentId: string | null;
+  }>;
   taskLabels?: Array<{ id: string; taskId: string; labelId: string }>;
   milestoneTasks?: Array<{ id: string; milestoneId: string; taskId: string }>;
 };
@@ -45,7 +60,12 @@ type ProjectMember = {
   projectId: string;
   memberId: string;
   role: string;
-  member: { id: string; firstName?: string | null; lastName?: string | null; user?: { name?: string | null; email?: string | null } | null };
+  member: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    user?: { name?: string | null; email?: string | null } | null;
+  };
 };
 
 export type TaskPriority = "urgent" | "high" | "medium" | "low" | "none";
@@ -76,22 +96,67 @@ export const projectMembersApi = {
     });
   },
   remove(organizationId: string, projectId: string, memberId: string) {
-    return client.request<{ success: boolean }>(`${projectPath(organizationId, projectId)}/members/${memberId}`, { method: "DELETE" });
+    return client.request<{ success: boolean }>(
+      `${projectPath(organizationId, projectId)}/members/${memberId}`,
+      { method: "DELETE" },
+    );
   },
 };
 
-type ProjectInput = { name?: string; identifier?: string; description?: string; emoji?: string; status?: string; leadIds?: string[] };
+type ProjectInput = {
+  name?: string;
+  identifier?: string;
+  description?: string;
+  emoji?: string;
+  image?: string | null;
+  coverImageURL?: string | null;
+  status?: string;
+  leadIds?: string[];
+};
 export const projectsApi = {
   getProjects: (organizationId: string) => client.request<Project[]>(projectPath(organizationId)),
-  create: (organizationId: string, input: ProjectInput & { name: string; identifier: string }) => client.request<Project>(projectPath(organizationId), { method: "POST", body: JSON.stringify(input) }),
-  get: (organizationId: string, projectId: string) => client.request<Project>(projectPath(organizationId, projectId)),
-  update: (organizationId: string, projectId: string, input: ProjectInput) => client.request<Project>(projectPath(organizationId, projectId), { method: "PATCH", body: JSON.stringify(input) }),
-  delete: (organizationId: string, projectId: string) => client.request<null>(projectPath(organizationId, projectId), { method: "DELETE" }),
-  getTasks: (organizationId: string, projectId: string) => client.request<ProjectTask[]>(taskPath(organizationId, projectId)),
-  reorderTasks: (organizationId: string, projectId: string, taskIds: string[]) => client.request<ProjectTask[]>(`${taskPath(organizationId, projectId)}/reorder`, { method: "PATCH", body: JSON.stringify({ ids: taskIds }) }),
-  getTask: (organizationId: string, projectId: string, taskId: string) => client.request<ProjectTask>(taskPath(organizationId, projectId, taskId)),
-  createTask: (organizationId: string, projectId: string, input: UpdateTaskInput & { name: string; statusId: string }) => client.request<ProjectTask>(taskPath(organizationId, projectId), { method: "POST", body: JSON.stringify(input) }),
-  updateTask: (organizationId: string, projectId: string, taskId: string, input: UpdateTaskInput) => client.request<ProjectTask>(taskPath(organizationId, projectId, taskId), { method: "PATCH", body: JSON.stringify(input) }),
-  deleteTask: (organizationId: string, projectId: string, taskId: string) => client.request<null>(taskPath(organizationId, projectId, taskId), { method: "DELETE" }),
-  moveTask: (organizationId: string, projectId: string, taskId: string, statusId: string) => client.request<ProjectTask>(taskPath(organizationId, projectId, taskId), { method: "PATCH", body: JSON.stringify({ statusId }) }),
+  create: (organizationId: string, input: ProjectInput & { name: string; identifier: string }) =>
+    client.request<Project>(projectPath(organizationId), {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  get: (organizationId: string, projectId: string) =>
+    client.request<Project>(projectPath(organizationId, projectId)),
+  update: (organizationId: string, projectId: string, input: ProjectInput) =>
+    client.request<Project>(projectPath(organizationId, projectId), {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  delete: (organizationId: string, projectId: string) =>
+    client.request<null>(projectPath(organizationId, projectId), { method: "DELETE" }),
+  getTasks: (organizationId: string, projectId: string) =>
+    client.request<ProjectTask[]>(taskPath(organizationId, projectId)),
+  reorderTasks: (organizationId: string, projectId: string, taskIds: string[]) =>
+    client.request<ProjectTask[]>(`${taskPath(organizationId, projectId)}/reorder`, {
+      method: "PATCH",
+      body: JSON.stringify({ ids: taskIds }),
+    }),
+  getTask: (organizationId: string, projectId: string, taskId: string) =>
+    client.request<ProjectTask>(taskPath(organizationId, projectId, taskId)),
+  createTask: (
+    organizationId: string,
+    projectId: string,
+    input: UpdateTaskInput & { name: string; statusId: string },
+  ) =>
+    client.request<ProjectTask>(taskPath(organizationId, projectId), {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateTask: (organizationId: string, projectId: string, taskId: string, input: UpdateTaskInput) =>
+    client.request<ProjectTask>(taskPath(organizationId, projectId, taskId), {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deleteTask: (organizationId: string, projectId: string, taskId: string) =>
+    client.request<null>(taskPath(organizationId, projectId, taskId), { method: "DELETE" }),
+  moveTask: (organizationId: string, projectId: string, taskId: string, statusId: string) =>
+    client.request<ProjectTask>(taskPath(organizationId, projectId, taskId), {
+      method: "PATCH",
+      body: JSON.stringify({ statusId }),
+    }),
 };

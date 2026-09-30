@@ -3,11 +3,6 @@ import { permissionCatalog } from "../../common/better-auth/permissions";
 import { AuthService } from "../auth/auth.service";
 import type { CreateRoleDto, UpdateRoleDto } from "./dto";
 
-/**
- * Proxies better-auth's dynamic access-control endpoints
- * (`/organization/create-role`, `list-roles`, `get-role`, `update-role`, `delete-role`).
- * better-auth enforces session + `ac` permissions internally on every call.
- */
 @Injectable()
 export class RolesService {
   constructor(private readonly authService: AuthService) {}
@@ -65,7 +60,6 @@ export class RolesService {
     });
   }
 
-  /** Rejects unknown resources/actions before better-auth does, with a clearer message. */
   private assertPermissionMap(permission: Record<string, string[]>) {
     const catalog = permissionCatalog as Record<string, readonly string[]>;
     for (const [resource, actions] of Object.entries(permission)) {
@@ -73,7 +67,6 @@ export class RolesService {
     }
   }
 
-  /** One resource's worth of checks, kept apart so each failure reads on its own. */
   private assertResource(
     resource: string,
     actions: string[],

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/app-shell";
 import { SessionGate, BootScreen } from "@/lib/session";
 import { useOrganization } from "@/lib/organization";
+import { WorkspaceProfileGate } from "@/features/onboarding/workspace-profile-gate";
 
 export const Route = createFileRoute("/$organizationSlug")({
   component: OrganizationLayout,
@@ -44,9 +45,11 @@ function OrganizationLayout() {
       ) : !organization || !validOrganization ? (
         <Navigate to="/workspaces" />
       ) : (
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <WorkspaceProfileGate>
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        </WorkspaceProfileGate>
       )}
     </SessionGate>
   );

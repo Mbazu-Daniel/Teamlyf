@@ -3,10 +3,6 @@ import { useMemo } from "react";
 
 type NavigateOpts = { scroll?: boolean };
 
-/**
- * Next-like router shim on top of TanStack `useNavigate`.
- * Accepts plain path strings used throughout the app (`/${slug}/dashboard`, etc.).
- */
 export function useAppRouter() {
   const navigate = useNavigate();
 

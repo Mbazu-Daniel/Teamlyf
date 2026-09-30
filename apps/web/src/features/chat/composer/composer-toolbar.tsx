@@ -101,12 +101,7 @@ export function ComposerToolbar({
               <IconAt className="h-4 w-4" />
             </button>
 
-            {showMentions && (
-              <MentionsDropdown
-                members={filteredMembers}
-                onSelect={onAddMention}
-              />
-            )}
+            {showMentions && <MentionsDropdown members={filteredMembers} onSelect={onAddMention} />}
           </div>
         )}
 
@@ -147,13 +142,7 @@ export function ComposerToolbar({
           )}
         </div>
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          onChange={onFileSelect}
-          multiple
-        />
+        <input ref={fileInputRef} type="file" className="hidden" onChange={onFileSelect} multiple />
       </div>
 
       <div className="flex items-center gap-2">
@@ -174,11 +163,7 @@ export function ComposerToolbar({
           aria-label={sendButtonTitle}
         >
           {isUploading ? (
-            <svg
-              className="animate-spin h-3.5 w-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
+            <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
               <circle
                 className="opacity-25"
                 cx="12"
@@ -187,11 +172,7 @@ export function ComposerToolbar({
                 stroke="currentColor"
                 strokeWidth="4"
               />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
           ) : (
             <svg

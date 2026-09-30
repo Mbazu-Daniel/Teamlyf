@@ -50,11 +50,11 @@ export function useThreadView({ parentMessage, event, chatId }: ThreadViewProps)
 
   const channelMessages = useMemo(
     () => flattenMessagePages(channelMessagesData),
-    [channelMessagesData]
+    [channelMessagesData],
   );
   const directMessages = useMemo(
     () => flattenMessagePages(directMessagesData),
-    [directMessagesData]
+    [directMessagesData],
   );
 
   const mainMessages = useMemo(() => {
@@ -63,19 +63,19 @@ export function useThreadView({ parentMessage, event, chatId }: ThreadViewProps)
 
   const liveParentMessage = useMemo(
     () => mainMessages.find((m: Message) => m.id === parentMessageId) || parentMessage,
-    [mainMessages, parentMessage, parentMessageId]
+    [mainMessages, parentMessage, parentMessageId],
   );
 
   const myMemberId = useMemo(
     () => members?.records?.find((m: TenantMember) => String(m.userId) === String(userId))?.id,
-    [members, userId]
+    [members, userId],
   );
 
   const { data: replies = [], isLoading } = useThreadMessages(
     tenantId!,
     chatId,
     parentMessage.id,
-    activeThreadType!
+    activeThreadType!,
   );
 
   const isFirstLoad = useRef(true);
@@ -89,13 +89,7 @@ export function useThreadView({ parentMessage, event, chatId }: ThreadViewProps)
   }, [replies, isLoading]);
 
   const typing = useTyping(tenantId!, accessToken!, chatId, event);
-  const sendMessage = useSendMessage(
-    tenantId!,
-    chatId,
-    event,
-    accessToken!,
-    parentMessageId
-  );
+  const sendMessage = useSendMessage(tenantId!, chatId, event, accessToken!, parentMessageId);
 
   function closeThread() {
     setIsThreadOpen(false);
@@ -109,8 +103,8 @@ export function useThreadView({ parentMessage, event, chatId }: ThreadViewProps)
 
   const handleSend = async (
     attachmentIds?: string[],
-    mentionedUserIds?: string[],
-    finalContent?: string
+    mentionedMemberIds?: string[],
+    finalContent?: string,
   ) => {
     const hasAttachments = attachmentIds && attachmentIds.length > 0;
     if (!message.trim() && !hasAttachments) return;
@@ -145,14 +139,14 @@ export function useThreadView({ parentMessage, event, chatId }: ThreadViewProps)
               hasThreadedMessage: true,
               lastReplyTime: now,
             }
-          : msg
-      )
+          : msg,
+      ),
     );
 
     setMessage("");
 
     try {
-      await sendMessage(finalContent || message, attachmentIds, tempId, mentionedUserIds);
+      await sendMessage(finalContent || message, attachmentIds, tempId, mentionedMemberIds);
     } catch {
       toast.error("Failed to send message. Please try again.");
     }
@@ -160,7 +154,7 @@ export function useThreadView({ parentMessage, event, chatId }: ThreadViewProps)
 
   const cancelSending = (id: string) => {
     queryClient.setQueryData(threadCacheKey, (old: ThreadMessage[]) =>
-      old.filter((m) => m.id !== id)
+      old.filter((m) => m.id !== id),
     );
   };
 

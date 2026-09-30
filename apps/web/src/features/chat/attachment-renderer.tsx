@@ -1,4 +1,3 @@
-
 import { IconPlayerPlay } from "@tabler/icons-react";
 import { useState } from "react";
 import { CachedImage } from "@/components/media/cached-image";
@@ -9,7 +8,7 @@ interface Attachment {
   mimeType: string;
   fileSize: number;
   url: string;
-  name?: string; // optional file name
+  name?: string;
 }
 
 interface AttachmentRendererProps {
@@ -34,10 +33,8 @@ export function AttachmentRenderer({ attachments }: AttachmentRendererProps) {
     if (!ext) return { label: "FILE", color: "bg-gray-500" };
 
     if (["pdf"].includes(ext)) return { label: "PDF", color: "bg-red-500" };
-    if (["doc", "docx"].includes(ext))
-      return { label: "DOC", color: "bg-blue-500" };
-    if (["xls", "xlsx"].includes(ext))
-      return { label: "XLS", color: "bg-green-500" };
+    if (["doc", "docx"].includes(ext)) return { label: "DOC", color: "bg-blue-500" };
+    if (["xls", "xlsx"].includes(ext)) return { label: "XLS", color: "bg-green-500" };
     return { label: ext.toUpperCase(), color: "bg-gray-500" };
   };
 
@@ -95,11 +92,7 @@ export function AttachmentRenderer({ attachments }: AttachmentRendererProps) {
                 key={idx}
                 className="flex items-center gap-3 bg-sidebar-accent/70 rounded-2xl px-3 py-2 w-72"
               >
-                <audio
-                  src={att.url}
-                  controls
-                  className="w-full h-8"
-                />
+                <audio src={att.url} controls className="w-full h-8" />
                 <div className="text-xs text-muted-foreground whitespace-nowrap">
                   {formatSize(att.fileSize)}
                 </div>
@@ -114,11 +107,7 @@ export function AttachmentRenderer({ attachments }: AttachmentRendererProps) {
                 className="relative w-40 h-40 rounded-lg overflow-hidden shadow-sm cursor-pointer"
                 onClick={() => setLightboxUrl(att.url)}
               >
-                <video
-                  src={att.url}
-                  className="w-full h-full object-cover"
-                  muted
-                />
+                <video src={att.url} className="w-full h-full object-cover" muted />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <div className="bg-black/60 rounded-full p-2">
                     <IconPlayerPlay className="text-white w-5 h-5" />
@@ -146,9 +135,7 @@ export function AttachmentRenderer({ attachments }: AttachmentRendererProps) {
                 <p className="text-sm font-medium truncate">
                   {att.name || `Attachment ${idx + 1}`}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatSize(att.fileSize)}
-                </p>
+                <p className="text-xs text-muted-foreground">{formatSize(att.fileSize)}</p>
               </div>
             </a>
           );
@@ -159,7 +146,12 @@ export function AttachmentRenderer({ attachments }: AttachmentRendererProps) {
         <DialogContent variant="media" className="w-auto max-w-[90vw] sm:max-w-[90vw]">
           <DialogTitle className="sr-only">Attachment preview</DialogTitle>
           {lightboxUrl?.match(/\.(mp4|webm|ogg|mov)(\?|$)/i) ? (
-            <video src={lightboxUrl} controls autoPlay className="max-h-[85svh] max-w-[85vw] rounded-[12px] object-contain shadow-2xl" />
+            <video
+              src={lightboxUrl}
+              controls
+              autoPlay
+              className="max-h-[85svh] max-w-[85vw] rounded-[12px] object-contain shadow-2xl"
+            />
           ) : lightboxUrl ? (
             <CachedImage
               src={lightboxUrl}

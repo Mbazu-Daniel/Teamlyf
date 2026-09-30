@@ -7,12 +7,21 @@ const state = vi.hoisted(() => ({ mobile: true, pathname: "/test" }));
 vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => state.mobile }));
 vi.mock("@tanstack/react-router", () => ({ useLocation: () => ({ pathname: state.pathname }) }));
 vi.mock("@/components/header/app-header", () => ({
-  AppHeader: ({ onToggle }: { onToggle: () => void }) => <button onClick={onToggle}>Toggle sidebar</button>,
+  AppHeader: ({ onToggle }: { onToggle: () => void }) => (
+    <button onClick={onToggle}>Toggle sidebar</button>
+  ),
 }));
 vi.mock("@/components/sidebar/app-sidebar", () => ({
-  AppSidebar: ({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) => <aside><button onClick={onToggle}>{collapsed ? "Expand" : "Collapse"}</button></aside>,
+  AppSidebar: ({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) => (
+    <aside>
+      <button onClick={onToggle}>{collapsed ? "Expand" : "Collapse"}</button>
+    </aside>
+  ),
 }));
-beforeEach(() => { state.mobile = true; state.pathname = "/test"; });
+beforeEach(() => {
+  state.mobile = true;
+  state.pathname = "/test";
+});
 
 describe("AppShell responsive navigation", () => {
   it("keeps the mobile drawer closed initially", () => {

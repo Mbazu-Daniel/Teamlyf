@@ -14,13 +14,6 @@ import {
   weeklyThroughput,
 } from "./dashboard-metrics";
 
-/**
- * Everything the overview reads. Tasks and statuses come from the same cache
- * keys the project boards use, so opening a board after the dashboard is free.
- *
- * HR reads are permission-gated (`hr:read`): a viewer gets 403, which must show
- * up as a quiet panel and never as a failed dashboard.
- */
 export function useDashboard(organizationId: string | undefined) {
   const organizationKey = organizationId ?? "";
   const enabled = Boolean(organizationId);
@@ -85,11 +78,15 @@ export function useDashboard(organizationId: string | undefined) {
   const memberId = member.data?.id;
   const departments = departmentsQuery.data ?? [];
   const requests = leaveQuery.data ?? [];
-  const assignedToDepartment = new Set(departments.flatMap((item) => item.members.map((m) => m.id)));
+  const assignedToDepartment = new Set(
+    departments.flatMap((item) => item.members.map((m) => m.id)),
+  );
 
   return {
     loading: projectsQuery.isLoading || taskQueries.some((result) => result.isPending),
     error: getErrorMessage(projectsQuery.error, "Unable to load projects"),
+    /** The signed-in member's directory record — source of truth for their name. */
+    member: member.data ?? null,
     kpis: kpiTiles(projects, rows, { memberId }),
     distribution: statusDistribution(rows),
     rollups: projectRollups(projects, rows),
@@ -101,14 +98,22 @@ export function useDashboard(organizationId: string | undefined) {
     team: {
       memberCount: membersQuery.data?.members.length ?? 0,
       departmentCount: departments.length,
-      unassignedCount: (membersQuery.data?.members ?? []).filter((item) => !assignedToDepartment.has(item.id)).length,
-      error: getErrorMessage(membersQuery.error ?? departmentsQuery.error, "Unable to load team details"),
+      unassignedCount: (membersQuery.data?.members ?? []).filter(
+        (item) => !assignedToDepartment.has(item.id),
+      ).length,
+      error: getErrorMessage(
+        membersQuery.error ?? departmentsQuery.error,
+        "Unable to load team details",
+      ),
     },
     leave: {
       balances: balancesQuery.data ?? [],
       pending: requests.filter((request) => request.status === "pending").length,
       upcoming: requests.filter((request) => request.status === "approved").length,
-      error: getErrorMessage(leaveQuery.error ?? balancesQuery.error, "Unable to load leave details"),
+      error: getErrorMessage(
+        leaveQuery.error ?? balancesQuery.error,
+        "Unable to load leave details",
+      ),
     },
   };
 }

@@ -1,10 +1,5 @@
 import { client } from "./client";
 
-/**
- * HR endpoints are organization-scoped and permission-gated server-side
- * (`hr:read` / `hr:create` / `hr:update`), so every reader below must tolerate a
- * 403 by a viewer account instead of treating it as a broken page.
- */
 const departmentPath = (organizationId: string, departmentId?: string, suffix = "") =>
   `/organization/${organizationId}/departments${departmentId ? `/${departmentId}` : ""}${suffix}`;
 const leavePath = (organizationId: string, requestId?: string) =>
@@ -80,16 +75,43 @@ const json = (body: unknown): RequestInit => ({
 });
 
 export const hrApi = {
-  updateDepartment: (org: string, id: string, input: { name: string; description?: string }) => client.request<Department>(departmentPath(org, id), { method: "PATCH", body: JSON.stringify(input) }),
-  deleteDepartment: (org: string, id: string) => client.request<void>(departmentPath(org, id), { method: "DELETE" }),
-  createPolicy: (org: string, input: { name: string; daysPerYear: number }) => client.request<LeavePolicy>(policyPath(org), json(input)),
-  updatePolicy: (org: string, id: string, input: { name: string; daysPerYear: number }) => client.request<LeavePolicy>(`${policyPath(org)}/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
-  deletePolicy: (org: string, id: string) => client.request<void>(`${policyPath(org)}/${id}`, { method: "DELETE" }),
+  updateDepartment: (org: string, id: string, input: { name: string; description?: string }) =>
+    client.request<Department>(departmentPath(org, id), {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deleteDepartment: (org: string, id: string) =>
+    client.request<void>(departmentPath(org, id), { method: "DELETE" }),
+  createPolicy: (org: string, input: { name: string; daysPerYear: number }) =>
+    client.request<LeavePolicy>(policyPath(org), json(input)),
+  updatePolicy: (org: string, id: string, input: { name: string; daysPerYear: number }) =>
+    client.request<LeavePolicy>(`${policyPath(org)}/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deletePolicy: (org: string, id: string) =>
+    client.request<void>(`${policyPath(org)}/${id}`, { method: "DELETE" }),
   getReviewQueue: (org: string) => client.request<LeaveRequest[]>(`${leavePath(org)}/review`),
-  getProfile: (org: string, member: string) => client.request<MemberProfile | null>(`${profilesPath(org)}/${member}`),
-  updateProfile: (org: string, member: string, input: Partial<Omit<MemberProfile, "memberId" | "organizationId">>) => client.request<MemberProfile>(`${profilesPath(org)}/${member}`, { method: "PATCH", body: JSON.stringify(input) }),
-  getEmergencyContact: (org: string, member: string) => client.request<{ name: string | null; phone: string | null }>(`/organization/${org}/members/${member}/emergency-contact`),
-  updateEmergencyContact: (org: string, member: string, input: { name: string; phone: string }) => client.request<unknown>(`/organization/${org}/members/${member}/emergency-contact`, { method: "PATCH", body: JSON.stringify(input) }),
+  getProfile: (org: string, member: string) =>
+    client.request<MemberProfile | null>(`${profilesPath(org)}/${member}`),
+  updateProfile: (
+    org: string,
+    member: string,
+    input: Partial<Omit<MemberProfile, "memberId" | "organizationId">>,
+  ) =>
+    client.request<MemberProfile>(`${profilesPath(org)}/${member}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  getEmergencyContact: (org: string, member: string) =>
+    client.request<{ name: string | null; phone: string | null }>(
+      `/organization/${org}/members/${member}/emergency-contact`,
+    ),
+  updateEmergencyContact: (org: string, member: string, input: { name: string; phone: string }) =>
+    client.request<unknown>(`/organization/${org}/members/${member}/emergency-contact`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
   getDepartments: (organizationId: string) =>
     client.request<Department[]>(departmentPath(organizationId)),
   createDepartment: (organizationId: string, input: { name: string; description?: string }) =>
@@ -99,17 +121,21 @@ export const hrApi = {
       method: "POST",
     }),
   removeDepartmentMember: (organizationId: string, departmentId: string, memberId: string) =>
-    client.request<unknown>(
-      departmentPath(organizationId, departmentId, `/members/${memberId}`),
-      { method: "DELETE" },
-    ),
+    client.request<unknown>(departmentPath(organizationId, departmentId, `/members/${memberId}`), {
+      method: "DELETE",
+    }),
   getLeaveRequests: (organizationId: string) =>
     client.request<LeaveRequest[]>(leavePath(organizationId)),
   createLeaveRequest: (
     organizationId: string,
     input: { policyId: string; startDate: string; endDate: string; reason?: string },
   ) => client.request<LeaveRequest>(leavePath(organizationId), json(input)),
-  reviewLeaveRequest: (organizationId: string, requestId: string, status: "approved" | "rejected", reviewReason?: string) =>
+  reviewLeaveRequest: (
+    organizationId: string,
+    requestId: string,
+    status: "approved" | "rejected",
+    reviewReason?: string,
+  ) =>
     client.request<LeaveRequest>(leavePath(organizationId, requestId), {
       method: "PATCH",
       body: JSON.stringify({ status, reviewReason }),

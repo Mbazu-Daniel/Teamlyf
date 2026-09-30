@@ -22,8 +22,7 @@ const NOT_CONFIGURED = /Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET/;
 describe("SocialSignIn", () => {
   it("explainsTheMissingCredentials_whenTheProviderIsNotConfigured", async () => {
     const user = userEvent.setup();
-    // better-auth only mounts /sign-in/social for providers that have
-    // credentials, so an unconfigured Google answers 404 with an empty body.
+
     stubFetch(new Response("", { status: 404 }));
     renderComponent(<SocialSignIn />);
 

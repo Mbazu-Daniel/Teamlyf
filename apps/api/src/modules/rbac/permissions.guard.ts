@@ -8,19 +8,9 @@ import {
 import { Reflector } from "@nestjs/core";
 import type { MemberRequest } from "./org-member.guard";
 import { toFetchHeaders } from "../../common/better-auth/better-auth-http";
-import {
-  REQUIRE_PERMISSION_KEY,
-  type RequirePermissionMeta,
-} from "./require-permission.decorator";
+import { REQUIRE_PERMISSION_KEY, type RequirePermissionMeta } from "./require-permission.decorator";
 import { OrganizationPermissionService } from "./organization-permission.service";
 
-/**
- * Organization-scoped permission enforcement for authenticated HTTP requests.
- *
- * User permissions are resolved from Better Auth role permissions with
- * organization-scoped grant fallback. Agent permissions are resolved by the
- * shared permission service and do not use Better Auth roles.
- */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(
@@ -68,10 +58,7 @@ export class PermissionsGuard implements CanActivate {
     return orgId;
   }
 
-  private getResourceId(
-    params: MemberRequest["params"],
-    paramName?: string,
-  ): string | undefined {
+  private getResourceId(params: MemberRequest["params"], paramName?: string): string | undefined {
     if (!paramName) return undefined;
     return this.getParamValue(params[paramName]);
   }

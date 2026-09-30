@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { member } from "@teamlyf/db";
 import type { Database } from "@teamlyf/db";
 import { user } from "@teamlyf/db/schema";
@@ -14,6 +14,7 @@ import type {
   UpdateMemberProfileDto,
   UpdateMemberRoleDto,
 } from "./dto";
+import { ORGANIZATION_OWNER_ROLE } from "./types";
 
 @Injectable()
 export class MemberService {
@@ -39,6 +40,11 @@ export class MemberService {
   }
 
   async updateMemberRole(orgId: string, body: UpdateMemberRoleDto, headers: Headers) {
+    if (body.role.includes(ORGANIZATION_OWNER_ROLE)) {
+      throw new BadRequestException(
+        "Ownership cannot be assigned directly. Transfer ownership to this member instead.",
+      );
+    }
     return this.authService.auth.api.updateMemberRole({
       body: { ...body, organizationId: orgId },
       headers,
@@ -93,17 +99,11 @@ export class MemberService {
     return { id, firstName, lastName, avatar };
   }
 
-  /**
-   * better-auth's `listMembers` knows nothing about our `member.avatar` column,
-   * so overlay it from the membership rows before the payload reaches the client.
-   */
   async withMemberAvatars(orgId: string, body: unknown): Promise<unknown> {
     const members = (body as { members?: Record<string, unknown> } | null)?.members;
     if (!Array.isArray(members) || members.length === 0) return body;
 
-    const ids = members
-      .map((row) => row.id)
-      .filter((id): id is string => typeof id === "string");
+    const ids = members.map((row) => row.id).filter((id): id is string => typeof id === "string");
     if (ids.length === 0) return body;
 
     const rows = await this.db.query.member.findMany({

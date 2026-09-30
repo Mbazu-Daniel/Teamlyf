@@ -10,6 +10,8 @@ import { GlobalCallEventsBridge } from "../features/chat/data/global-call-events
 import { initializeTheme } from "../lib/theme";
 import { NotFound } from "../components/not-found";
 
+const FAVICON = "https://cdn.getteamlyf.com/teamlyf/logo-icon.svg";
+
 export const Route = createRootRoute({
   notFoundComponent: NotFound,
   head: () => ({
@@ -27,7 +29,7 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: styles },
       { rel: "stylesheet", href: themeStyles },
-      { rel: "icon", type: "image/svg+xml", href: "/brand/logo-icon.svg" },
+      { rel: "icon", type: "image/svg+xml", href: FAVICON },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -65,7 +67,13 @@ function RootComponent() {
             <Outlet />
           </GlobalCallEventsBridge>
         </OrganizationProvider>
-        <Toaster richColors position="top-right" theme="system" closeButton style={{ fontFamily: "var(--font-sans)" }} />
+        <Toaster
+          richColors
+          position="top-right"
+          theme="system"
+          closeButton
+          style={{ fontFamily: "var(--font-sans)" }}
+        />
       </QueryClientProvider>
     </RootDocument>
   );

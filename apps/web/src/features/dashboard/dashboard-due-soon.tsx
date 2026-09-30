@@ -4,7 +4,6 @@ import { DashboardPanel } from "./dashboard-panel";
 import { DashboardTaskRow } from "./dashboard-task-row";
 import type { TaskRow } from "./dashboard-metrics";
 
-/** The next two weeks of dated work across every visible project. */
 export function DashboardDueSoon({
   organizationSlug,
   rows,

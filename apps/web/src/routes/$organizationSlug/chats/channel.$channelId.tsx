@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useParams } from "@tanstack/react-router";
 
-
 import { parseEntityId } from "@/lib/utils/parse-entity-id";
 import { Suspense, useEffect } from "react";
 import { useNavigationStore, useThreadStore } from "@/lib/store/ui-stores";
@@ -33,7 +32,6 @@ function RouteComponent() {
   );
 }
 
-
-export const Route = createFileRoute('/$organizationSlug/chats/channel/$channelId')({
+export const Route = createFileRoute("/$organizationSlug/chats/channel/$channelId")({
   component: RouteComponent,
 });

@@ -1,7 +1,3 @@
-/**
- * Query keys live in one module so cache invalidation never guesses a string.
- * The shape mirrors the API: an organization is the boundary for every resource.
- */
 export const queryKeys = {
   session: ["session"] as const,
   sessions: ["sessions"] as const,
@@ -20,11 +16,13 @@ export const queryKeys = {
     ["organizations", organizationId, "projects", projectId, "tasks", taskId] as const,
   labels: (organizationId: string, projectId: string) =>
     ["organizations", organizationId, "projects", projectId, "labels"] as const,
-  departments: (organizationId: string) => ["organizations", organizationId, "departments"] as const,
+  departments: (organizationId: string) =>
+    ["organizations", organizationId, "departments"] as const,
   memberProfiles: (organizationId: string) =>
     ["organizations", organizationId, "member-profiles"] as const,
   leaveRequests: (organizationId: string) => ["organizations", organizationId, "leave"] as const,
-  leaveBalances: (organizationId: string) => ["organizations", organizationId, "leave-balances"] as const,
+  leaveBalances: (organizationId: string) =>
+    ["organizations", organizationId, "leave-balances"] as const,
   leavePolicies: (organizationId: string) => ["organizations", organizationId, "policies"] as const,
   milestones: (organizationId: string, projectId: string) =>
     ["organizations", organizationId, "projects", projectId, "milestones"] as const,
@@ -33,12 +31,28 @@ export const queryKeys = {
   activity: (organizationId: string, projectId: string, taskId: string) =>
     ["organizations", organizationId, "projects", projectId, "tasks", taskId, "activity"] as const,
   attachments: (organizationId: string, projectId: string, taskId: string) =>
-    ["organizations", organizationId, "projects", projectId, "tasks", taskId, "attachments"] as const,
+    [
+      "organizations",
+      organizationId,
+      "projects",
+      projectId,
+      "tasks",
+      taskId,
+      "attachments",
+    ] as const,
   relations: (organizationId: string, projectId: string, taskId: string) =>
     ["organizations", organizationId, "projects", projectId, "tasks", taskId, "relations"] as const,
   subscribers: (organizationId: string, projectId: string, taskId: string) =>
-    ["organizations", organizationId, "projects", projectId, "tasks", taskId, "subscribers"] as const,
-  /** Chat caches sit under one `chat` branch so a workspace switch can drop them together. */
+    [
+      "organizations",
+      organizationId,
+      "projects",
+      projectId,
+      "tasks",
+      taskId,
+      "subscribers",
+    ] as const,
+
   chat: {
     conversations: (organizationId: string) => ["chat", "conversations", organizationId] as const,
     channels: (organizationId: string) => ["chat", "channels", organizationId] as const,
@@ -52,7 +66,7 @@ export const queryKeys = {
       ["chat", "messageReactions", organizationId, chatId, messageId] as const,
     threadMessages: (type: string, chatId: string, parentMessageId: string) =>
       ["chat", "threadMessages", type, chatId, parentMessageId] as const,
-    /** Exact key includes limit; omit limit for setQueriesData / invalidate prefix. */
+
     directMessages: (organizationId: string, chatId: string, limit?: number) =>
       limit !== undefined
         ? (["chat", "directMessages", organizationId, chatId, limit] as const)

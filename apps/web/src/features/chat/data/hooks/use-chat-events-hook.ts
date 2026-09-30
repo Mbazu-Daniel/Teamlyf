@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "@/lib/socket";
-import { Message, MessageReaction, MessageResponse, TypingEvent, TypingUser } from "@/features/chat/types/messages/types";
+import {
+  Message,
+  MessageReaction,
+  MessageResponse,
+  TypingEvent,
+  TypingUser,
+} from "@/features/chat/types/messages/types";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -18,7 +24,7 @@ export function useChatEvents(
   chatId: string,
   type: "channel" | "direct",
   token: string,
-  enabled: boolean = true
+  enabled: boolean = true,
 ) {
   const queryClient = useQueryClient();
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
@@ -28,10 +34,7 @@ export function useChatEvents(
 
     const socket = getSocket(token, tenantId);
 
-    const messageEvent =
-      type === "channel"
-        ? "new-channel-message"
-        : "new-direct-message";
+    const messageEvent = type === "channel" ? "new-channel-message" : "new-direct-message";
 
     const messagesPrefix = (id: string) =>
       type === "channel"
@@ -39,9 +42,8 @@ export function useChatEvents(
         : queryKeys.chat.directMessages(tenantId, id);
 
     const messageHandler = (message: MessageResponse) => {
-      const isDisplayingCorrectChat = type === "channel"
-        ? message.channelId === chatId
-        : message.message.sender.id === chatId;
+      const isDisplayingCorrectChat =
+        type === "channel" ? message.channelId === chatId : message.message.sender.id === chatId;
 
       if (isDisplayingCorrectChat) {
         const parentId = message.message.parentMessageId;
@@ -49,55 +51,46 @@ export function useChatEvents(
         if (parentId) {
           const threadCacheKey = queryKeys.chat.threadMessages(type, chatId, parentId);
           queryClient.setQueryData(threadCacheKey, (old: Message[] = []) => {
-            if (old.some(m => m.id === message.message.id)) return old;
+            if (old.some((m) => m.id === message.message.id)) return old;
             return [...old, message.message];
           });
 
-          patchMessagesInInfiniteCaches(
-            queryClient,
-            messagesPrefix(chatId),
-            (old) =>
-              mapMessagesInInfiniteData(old, (m) =>
-                m.id === parentId
-                  ? {
-                      ...m,
-                      threadCount: (m.threadCount || 0) + 1,
-                      hasThreadedMessage: true,
-                      lastReplyTime: message.message.createdAt,
-                    }
-                  : m,
-              ),
+          patchMessagesInInfiniteCaches(queryClient, messagesPrefix(chatId), (old) =>
+            mapMessagesInInfiniteData(old, (m) =>
+              m.id === parentId
+                ? {
+                    ...m,
+                    threadCount: (m.threadCount || 0) + 1,
+                    hasThreadedMessage: true,
+                    lastReplyTime: message.message.createdAt,
+                  }
+                : m,
+            ),
           );
         } else {
-          patchMessagesInInfiniteCaches(
-            queryClient,
-            messagesPrefix(chatId),
-            (old) => {
-              const existing = old?.pages?.some((p) =>
-                p.messages?.some((m) => m.id === message.message.id),
-              );
-              if (existing) {
-                return upsertMessageInInfiniteData(old, message.message);
-              }
+          patchMessagesInInfiniteCaches(queryClient, messagesPrefix(chatId), (old) => {
+            const existing = old?.pages?.some((p) =>
+              p.messages?.some((m) => m.id === message.message.id),
+            );
+            if (existing) {
+              return upsertMessageInInfiniteData(old, message.message);
+            }
 
-              const tempMatch = (m: Message) => {
-                if (typeof m.id !== "number" || m.id >= 0) return false;
-                if ((m.content || "").trim() !== (message.message.content || "").trim()) return false;
-                const localCount = (m.attachments || []).length;
-                const serverCount = (message.message.attachments || []).length || 0;
-                return localCount === serverCount;
-              };
+            const tempMatch = (m: Message) => {
+              if (typeof m.id !== "number" || m.id >= 0) return false;
+              if ((m.content || "").trim() !== (message.message.content || "").trim()) return false;
+              const localCount = (m.attachments || []).length;
+              const serverCount = (message.message.attachments || []).length || 0;
+              return localCount === serverCount;
+            };
 
-              const hasTemp = old?.pages?.some((p) =>
-                p.messages?.some(tempMatch),
-              );
-              if (hasTemp) {
-                return upsertMessageInInfiniteData(old, message.message, tempMatch);
-              }
+            const hasTemp = old?.pages?.some((p) => p.messages?.some(tempMatch));
+            if (hasTemp) {
+              return upsertMessageInInfiniteData(old, message.message, tempMatch);
+            }
 
-              return appendMessageToInfiniteData(old, message.message);
-            },
-          );
+            return appendMessageToInfiniteData(old, message.message);
+          });
         }
       } else {
         if (message.message.parentMessageId) {
@@ -107,42 +100,33 @@ export function useChatEvents(
           const threadCacheKey = queryKeys.chat.threadMessages(type, bgChatId ?? "", parentId);
           queryClient.setQueryData(threadCacheKey, (old: Message[] | undefined) => {
             if (!old) return old;
-            if (old.some(m => m.id === message.message.id)) return old;
+            if (old.some((m) => m.id === message.message.id)) return old;
             return [...old, message.message];
           });
 
-          patchMessagesInInfiniteCaches(
-            queryClient,
-            messagesPrefix(bgChatId!),
-            (old) => {
-              if (!old) return old;
-              return mapMessagesInInfiniteData(old, (m) =>
-                m.id === parentId
-                  ? {
-                      ...m,
-                      threadCount: (m.threadCount || 0) + 1,
-                      hasThreadedMessage: true,
-                      lastReplyTime: message.message.createdAt,
-                    }
-                  : m,
-              );
-            },
-          );
+          patchMessagesInInfiniteCaches(queryClient, messagesPrefix(bgChatId!), (old) => {
+            if (!old) return old;
+            return mapMessagesInInfiniteData(old, (m) =>
+              m.id === parentId
+                ? {
+                    ...m,
+                    threadCount: (m.threadCount || 0) + 1,
+                    hasThreadedMessage: true,
+                    lastReplyTime: message.message.createdAt,
+                  }
+                : m,
+            );
+          });
         } else {
-          const bgChatId =
-            type === "channel" ? message.channelId : message.message.sender.id;
+          const bgChatId = type === "channel" ? message.channelId : message.message.sender.id;
 
-          patchMessagesInInfiniteCaches(
-            queryClient,
-            messagesPrefix(bgChatId!),
-            (old) => {
-              if (!old) return old;
-              if (old.pages.some((p) => p.messages?.some((m) => m.id === message.message.id))) {
-                return old;
-              }
-              return appendMessageToInfiniteData(old, message.message);
-            },
-          );
+          patchMessagesInInfiniteCaches(queryClient, messagesPrefix(bgChatId!), (old) => {
+            if (!old) return old;
+            if (old.pages.some((p) => p.messages?.some((m) => m.id === message.message.id))) {
+              return old;
+            }
+            return appendMessageToInfiniteData(old, message.message);
+          });
         }
       }
     };
@@ -157,10 +141,13 @@ export function useChatEvents(
     };
 
     if (type === "channel") {
-       socket.emit("join-channel", { channelId: chatId });
+      socket.emit("join-channel", { channelId: chatId });
     }
 
-    const reactionHandler = (data: { messageId: string, messageType: string, reaction: string, tenantMemberId: string }, isAdd: boolean) => {
+    const reactionHandler = (
+      data: { messageId: string; messageType: string; reaction: string; tenantMemberId: string },
+      isAdd: boolean,
+    ) => {
       if (data.messageType !== type) return;
 
       const { messageId, reaction, tenantMemberId } = data;
@@ -169,36 +156,45 @@ export function useChatEvents(
       queryClient.setQueryData(reactionCacheKey, (oldReactions: MessageReaction[] = []) => {
         let newReactions = [...oldReactions];
         if (isAdd) {
-          if (!newReactions.some(r => r.reaction === reaction && r.tenantMemberId === tenantMemberId)) {
+          if (
+            !newReactions.some(
+              (r) => r.reaction === reaction && r.tenantMemberId === tenantMemberId,
+            )
+          ) {
             newReactions.push({ reaction, tenantMemberId });
           }
         } else {
-          newReactions = newReactions.filter(r => !(r.reaction === reaction && r.tenantMemberId === tenantMemberId));
+          newReactions = newReactions.filter(
+            (r) => !(r.reaction === reaction && r.tenantMemberId === tenantMemberId),
+          );
         }
         return newReactions;
       });
 
-      patchMessagesInInfiniteCaches(
-        queryClient,
-        messagesPrefix(chatId),
-        (old) =>
-          mapMessagesInInfiniteData(old, (m) => {
-            if (m.id !== messageId) return m;
-            const currentReactions = m.reactions || [];
-            let newReactions = [...currentReactions];
-            if (isAdd) {
-              if (!newReactions.some(r => r.reaction === reaction && r.tenantMemberId === tenantMemberId)) {
-                newReactions.push({ reaction, tenantMemberId });
-              }
-            } else {
-              newReactions = newReactions.filter(r => !(r.reaction === reaction && r.tenantMemberId === tenantMemberId));
+      patchMessagesInInfiniteCaches(queryClient, messagesPrefix(chatId), (old) =>
+        mapMessagesInInfiniteData(old, (m) => {
+          if (m.id !== messageId) return m;
+          const currentReactions = m.reactions || [];
+          let newReactions = [...currentReactions];
+          if (isAdd) {
+            if (
+              !newReactions.some(
+                (r) => r.reaction === reaction && r.tenantMemberId === tenantMemberId,
+              )
+            ) {
+              newReactions.push({ reaction, tenantMemberId });
             }
-            return { ...m, reactions: newReactions };
-          }),
+          } else {
+            newReactions = newReactions.filter(
+              (r) => !(r.reaction === reaction && r.tenantMemberId === tenantMemberId),
+            );
+          }
+          return { ...m, reactions: newReactions };
+        }),
       );
     };
 
-    const deletionHandler = (data: { messageId: string, parentMessageId?: string }) => {
+    const deletionHandler = (data: { messageId: string; parentMessageId?: string }) => {
       const { messageId, parentMessageId } = data;
       const prefix = messagesPrefix(chatId);
 
@@ -214,7 +210,7 @@ export function useChatEvents(
       if (!deletedMessage && parentMessageId) {
         const threadCacheKey = queryKeys.chat.threadMessages(type, chatId, parentMessageId);
         const threadMessages = queryClient.getQueryData<Message[]>(threadCacheKey);
-        deletedMessage = threadMessages?.find(m => m.id === messageId);
+        deletedMessage = threadMessages?.find((m) => m.id === messageId);
       }
 
       const senderName = deletedMessage?.sender?.firstName || "Someone";
@@ -230,7 +226,7 @@ export function useChatEvents(
       if (parentMessageId) {
         const threadCacheKey = queryKeys.chat.threadMessages(type, chatId, parentMessageId);
         queryClient.setQueryData(threadCacheKey, (old: Message[] = []) =>
-          old.filter(m => m.id !== messageId)
+          old.filter((m) => m.id !== messageId),
         );
 
         patchMessagesInInfiniteCaches(queryClient, prefix, (old) =>
@@ -258,7 +254,10 @@ export function useChatEvents(
       socket.off("user-typing", typingHandler);
       socket.off("reaction-added", (data) => reactionHandler(data, true));
       socket.off("reaction-removed", (data) => reactionHandler(data, false));
-      socket.off(type === "channel" ? "message-deleted" : "direct-message-deleted", deletionHandler);
+      socket.off(
+        type === "channel" ? "message-deleted" : "direct-message-deleted",
+        deletionHandler,
+      );
     };
   }, [tenantId, chatId, type, token, queryClient, enabled]);
 

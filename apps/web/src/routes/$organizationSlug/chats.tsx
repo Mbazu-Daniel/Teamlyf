@@ -18,7 +18,6 @@ function RouteComponent() {
   const tenantId = useTenantStore((s) => s.tenantId);
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  // GLOBAL CHAT SYNC (Handles unread counts and sidebar updates for all rooms)
   useGlobalChatSync(tenantId!, accessToken!);
 
   const activeThread = useThreadStore((s) => s.activeThread);
@@ -37,8 +36,6 @@ function RouteComponent() {
   const selectedUser = useNewChatStore((state) => state.selectedUser);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // On mobile, if we are on the base chats page (no active chat/subpage selected),
-  // we show the chat navigator as the main content.
   const isBaseChatPage = pathname.endsWith("/chats") || pathname.endsWith("/chats/");
   const showSidebarAsMain = isMobile && isBaseChatPage && !selectedUser;
 
@@ -69,7 +66,11 @@ function RouteComponent() {
               </ResizablePanel>
 
               {/* Card 2: Main chat content (always visible) */}
-              <ResizablePanel defaultSize={isThreadPanelVisible ? 60 : 100} minSize={320} className="h-full">
+              <ResizablePanel
+                defaultSize={isThreadPanelVisible ? 60 : 100}
+                minSize={320}
+                className="h-full"
+              >
                 <main className="flex h-full flex-1 flex-col bg-chat-primary-bg">
                   {showSidebarAsMain ? (
                     <div className="h-full overflow-y-auto">
@@ -85,7 +86,11 @@ function RouteComponent() {
               {isThreadPanelVisible && !isMobile && (
                 <ResizablePanel defaultSize={40} minSize={300} maxSize={420}>
                   <aside className="hidden h-full shrink-0 flex-col bg-background md:flex">
-                    <ThreadView parentMessage={activeThread} event={activeThreadType} chatId={chatId} />
+                    <ThreadView
+                      parentMessage={activeThread}
+                      event={activeThreadType}
+                      chatId={chatId}
+                    />
                   </aside>
                 </ResizablePanel>
               )}
@@ -104,31 +109,24 @@ function RouteComponent() {
       {/* Mobile Thread Sheet */}
       {isMobile && (
         <Sheet open={isThreadOpen} onOpenChange={(open) => setIsThreadOpen(open)}>
-          <SheetContent
-            side="right"
-            variant="flush"
-            className="w-full md:hidden"
-          >
+          <SheetContent side="right" variant="flush" className="w-full md:hidden">
             <SheetTitle className="sr-only">Thread</SheetTitle>
-            {
-              isThreadPanelVisible && (
-                <ThreadView
-                  parentMessage={activeThread}
-                  event={activeThreadType}
-                  chatId={chatId}
-                />
-              )
-            }
+            {isThreadPanelVisible && (
+              <ThreadView parentMessage={activeThread} event={activeThreadType} chatId={chatId} />
+            )}
           </SheetContent>
         </Sheet>
       )}
 
       {/* Desktop profile side panel */}
       {!isMobile && (
-        <Sheet open={isProfileOpen} onOpenChange={(open) => {
-          setIsProfileOpen(open);
-          if (!open) setProfileMember(null);
-        }}>
+        <Sheet
+          open={isProfileOpen}
+          onOpenChange={(open) => {
+            setIsProfileOpen(open);
+            if (!open) setProfileMember(null);
+          }}
+        >
           <SheetContent side="right" variant="flushRoundedLeft" className="w-full sm:max-w-80">
             <SheetTitle className="sr-only">Profile</SheetTitle>
             {profileMember && (
@@ -146,10 +144,13 @@ function RouteComponent() {
 
       {/* Mobile Profile Sheet */}
       {isMobile && (
-        <Sheet open={isProfileOpen} onOpenChange={(open) => {
-          setIsProfileOpen(open);
-          if (!open) setProfileMember(null);
-        }}>
+        <Sheet
+          open={isProfileOpen}
+          onOpenChange={(open) => {
+            setIsProfileOpen(open);
+            if (!open) setProfileMember(null);
+          }}
+        >
           <SheetContent side="right" variant="flush" className="w-full">
             <SheetTitle className="sr-only">Profile</SheetTitle>
             {profileMember && (
@@ -168,7 +169,6 @@ function RouteComponent() {
   );
 }
 
-
-export const Route = createFileRoute('/$organizationSlug/chats')({
+export const Route = createFileRoute("/$organizationSlug/chats")({
   component: RouteComponent,
 });

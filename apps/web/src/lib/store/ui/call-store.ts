@@ -31,7 +31,8 @@ export const useCallStore = create<CallState>()((set) => ({
   setIsCallActiveGlobal: (isCallActive) => set({ isCallActive }),
   setRoomTokenGlobal: (roomToken) => set({ roomToken }),
   setCallTypeGlobal: (callType) => set({ callType }),
-  triggerCallEndedSignal: () => set((state) => ({ hasCallEndedSignal: state.hasCallEndedSignal + 1 })),
+  triggerCallEndedSignal: () =>
+    set((state) => ({ hasCallEndedSignal: state.hasCallEndedSignal + 1 })),
   resetCall: () =>
     set({
       isRinging: false,

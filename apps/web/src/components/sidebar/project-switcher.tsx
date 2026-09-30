@@ -4,6 +4,7 @@ import { IconCheck, IconFolder, IconPlus, IconSelector } from "@tabler/icons-rea
 import { projectsApi } from "@/lib/api/projects";
 import { queryKeys } from "@/lib/queryKeys";
 import { useOrganization } from "@/lib/organization";
+import { projectSlug } from "@/lib/slug";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,8 +32,10 @@ export function ProjectSwitcher({ collapsed }: ProjectSwitcherProps) {
 
   if (!organization) return null;
 
-  const activeProject = projects.find((project) =>
-    pathname.includes(`/projects/${project.identifier}`),
+  const activeProject = projects.find(
+    (project) =>
+      pathname.includes(`/projects/${projectSlug(project)}`) ||
+      pathname.includes(`/projects/${project.identifier}`),
   );
 
   return (
@@ -55,7 +58,10 @@ export function ProjectSwitcher({ collapsed }: ProjectSwitcherProps) {
                 <span className="min-w-0 flex-1 truncate text-left font-semibold">
                   {activeProject?.name || "Projects"}
                 </span>
-                <IconSelector className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <IconSelector
+                  className="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </>
             )}
           </button>
@@ -73,7 +79,7 @@ export function ProjectSwitcher({ collapsed }: ProjectSwitcherProps) {
             render={
               <Link
                 to="/$organizationSlug/projects/$projectId"
-                params={{ organizationSlug, projectId: project.identifier }}
+                params={{ organizationSlug, projectId: projectSlug(project) }}
               />
             }
           >

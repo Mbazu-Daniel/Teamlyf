@@ -7,7 +7,6 @@ import { AuthLayout } from "@/components/auth/auth-layout";
 import { AuthField } from "@/components/auth/auth-field";
 
 export const Route = createFileRoute("/reset-password")({
-  // better-auth redirects here with ?token=...&error=...
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === "string" ? search.token : "",
     error: typeof search.error === "string" ? search.error : "",
@@ -30,10 +29,6 @@ function ResetPassword() {
   );
 }
 
-/**
- * The page without the router plumbing, so the link states and the mismatch
- * guard can be exercised directly.
- */
 export function ResetPasswordForm({
   token,
   linkError,
@@ -120,7 +115,6 @@ export function ResetPasswordForm({
   );
 }
 
-/** Terminal state for a link that cannot be used — no form to show. */
 function Notice({ title, detail }: { title: string; detail: string }) {
   return (
     <AuthLayout

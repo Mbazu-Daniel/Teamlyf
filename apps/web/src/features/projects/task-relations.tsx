@@ -14,11 +14,6 @@ type TaskRelationsProps = {
   membersLoading: boolean;
 };
 
-/**
- * The task's outward graph: links to other tasks and the members watching it.
- * Both lists follow the same shape — read a list, mutate, invalidate — so they
- * live in one hook file but render as two independent sections.
- */
 export function TaskRelations({
   organizationId,
   projectId,
@@ -28,11 +23,7 @@ export function TaskRelations({
 }: TaskRelationsProps) {
   return (
     <>
-      <RelationsSection
-        organizationId={organizationId}
-        projectId={projectId}
-        taskId={taskId}
-      />
+      <RelationsSection organizationId={organizationId} projectId={projectId} taskId={taskId} />
       <SubscribersSection
         organizationId={organizationId}
         projectId={projectId}
@@ -44,14 +35,12 @@ export function TaskRelations({
   );
 }
 
-/** Labels read from this task's seat: outgoing rows say what this task suffers. */
 const OUTGOING_LABELS: Record<TaskRelationType, string> = {
   BLOCKED_BY: "Blocked by",
   RELATED_TO: "Related to",
   DUPLICATE_OF: "Duplicate of",
 };
 
-/** Incoming rows are the same link read backwards: this task is the target. */
 const INCOMING_LABELS: Record<TaskRelationType, string> = {
   BLOCKED_BY: "Blocks",
   RELATED_TO: "Related to",
@@ -67,7 +56,6 @@ function RelationsSection({
   const [targetTaskId, setTargetTaskId] = useState("");
   const [relationType, setRelationType] = useState<TaskRelationType>("RELATED_TO");
 
-  // The board already caches this key, so the picker reuses its data.
   const tasksQuery = useQuery({
     queryKey: queryKeys.tasks(organizationId, projectId),
     queryFn: () => projectsApi.getTasks(organizationId, projectId),
@@ -84,7 +72,10 @@ function RelationsSection({
   }
 
   return (
-    <section aria-label="Relations" className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
+    <section
+      aria-label="Relations"
+      className="space-y-3 rounded-xl border border-border/70 bg-card p-4"
+    >
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Relations
       </h3>
@@ -197,7 +188,10 @@ function SubscribersSection({
   }
 
   return (
-    <section aria-label="Subscribers" className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
+    <section
+      aria-label="Subscribers"
+      className="space-y-3 rounded-xl border border-border/70 bg-card p-4"
+    >
       <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Subscribers
       </h3>
@@ -236,9 +230,7 @@ function SubscribersSection({
         ))}
       </ul>
       {!!subscribers.subscribeError && <ErrorMessage message={subscribers.subscribeError} />}
-      {!!subscribers.unsubscribeError && (
-        <ErrorMessage message={subscribers.unsubscribeError} />
-      )}
+      {!!subscribers.unsubscribeError && <ErrorMessage message={subscribers.unsubscribeError} />}
       {membersLoading && <MutedMessage message="Loading members..." />}
       {!membersLoading && available.length > 0 && (
         <form onSubmit={submit} className="flex flex-wrap items-center gap-2 border-t pt-3">
@@ -251,7 +243,10 @@ function SubscribersSection({
             <option value="">Subscribe a member...</option>
             {available.map((member) => (
               <option key={member.id} value={member.id}>
-                {member.user?.name ?? member.user?.email ?? member.userId}
+                {[member.firstName, member.lastName].filter(Boolean).join(" ") ||
+                  member.user?.name ||
+                  member.user?.email ||
+                  member.userId}
               </option>
             ))}
           </select>
@@ -268,7 +263,6 @@ function SubscribersSection({
   );
 }
 
-/** Joined member names when present, id prefix as the last resort. */
 function subscriberLabel(
   member: { firstName: string | null; lastName: string | null; userId: string | null } | null,
   fallbackId: string,

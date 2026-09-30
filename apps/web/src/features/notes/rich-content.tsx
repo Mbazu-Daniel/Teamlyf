@@ -13,12 +13,10 @@ export function noteDocument(content: string): JSONContent {
   }
   return {
     type: "doc",
-    content: content
-      .split("\n")
-      .map((line) => ({
-        type: "paragraph",
-        ...(line ? { content: [{ type: "text", text: line }] } : {}),
-      })),
+    content: content.split("\n").map((line) => ({
+      type: "paragraph",
+      ...(line ? { content: [{ type: "text", text: line }] } : {}),
+    })),
   };
 }
 export function noteText(content: string): string {

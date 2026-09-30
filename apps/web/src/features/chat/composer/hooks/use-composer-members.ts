@@ -8,7 +8,7 @@ export function useComposerMembers(
   tenantId: string,
   channelId: string | undefined,
   type: "channel" | "direct" | undefined,
-  mentionSearch: string
+  mentionSearch: string,
 ) {
   const { data: allMembers } = useFetchTenantMembers(tenantId);
   const { data: channelMembers } = useChannelMembers(tenantId, channelId ?? "", {
@@ -16,10 +16,7 @@ export function useComposerMembers(
   });
 
   const membersToUse = useMemo(() => {
-    const raw =
-      type === "channel" && channelId
-        ? channelMembers
-        : allMembers?.records || [];
+    const raw = type === "channel" && channelId ? channelMembers : allMembers?.records || [];
     return (raw || []).map((m: TenantMember | ChannelMember) => {
       if ("tenantMember" in m) {
         return {
@@ -37,14 +34,11 @@ export function useComposerMembers(
 
   const filteredMembers = useMemo(
     () =>
-      (Array.isArray(membersToUse) ? membersToUse : []).filter(
-        (member: TenantMember) => {
-          const fullName =
-            `${member.firstName} ${member.lastName}`.toLowerCase();
-          return fullName.includes(mentionSearch);
-        }
-      ),
-    [membersToUse, mentionSearch]
+      (Array.isArray(membersToUse) ? membersToUse : []).filter((member: TenantMember) => {
+        const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+        return fullName.includes(mentionSearch);
+      }),
+    [membersToUse, mentionSearch],
   );
 
   return { membersToUse, filteredMembers };

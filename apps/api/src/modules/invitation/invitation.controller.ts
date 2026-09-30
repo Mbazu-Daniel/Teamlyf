@@ -21,9 +21,7 @@ export class InvitationController {
     body: InvitationIdDto,
     action: "acceptInvitation" | "rejectInvitation" | "cancelInvitation",
   ) {
-    return proxyBetterAuth(req, res, (headers) =>
-      this.invitationService[action](body, headers),
-    );
+    return proxyBetterAuth(req, res, (headers) => this.invitationService[action](body, headers));
   }
 
   @Post()

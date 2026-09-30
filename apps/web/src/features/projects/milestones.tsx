@@ -1,9 +1,22 @@
 import { useState, type FormEvent } from "react";
 import type { Milestone, MilestoneStatus, ProjectTask } from "@/lib/api";
-import { IconCalendar, IconCheck, IconFlag, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import {
+  IconCalendar,
+  IconCheck,
+  IconFlag,
+  IconPencil,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
 import { MutedMessage } from "./feedback";
 import { PageEmptyState, pageInput } from "@/components/workspace/page-layout";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 type MilestoneInput = {
   name: string;
@@ -13,7 +26,14 @@ type MilestoneInput = {
   targetDate?: string;
 };
 
-const statuses: MilestoneStatus[] = ["backlog", "planned", "in-progress", "paused", "completed", "cancelled"];
+const statuses: MilestoneStatus[] = [
+  "backlog",
+  "planned",
+  "in-progress",
+  "paused",
+  "completed",
+  "cancelled",
+];
 
 export function MilestonesSection({
   milestones,
@@ -42,25 +62,37 @@ export function MilestonesSection({
     <section className="rounded-2xl border bg-card">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-4 sm:px-5">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Roadmap</p>
-          <h2 className="mt-1 text-base font-semibold">Milestones</h2>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Roadmap
+          </p>
+          <h2 className="mt-1 text-base font-semibold">Modules</h2>
         </div>
-        <button type="button" onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-1.5 rounded-lg border px-3 h-control py-0 text-xs font-semibold transition hover:bg-muted">
+        <button
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          className="inline-flex items-center gap-1.5 rounded-lg border px-3 h-control py-0 text-xs font-semibold transition hover:bg-muted"
+        >
           <IconPlus className="size-3.5" />
           Add milestone
         </button>
       </div>
 
-      <Sheet open={open} onOpenChange={setOpen}><SheetContent className="sm:max-w-md"><SheetHeader variant="form"><SheetTitle>Add milestone</SheetTitle><SheetDescription>Set a delivery checkpoint for this project.</SheetDescription></SheetHeader>
-        <MilestoneForm
-          loading={loading}
-          onCancel={() => setOpen(false)}
-          onCreate={(input) => {
-            createMilestone(input);
-            setOpen(false);
-          }}
-        />
-      </SheetContent></Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader variant="form">
+            <SheetTitle>Add module</SheetTitle>
+            <SheetDescription>Set a delivery checkpoint for this project.</SheetDescription>
+          </SheetHeader>
+          <MilestoneForm
+            loading={loading}
+            onCancel={() => setOpen(false)}
+            onCreate={(input) => {
+              createMilestone(input);
+              setOpen(false);
+            }}
+          />
+        </SheetContent>
+      </Sheet>
 
       <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
         {milestones.map((milestone) => (
@@ -76,7 +108,13 @@ export function MilestonesSection({
           />
         ))}
         {!loading && milestones.length === 0 && (
-          <div className="sm:col-span-2 lg:col-span-3"><PageEmptyState icon={IconFlag} title="Your next checkpoint" description="Add a milestone to connect tasks to a clear delivery goal." /></div>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <PageEmptyState
+              icon={IconFlag}
+              title="Your next checkpoint"
+              description="Add a milestone to connect tasks to a clear delivery goal."
+            />
+          </div>
         )}
         {loading && <MutedMessage className="p-3" message="Loading milestones..." />}
       </div>
@@ -111,13 +149,57 @@ function MilestoneForm({
 
   return (
     <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-6">
-      <label className="space-y-2 text-xs font-medium">Milestone name<input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. First release" className={`${pageInput} mt-2`} required /></label>
-      <label className="space-y-2 text-xs font-medium">Description<input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What does success look like?" className={`${pageInput} mt-2`} /></label>
-      <label className="space-y-2 text-xs font-medium">Start date<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className={`${pageInput} mt-2`} /></label>
-      <label className="space-y-2 text-xs font-medium">Target date<input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} className={`${pageInput} mt-2`} /></label>
+      <label className="space-y-2 text-xs font-medium">
+        Milestone name
+        <input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          placeholder="e.g. First release"
+          className={`${pageInput} mt-2`}
+          required
+        />
+      </label>
+      <label className="space-y-2 text-xs font-medium">
+        Description
+        <input
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="What does success look like?"
+          className={`${pageInput} mt-2`}
+        />
+      </label>
+      <label className="space-y-2 text-xs font-medium">
+        Start date
+        <input
+          type="date"
+          value={startDate}
+          onChange={(event) => setStartDate(event.target.value)}
+          className={`${pageInput} mt-2`}
+        />
+      </label>
+      <label className="space-y-2 text-xs font-medium">
+        Target date
+        <input
+          type="date"
+          value={targetDate}
+          onChange={(event) => setTargetDate(event.target.value)}
+          className={`${pageInput} mt-2`}
+        />
+      </label>
       <div className="mt-auto flex justify-end gap-2 border-t border-border/70 pt-5">
-        <button disabled={loading} className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50">{loading ? "Creating..." : "Create milestone"}</button>
-        <button type="button" onClick={onCancel} className="rounded-lg border px-3 h-control py-0 text-xs font-semibold hover:bg-muted">Cancel</button>
+        <button
+          disabled={loading}
+          className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {loading ? "Creating..." : "Create milestone"}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border px-3 h-control py-0 text-xs font-semibold hover:bg-muted"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   );
@@ -172,32 +254,67 @@ function MilestoneCard({
               </span>
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-semibold">{milestone.name}</h3>
-                <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{formatStatus(milestone.status)}</p>
+                <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {formatStatus(milestone.status)}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-0.5">
-              <button type="button" onClick={() => setEditing(true)} aria-label={`Edit milestone ${milestone.name}`} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                aria-label={`Edit milestone ${milestone.name}`}
+                className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
                 <IconPencil className="size-3.5" />
               </button>
-              <button type="button" onClick={onDelete} aria-label={`Delete milestone ${milestone.name}`} className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+              <button
+                type="button"
+                onClick={onDelete}
+                aria-label={`Delete module ${milestone.name}`}
+                className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
                 <IconTrash className="size-3.5" />
               </button>
             </div>
           </div>
 
-          {milestone.description && <p className="mt-3 line-clamp-2 text-xs leading-5 text-muted-foreground">{milestone.description}</p>}
+          {milestone.description && (
+            <p className="mt-3 line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {milestone.description}
+            </p>
+          )}
 
           <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-muted-foreground">
-            {milestone.startDate && <span className="inline-flex items-center gap-1"><IconCalendar className="size-3" />{formatDate(milestone.startDate)}</span>}
-            {milestone.targetDate && <span className="inline-flex items-center gap-1">→ {formatDate(milestone.targetDate)}</span>}
-            <span className="inline-flex items-center gap-1"><IconCheck className="size-3" />{linkedTasks.length} tasks</span>
+            {milestone.startDate && (
+              <span className="inline-flex items-center gap-1">
+                <IconCalendar className="size-3" />
+                {formatDate(milestone.startDate)}
+              </span>
+            )}
+            {milestone.targetDate && (
+              <span className="inline-flex items-center gap-1">
+                → {formatDate(milestone.targetDate)}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1">
+              <IconCheck className="size-3" />
+              {linkedTasks.length} tasks
+            </span>
           </div>
 
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${milestone.status === "completed" ? 100 : progress}%` }} />
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${milestone.status === "completed" ? 100 : progress}%` }}
+            />
           </div>
 
-          <button type="button" onClick={() => setTaskPickerOpen((value) => !value)} className="mt-3 text-xs font-semibold text-primary hover:underline">
+          <button
+            type="button"
+            onClick={() => setTaskPickerOpen((value) => !value)}
+            className="mt-3 text-xs font-semibold text-primary hover:underline"
+          >
             {taskPickerOpen ? "Hide task picker" : "Manage tasks"}
           </button>
 
@@ -209,13 +326,18 @@ function MilestoneCard({
                 tasks.map((task) => {
                   const linked = taskIds.has(task.id);
                   return (
-                    <label key={task.id} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-background">
+                    <label
+                      key={task.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-background"
+                    >
                       <input
                         type="checkbox"
                         checked={linked}
-                        onChange={() => linked
-                          ? onRemoveTask({ milestoneId: milestone.id, taskId: task.id })
-                          : onAddTask({ milestoneId: milestone.id, taskId: task.id })}
+                        onChange={() =>
+                          linked
+                            ? onRemoveTask({ milestoneId: milestone.id, taskId: task.id })
+                            : onAddTask({ milestoneId: milestone.id, taskId: task.id })
+                        }
                       />
                       <span className="min-w-0 flex-1 truncate text-[11px]">{task.name}</span>
                     </label>
@@ -250,29 +372,74 @@ function MilestoneEditForm({
       onSubmit={(event) => {
         event.preventDefault();
         if (!name.trim()) return;
-        onSave({ name: name.trim(), description: description.trim() || undefined, status, startDate: startDate || undefined, targetDate: targetDate || undefined });
+        onSave({
+          name: name.trim(),
+          description: description.trim() || undefined,
+          status,
+          startDate: startDate || undefined,
+          targetDate: targetDate || undefined,
+        });
       }}
       className="space-y-2"
     >
-      <input value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-lg border bg-background px-3 h-control py-0 text-sm" />
-      <input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Description" className="w-full rounded-lg border bg-background px-3 h-control py-0 text-sm" />
-      <select value={status} onChange={(event) => setStatus(event.target.value as MilestoneStatus)} className="w-full rounded-lg border bg-background px-3 h-control py-0 text-xs">
-        {statuses.map((item) => <option key={item} value={item}>{formatStatus(item)}</option>)}
+      <input
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        className="w-full rounded-lg border bg-background px-3 h-control py-0 text-sm"
+      />
+      <input
+        value={description}
+        onChange={(event) => setDescription(event.target.value)}
+        placeholder="Description"
+        className="w-full rounded-lg border bg-background px-3 h-control py-0 text-sm"
+      />
+      <select
+        value={status}
+        onChange={(event) => setStatus(event.target.value as MilestoneStatus)}
+        className="w-full rounded-lg border bg-background px-3 h-control py-0 text-xs"
+      >
+        {statuses.map((item) => (
+          <option key={item} value={item}>
+            {formatStatus(item)}
+          </option>
+        ))}
       </select>
       <div className="grid grid-cols-2 gap-2">
-        <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="rounded-lg border bg-background px-3 h-control py-0 text-xs" />
-        <input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} className="rounded-lg border bg-background px-3 h-control py-0 text-xs" />
+        <input
+          type="date"
+          value={startDate}
+          onChange={(event) => setStartDate(event.target.value)}
+          className="rounded-lg border bg-background px-3 h-control py-0 text-xs"
+        />
+        <input
+          type="date"
+          value={targetDate}
+          onChange={(event) => setTargetDate(event.target.value)}
+          className="rounded-lg border bg-background px-3 h-control py-0 text-xs"
+        />
       </div>
       <div className="flex gap-2">
-        <button className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground">Save</button>
-        <button type="button" onClick={onCancel} className="rounded-lg border px-3 h-control py-0 text-xs font-semibold">Cancel</button>
+        <button className="rounded-lg bg-primary px-3 h-control py-0 text-xs font-semibold text-primary-foreground">
+          Save
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border px-3 h-control py-0 text-xs font-semibold"
+        >
+          Cancel
+        </button>
       </div>
     </form>
   );
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function formatStatus(value: string) {
@@ -280,7 +447,7 @@ function formatStatus(value: string) {
 }
 
 function normalizeStatus(value: string): MilestoneStatus {
-  return statuses.includes(value as MilestoneStatus) ? value as MilestoneStatus : "planned";
+  return statuses.includes(value as MilestoneStatus) ? (value as MilestoneStatus) : "planned";
 }
 
 function dateInput(value: string | null) {

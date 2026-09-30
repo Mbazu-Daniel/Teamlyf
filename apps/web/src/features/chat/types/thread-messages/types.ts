@@ -15,13 +15,13 @@ interface ThreadSender {
 
 export interface ThreadMessage {
   id: string;
-  content: string; // Will be "" for voice notes/pure attachments
+  content: string;
   createdAt: string;
   editedAt?: string | null;
   isCurrentUserMessage?: boolean;
   sender: ThreadSender;
   attachments?: ThreadAttachment[];
-  parentMessageId?: string | null; // In a thread, this is usually mandatory
+  parentMessageId?: string | null;
   threadCount?: number;
   lastReplyTime?: string | null;
   type?: "channel" | "direct";
@@ -30,11 +30,10 @@ export interface ThreadMessage {
     name: string;
   };
   conversation?: {
-     id: string;
-     otherMember: ThreadSender;
+    id: string;
+    otherMember: ThreadSender;
   };
-  
-  // Optional UI helper for local state (optimistic updates)
-  status?: 'sending' | 'success' | 'failed';
+
+  status?: "sending" | "success" | "failed";
   attachmentIds?: string[];
 }

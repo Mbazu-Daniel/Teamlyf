@@ -1,4 +1,10 @@
-import { IconHandStop, IconMicrophoneOff, IconUsers, IconVideoOff, IconX } from "@tabler/icons-react";
+import {
+  IconHandStop,
+  IconMicrophoneOff,
+  IconUsers,
+  IconVideoOff,
+  IconX,
+} from "@tabler/icons-react";
 import type { Participant } from "livekit-client";
 
 import { AVATAR_COLORS, parseMeta } from "./voice-call-constants";
@@ -53,7 +59,7 @@ export function VoiceCallParticipantsPanel({
                 </div>
                 <div>
                   <p className="text-sm font-medium leading-tight">
-                    {isLocal ? "You" : (p.name || p.identity)}
+                    {isLocal ? "You" : p.name || p.identity}
                   </p>
                   <p className="text-[10px] text-white/35 uppercase tracking-wider mt-0.5">
                     {i === 0 ? "Host" : "Member"}
@@ -61,7 +67,9 @@ export function VoiceCallParticipantsPanel({
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
-                {p.isSpeaking && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
+                {p.isSpeaking && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                )}
                 {muted && <IconMicrophoneOff size={12} className="text-red-400" />}
                 {camOff && <IconVideoOff size={12} className="text-white/25" />}
                 {meta.isHandRaised ? <IconHandStop size={12} className="text-amber-400" /> : null}
@@ -74,11 +82,7 @@ export function VoiceCallParticipantsPanel({
   );
 }
 
-export function VoiceCallHandRaiseToasts({
-  remotes,
-}: {
-  remotes: Participant[];
-}) {
+export function VoiceCallHandRaiseToasts({ remotes }: { remotes: Participant[] }) {
   return (
     <div className="absolute top-20 right-5 flex flex-col gap-2 pointer-events-none z-50">
       {remotes.map((p) => {
@@ -93,7 +97,9 @@ export function VoiceCallHandRaiseToasts({
               <IconHandStop size={14} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider opacity-60">IconHandStop raised</p>
+              <p className="text-[10px] font-black uppercase tracking-wider opacity-60">
+                IconHandStop raised
+              </p>
               <p className="text-sm font-bold leading-tight">{p.name || p.identity}</p>
             </div>
           </div>

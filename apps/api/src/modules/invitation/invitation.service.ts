@@ -77,10 +77,6 @@ export class InvitationService {
     });
   }
 
-  /**
-   * Re-invites a pending invitation through better-auth's native `resend`
-   * flag (renews the invite and re-sends the email on the same row).
-   */
   async resendInvitation(orgId: string, invitationId: string, headers: Headers) {
     const found = await this.db.query.invitation.findFirst({
       where: and(eq(invitation.id, invitationId), eq(invitation.organizationId, orgId)),

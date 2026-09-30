@@ -15,6 +15,8 @@ export type TaskActivity = {
 
 export const taskActivityApi = {
   getActivity(organizationId: string, projectId: string, taskId: string) {
-    return client.request<TaskActivity[]>(`${taskPath(organizationId, projectId, taskId)}/activity`);
+    return client.request<TaskActivity[]>(
+      `${taskPath(organizationId, projectId, taskId)}/activity`,
+    );
   },
 };

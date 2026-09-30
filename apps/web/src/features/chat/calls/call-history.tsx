@@ -2,7 +2,10 @@ import { PageEmptyState } from "@/components/workspace/page-layout";
 import { IconClock, IconPhone, IconPhoneCall, IconVideoPlus } from "@tabler/icons-react";
 import { useState } from "react";
 
-import { useFetchCallHistory, useFetchMissedCalls } from "@/features/chat/data/queries/use-fetch-call-history-hook";
+import {
+  useFetchCallHistory,
+  useFetchMissedCalls,
+} from "@/features/chat/data/queries/use-fetch-call-history-hook";
 import { useTenantStore } from "@/lib/store/tenant-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCallStore } from "@/lib/store/ui-stores";
@@ -16,7 +19,6 @@ import { CallHistoryRecord, JoinCallResponse } from "@/features/chat/types/call/
 import { Button } from "@/components/ui/button";
 import { getSocket } from "@/lib/socket";
 import { toast } from "sonner";
-
 
 import { useFetchTenantMembers } from "@/features/chat/data/queries/use-fetch-tenant-members-hook";
 import { TenantMember } from "@/features/chat/types/tenant-members/types";
@@ -32,7 +34,9 @@ export function CallHistory() {
   const [isConnecting, setIsConnecting] = useState(false);
 
   const { data: members } = useFetchTenantMembers(tenantId!);
-  const myMemberId = members?.records?.find((m: TenantMember) => String(m.userId) === String(user?.id))?.id;
+  const myMemberId = members?.records?.find(
+    (m: TenantMember) => String(m.userId) === String(user?.id),
+  )?.id;
 
   const { data: allCalls = [], isLoading: isLoadingAll } = useFetchCallHistory(tenantId!);
   const { data: missedCalls = [], isLoading: isLoadingMissed } = useFetchMissedCalls(tenantId!);
@@ -66,14 +70,12 @@ export function CallHistory() {
       { recipientId: targetMemberId, callType: type },
       (res: JoinCallResponse) => {
         if (res.callSession) {
-          // GlobalCallOverlay will handle the ringing UI if we set the state correctly
-          // but for now, we just wait for acceptance which is handled by GlobalCallOverlay/useCallEvents
           toast.info(`Calling ${targetMemberId}...`);
         } else {
           setIsConnecting(false);
           toast.error("Could not establish call.");
         }
-      }
+      },
     );
   };
 
@@ -101,7 +103,7 @@ export function CallHistory() {
                 "inline-flex h-control-inner items-center rounded-[9px] px-4 text-[13px] font-medium transition-colors",
                 activeTab === "all"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               All
@@ -113,7 +115,7 @@ export function CallHistory() {
                 "inline-flex h-control-inner items-center rounded-[9px] px-4 text-[13px] font-medium transition-colors",
                 activeTab === "missed"
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               Missed
@@ -138,11 +140,20 @@ export function CallHistory() {
             ))}
           </div>
         ) : calls.length === 0 ? (
-          <div className="p-4 sm:p-6"><PageEmptyState icon={IconPhone} title="No calls found" description={activeTab === "all" ? "Your voice and video call history will appear here." : "You have no missed calls to catch up on."} /></div>
+          <div className="p-4 sm:p-6">
+            <PageEmptyState
+              icon={IconPhone}
+              title="No calls found"
+              description={
+                activeTab === "all"
+                  ? "Your voice and video call history will appear here."
+                  : "You have no missed calls to catch up on."
+              }
+            />
+          </div>
         ) : (
           <div className="divide-y-2 divide-border/50">
             {calls.map((call: CallHistoryRecord) => {
-              // Determine who to show: if I initiated, show recipient. If I'm recipient, show initiator.
               const isIInitiator = call.initiatorId === myMemberId;
               const otherParty = isIInitiator ? call.recipient : call.initiator;
 
@@ -151,7 +162,9 @@ export function CallHistory() {
                     ...otherParty,
                     avatar: otherParty.photoUrl,
                   })
-                : (call.channel ? "Channel Call" : "Unknown");
+                : call.channel
+                  ? "Channel Call"
+                  : "Unknown";
 
               const displayMember = otherParty
                 ? { ...otherParty, avatar: otherParty.photoUrl }
@@ -181,10 +194,12 @@ export function CallHistory() {
                           colorId={otherParty?.id || call.id}
                         />
                       )}
-                      <div className={cn(
-                        "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center shadow-sm",
-                        call.status === "active" ? "bg-green-500" : "bg-muted/60"
-                      )}>
+                      <div
+                        className={cn(
+                          "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center shadow-sm",
+                          call.status === "active" ? "bg-green-500" : "bg-muted/60",
+                        )}
+                      >
                         {call.callType === "video" ? (
                           <IconVideoPlus className="w-2.5 h-2.5  text-white" />
                         ) : (
@@ -196,9 +211,7 @@ export function CallHistory() {
                     {/* Call Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-foreground truncate">
-                          {displayName}
-                        </p>
+                        <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
                         {call.channel && (
                           <span className="text-[10px] px-2 py-0.5 bg-primary-button/10 text-primary-button rounded-full font-bold">
                             #{call.channel.name}

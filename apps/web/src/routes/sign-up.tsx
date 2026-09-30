@@ -23,7 +23,7 @@ function SignUp() {
   return (
     <AuthLayout
       title="Create your account"
-      description="Enter your email and password. You can invite your team after you sign up."
+      // description=""
     >
       <form className="space-y-4" onSubmit={submit}>
         <AuthField

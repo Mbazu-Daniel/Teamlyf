@@ -12,7 +12,12 @@ import { PermissionsGuard } from "./permissions.guard";
 @Module({
   imports: [DbModule, AuthModule, OrganizationModule],
   controllers: [PermissionGrantController],
-  providers: [OrgMemberGuard, OrganizationPermissionService, PermissionsGuard, PermissionGrantService],
+  providers: [
+    OrgMemberGuard,
+    OrganizationPermissionService,
+    PermissionsGuard,
+    PermissionGrantService,
+  ],
   exports: [OrgMemberGuard, OrganizationPermissionService, PermissionsGuard],
 })
 export class RbacModule {}

@@ -10,6 +10,7 @@ import { TenantMember } from "@/features/chat/types/tenant-members/types";
 import { Channel } from "@/features/chat/types/channel/types";
 import { DirectMessagePreview } from "@/features/chat/types/conversation/types";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useGetCurrentUser } from "@/features/chat/data/queries/use-get-current-user-hook";
 
 export function useChatSidebarRail() {
   const [openGroups, setOpenGroups] = useState(true);
@@ -27,22 +28,23 @@ export function useChatSidebarRail() {
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const user = useAuthStore((state) => state.user);
+  // Workspace photo is stored on the membership, so read it back from there.
+  const me = useGetCurrentUser(tenantId ?? null);
 
   const { data: members } = useFetchTenantMembers(tenantId!);
-  const { data: conversations = [], isLoading: isLoadingConversations } =
-    useGetConversations(tenantId!);
-  const { data: channels = [], isLoading: isLoadingChannels } =
-    useGetChannels(tenantId!);
+  const { data: conversations = [], isLoading: isLoadingConversations } = useGetConversations(
+    tenantId!,
+  );
+  const { data: channels = [], isLoading: isLoadingChannels } = useGetChannels(tenantId!);
 
   const filteredChannels = (channels || []).filter((c: Channel) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const filteredConversations = (conversations || []).filter(
-    (c: DirectMessagePreview) =>
-      `${c.otherMember.firstName} ${c.otherMember.lastName}`
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()),
+  const filteredConversations = (conversations || []).filter((c: DirectMessagePreview) =>
+    `${c.otherMember.firstName} ${c.otherMember.lastName}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase()),
   );
 
   const isLoading = isLoadingConversations || isLoadingChannels;
@@ -72,10 +74,7 @@ export function useChatSidebarRail() {
     router.push(`/${subdomain}/chats/`);
   };
 
-  const isActive = (
-    type: "chat" | "channel",
-    id: string | "calls" | "mentions" | "threads",
-  ) => {
+  const isActive = (type: "chat" | "channel", id: string | "calls" | "mentions" | "threads") => {
     if (id === "calls") return pathname.includes("/chats/calls");
     if (id === "mentions") return pathname.includes("/chats/mentions");
     if (id === "threads") return pathname.includes("/chats/threads");
@@ -98,6 +97,7 @@ export function useChatSidebarRail() {
     searchQuery,
     setSearchQuery,
     user,
+    avatar: me.data?.avatar ?? null,
     members,
     conversations,
     filteredChannels,

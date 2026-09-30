@@ -1,6 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { milestonesApi, projectsApi, statusesApi, type Milestone, type ProjectTask, type Status } from "@/lib/api";
+import {
+  milestonesApi,
+  projectsApi,
+  statusesApi,
+  type Milestone,
+  type ProjectTask,
+  type Status,
+} from "@/lib/api";
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 import { slugify } from "@/lib/slug";
@@ -15,7 +22,6 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
   const [name, setName] = useState("");
   const [statusId, setStatusId] = useState("");
 
-  // Without an organization there is nothing to fetch; "" keeps the keys defined.
   const organizationKey = organizationId ?? "";
   const enabled = Boolean(organizationId);
   const projectsKey = queryKeys.projects(organizationKey);
@@ -25,7 +31,10 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
     enabled,
     retry: false,
   });
-  const project = projectsQuery.data?.find((item) => item.identifier === projectSlug) ?? projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ?? null;
+  const project =
+    projectsQuery.data?.find((item) => item.identifier === projectSlug) ??
+    projectsQuery.data?.find((item) => slugify(item.name) === projectSlug) ??
+    null;
   const projectId = project?.id ?? "";
   const statusesKey = queryKeys.statuses(organizationKey, projectId);
   const tasksKey = queryKeys.tasks(organizationKey, projectId);
@@ -63,10 +72,14 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   });
 
-
   const duplicateTaskMutation = useMutation({
-    mutationFn: (task: ProjectTask) => projectsApi.createTask(organizationKey, projectId, { name: task.name + " (copy)", statusId: task.statusId }),
-    onSuccess: (task) => queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]),
+    mutationFn: (task: ProjectTask) =>
+      projectsApi.createTask(organizationKey, projectId, {
+        name: task.name + " (copy)",
+        statusId: task.statusId,
+      }),
+    onSuccess: (task) =>
+      queryClient.setQueryData<ProjectTask[]>(tasksKey, (current) => [...(current ?? []), task]),
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   });
 
@@ -74,17 +87,33 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
   const deleteTaskMutation = useDeleteTask(organizationId, projectId);
 
   const createMilestoneMutation = useMutation({
-    mutationFn: (input: { name: string; description?: string; startDate?: string; targetDate?: string }) =>
-      milestonesApi.createMilestone(organizationKey, projectId, input),
+    mutationFn: (input: {
+      name: string;
+      description?: string;
+      startDate?: string;
+      targetDate?: string;
+    }) => milestonesApi.createMilestone(organizationKey, projectId, input),
     onSuccess: (milestone) => {
-      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) => [milestone, ...(current ?? [])]);
+      queryClient.setQueryData<Milestone[]>(milestonesKey, (current) => [
+        milestone,
+        ...(current ?? []),
+      ]);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: milestonesKey }),
   });
 
   const updateMilestoneMutation = useMutation({
-    mutationFn: ({ milestoneId, ...input }: { milestoneId: string; name?: string; description?: string; status?: import("@/lib/api").MilestoneStatus; startDate?: string; targetDate?: string }) =>
-      milestonesApi.updateMilestone(organizationKey, projectId, milestoneId, input),
+    mutationFn: ({
+      milestoneId,
+      ...input
+    }: {
+      milestoneId: string;
+      name?: string;
+      description?: string;
+      status?: import("@/lib/api").MilestoneStatus;
+      startDate?: string;
+      targetDate?: string;
+    }) => milestonesApi.updateMilestone(organizationKey, projectId, milestoneId, input),
     onSuccess: (updated) => {
       queryClient.setQueryData<Milestone[]>(milestonesKey, (current) =>
         (current ?? []).map((item) => (item.id === updated.id ? { ...item, ...updated } : item)),
@@ -94,7 +123,8 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
   });
 
   const deleteMilestoneMutation = useMutation({
-    mutationFn: (milestoneId: string) => milestonesApi.deleteMilestone(organizationKey, projectId, milestoneId),
+    mutationFn: (milestoneId: string) =>
+      milestonesApi.deleteMilestone(organizationKey, projectId, milestoneId),
     onMutate: async (milestoneId) => {
       await queryClient.cancelQueries({ queryKey: milestonesKey });
       const previous = queryClient.getQueryData<Milestone[]>(milestonesKey);
@@ -111,7 +141,12 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
 
   const addMilestoneTaskMutation = useMutation({
     mutationFn: (input: { milestoneId: string; taskId: string }) =>
-      milestonesApi.createMilestoneTask(organizationKey, projectId, input.milestoneId, input.taskId),
+      milestonesApi.createMilestoneTask(
+        organizationKey,
+        projectId,
+        input.milestoneId,
+        input.taskId,
+      ),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: milestonesKey });
       queryClient.invalidateQueries({ queryKey: tasksKey });
@@ -120,7 +155,12 @@ export function useProjectPage(organizationId: string | undefined, projectSlug: 
 
   const removeMilestoneTaskMutation = useMutation({
     mutationFn: (input: { milestoneId: string; taskId: string }) =>
-      milestonesApi.deleteMilestoneTask(organizationKey, projectId, input.milestoneId, input.taskId),
+      milestonesApi.deleteMilestoneTask(
+        organizationKey,
+        projectId,
+        input.milestoneId,
+        input.taskId,
+      ),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: milestonesKey });
       queryClient.invalidateQueries({ queryKey: tasksKey });
@@ -202,13 +242,6 @@ function isTaskFormValid(name: string, statusId: string) {
   return Boolean(name.trim() && statusId);
 }
 
-/**
- * The select must land on a status that exists in this project: the stored pick
- * survives refetches, anything stale (first render, other project) falls back to
- * the first status, exactly what the old load used to seed.
- */
 function resolveStatusId(storedId: string, statuses: Status[]) {
-  return statuses.some((item) => item.id === storedId)
-    ? storedId
-    : (statuses[0]?.id ?? "");
+  return statuses.some((item) => item.id === storedId) ? storedId : (statuses[0]?.id ?? "");
 }

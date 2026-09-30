@@ -32,10 +32,11 @@ export function createAuth(options: CreateAuthOptions) {
     }),
     secret: options.secret,
     baseURL: options.baseURL,
-    trustedOrigins: options.webOrigin.split(",").map((origin) => origin.trim()).filter(Boolean),
+    trustedOrigins: options.webOrigin
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
     session: {
-      // Keep active users signed in for 30 days and extend the session daily.
-      // Better Auth refreshes the server-side session cookie through normal session requests.
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
     },
@@ -56,8 +57,14 @@ export function createAuth(options: CreateAuthOptions) {
       deleteUser: {
         enabled: true,
         beforeDelete: async (user) => {
-          const membership = await options.db.query.member.findFirst({ where: eq(organizationSchema.member.userId, user.id) });
-          if (membership) throw new APIError("BAD_REQUEST", { message: "Remove your workspace memberships before deleting your account. Transfer ownership or delete owned workspaces first." });
+          const membership = await options.db.query.member.findFirst({
+            where: eq(organizationSchema.member.userId, user.id),
+          });
+          if (membership)
+            throw new APIError("BAD_REQUEST", {
+              message:
+                "Remove your workspace memberships before deleting your account. Transfer ownership or delete owned workspaces first.",
+            });
         },
       },
     },
@@ -72,17 +79,27 @@ export function createAuth(options: CreateAuthOptions) {
         ac,
         roles: { owner, admin, member },
         dynamicAccessControl: { enabled: true },
-    schema: {
-      member: {
-        additionalFields: {
-          firstName: { type: "string", required: false, returned: true, stored: true, input: true },
-          lastName: { type: "string", required: false, returned: true, stored: true, input: true },
+        schema: {
+          member: {
+            additionalFields: {
+              firstName: {
+                type: "string",
+                required: false,
+                returned: true,
+                stored: true,
+                input: true,
+              },
+              lastName: {
+                type: "string",
+                required: false,
+                returned: true,
+                stored: true,
+                input: true,
+              },
+            },
+          },
         },
-      },
-    },
-        // ponytail: invitation IDs are uuidv7 (opaque, not guessable), so the verified-email
-        // gate on by-ID invitation actions is not load-bearing yet and no email-verification
-        // flow exists. Flip to `true` once email verification is wired.
+
         requireEmailVerificationOnInvitation: false,
       }),
     ],

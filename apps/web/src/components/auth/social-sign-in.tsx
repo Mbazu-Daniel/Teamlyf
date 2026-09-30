@@ -2,22 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ApiError, signInSocial } from "@/lib/api";
 
-/**
- * The official four-colour Google mark, served from this app's own public folder
- * (same route convention as the reference app's `/icons/google-icon.svg`).
- */
 const GOOGLE_MARK = "/icons/google-icon.svg";
 
 const NOT_CONFIGURED =
   "Google sign-in is not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env, then restart the API.";
 
-/**
- * better-auth only mounts `/sign-in/social` for providers that have credentials,
- * so an unconfigured Google answers 404 with an empty body. That arrives as a
- * generic ApiError, so match on the status — the message is "The requested
- * resource was not found", which says nothing about the actual cause. Anything
- * else is the API's own message and is more useful than ours.
- */
 function socialSignInError(reason: unknown): string {
   if (reason instanceof ApiError && (reason.status === 404 || reason.status === 405))
     return NOT_CONFIGURED;
@@ -25,10 +14,6 @@ function socialSignInError(reason: unknown): string {
   return detail || "Google sign-in is not available.";
 }
 
-/**
- * "or" divider + Continue with Google.
- * Posts to the better-auth social endpoint; returns a redirect URL when Google is configured.
- */
 export function SocialSignIn() {
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState(false);

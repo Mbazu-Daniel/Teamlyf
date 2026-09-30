@@ -1,4 +1,3 @@
-
 import { IconDotsVertical, IconInfoCircle, IconPhone, IconSearch } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -11,7 +10,8 @@ interface ChatHeaderActionsProps {
 export function ChatHeaderActions({ onSearch, onCall, onInfo }: ChatHeaderActionsProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const iconBtn = "grid size-9 place-items-center rounded-[10px] border border-transparent text-muted-foreground transition-colors hover:border-border/60 hover:bg-muted/50 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30";
+  const iconBtn =
+    "grid size-9 place-items-center rounded-[10px] border border-transparent text-muted-foreground transition-colors hover:border-border/60 hover:bg-muted/50 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30";
 
   return (
     <div className="ml-auto relative flex items-center gap-1">
@@ -35,7 +35,7 @@ export function ChatHeaderActions({ onSearch, onCall, onInfo }: ChatHeaderAction
       <div className="md:hidden relative">
         <button
           type="button"
-          onClick={() => setShowDropdown(v => !v)}
+          onClick={() => setShowDropdown((v) => !v)}
           className={iconBtn}
           title="More options"
         >
@@ -52,7 +52,10 @@ export function ChatHeaderActions({ onSearch, onCall, onInfo }: ChatHeaderAction
               <button
                 key={label}
                 className="w-full flex items-center gap-2.5 text-left px-3 py-2 hover:bg-muted text-sm text-foreground/80"
-                onClick={() => { fn?.(); setShowDropdown(false); }}
+                onClick={() => {
+                  fn?.();
+                  setShowDropdown(false);
+                }}
               >
                 <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                 {label}

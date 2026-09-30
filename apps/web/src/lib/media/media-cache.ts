@@ -1,13 +1,3 @@
-/**
- * Shared media byte cache for signed R2 URLs.
- *
- * - Key by stable path (see mediaCacheKey), not the full signed query string
- * - Memory Map of blob: object URLs + Cache Storage for persistence across remounts
- * - In-flight dedupe, ~50 min soft TTL (under 1h signed URL life), LRU eviction
- *
- * Pass `cacheKey` when you have a fileKey/avatarKey; otherwise URL pathname is used.
- */
-
 import { isEphemeralMediaUrl, mediaCacheKey } from "./media-cache-key";
 
 const CACHE_NAME = "teamlyf-media-v1";
@@ -17,7 +7,7 @@ const MAX_ENTRIES = 80;
 type MemoryEntry = {
   objectUrl: string;
   fetchedAt: number;
-  /** Last successful fetch URL (may include signature). */
+
   sourceUrl: string;
 };
 
@@ -96,19 +86,11 @@ async function fetchAndStore(key: string, url: string): Promise<string> {
 
 export type GetObjectUrlOptions = {
   cacheKey?: string | null;
-  /** Force network fetch even if memory/Cache Storage has an entry. */
+
   force?: boolean;
 };
 
-/**
- * Returns a blob: object URL for display, reusing cached bytes when possible.
- * Falls back to the original `url` only if callers handle errors themselves —
- * this function throws on hard failure after cache miss.
- */
-export async function getObjectUrl(
-  url: string,
-  options?: GetObjectUrlOptions,
-): Promise<string> {
+export async function getObjectUrl(url: string, options?: GetObjectUrlOptions): Promise<string> {
   if (isEphemeralMediaUrl(url)) return url;
 
   const key = mediaCacheKey(url, options?.cacheKey);
@@ -137,7 +119,6 @@ export async function getObjectUrl(
     try {
       return await fetchAndStore(key, url);
     } catch (firstError) {
-      // Stale signed URL / CORS — try once more only if we had a different source.
       const stale = memory.get(key);
       if (stale && stale.sourceUrl !== url) {
         try {

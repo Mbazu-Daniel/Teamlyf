@@ -11,10 +11,23 @@ import { useChatSelection } from "./hooks/use-chat-selection";
 import type { ChatViewProps } from "./types";
 
 export function ChatView({
-  chatTitle, chatSubtitle, messages, type, isLoading,
-  typingUsers, onCancelSend, onRetrySend, bottomRef,
-  composer, conversation, channel, chatId,
-  currentMemberId, onAddReaction, onRemoveReaction, onDeleteMessage,
+  chatTitle,
+  chatSubtitle,
+  messages,
+  type,
+  isLoading,
+  typingUsers,
+  onCancelSend,
+  onRetrySend,
+  bottomRef,
+  composer,
+  conversation,
+  channel,
+  chatId,
+  currentMemberId,
+  onAddReaction,
+  onRemoveReaction,
+  onDeleteMessage,
   onCall,
   ongoingCallBanner,
   onSearch,
@@ -99,9 +112,7 @@ export function ChatView({
 
       <TypingIndicator typingUsers={typingUsers} />
 
-      <div className="border-t border-border/70 bg-background px-4 py-3 sm:px-5">
-        {composer}
-      </div>
+      <div className="border-t border-border/70 bg-background px-4 py-3 sm:px-5">{composer}</div>
     </div>
   );
 }

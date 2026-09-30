@@ -18,7 +18,6 @@ export type TaskAssigneeRow = {
   agentId: string | null;
 };
 
-/** GET answers with the row plus taskAssignees/taskLabels; PATCH answers with the bare row. */
 export type TaskDetail = ProjectTask & {
   sequenceId: number;
   startDate: string | null;
@@ -43,8 +42,6 @@ export function useTaskDetail(
     retry: false,
   });
 
-  // Assignee candidates are the real organization members; when this fails the
-  // panel drops the picker instead of inventing member ids.
   const membersQuery = useQuery({
     queryKey: queryKeys.members(organizationKey),
     queryFn: () => settingsApi.members(organizationKey),
@@ -65,9 +62,7 @@ export function useTaskDetail(
     onError: (_input, _variables, context) => {
       if (context?.previous) queryClient.setQueryData(taskKey, context.previous);
     },
-    // The PATCH answer omits relations, so refetch instead of trusting it. The
-    // tasks key prefixes the single-task key: one invalidation refreshes the
-    // board list and this panel together.
+
     onSettled: () => queryClient.invalidateQueries({ queryKey: tasksKey }),
   });
 
@@ -83,7 +78,6 @@ export function useTaskDetail(
   };
 }
 
-/** Optimistic view of a PATCH body: only the fields the caller sent change. */
 function applyTaskPatch(task: TaskDetail, input: UpdateTaskInput): TaskDetail {
   return {
     ...task,
@@ -101,7 +95,6 @@ function applyTaskPatch(task: TaskDetail, input: UpdateTaskInput): TaskDetail {
 
 function toOptimisticRow(assignee: TaskAssigneeInput, index: number): TaskAssigneeRow {
   return {
-    // Placeholder until the refetch brings the real row back.
     id: `optimistic-${index}`,
     kind: assignee.kind,
     memberId: assignee.kind === "member" ? assignee.id : null,

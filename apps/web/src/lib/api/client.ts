@@ -1,10 +1,9 @@
 import { toApiError, type ApiErrorPayload } from "./errors";
 
 const API_VERSION_PATH = "/api/v1";
-const configuredApiUrl = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, "") ?? "";
-const API_URL = configuredApiUrl.endsWith(API_VERSION_PATH)
-  ? configuredApiUrl
-  : `${configuredApiUrl}${API_VERSION_PATH}`;
+
+const API_ORIGIN = import.meta.env.VITE_API_URL?.trim().replace(/\/+$/, "") ?? "";
+const API_URL = `${API_ORIGIN}${API_VERSION_PATH}`;
 
 type RequestOptions = RequestInit & {
   query?: Record<string, string | number | undefined>;
@@ -48,10 +47,6 @@ async function parseResponseBody<T>(response: Response): Promise<T> {
 
 export type Organization = { id: string; name: string; logo?: string | null; slug?: string };
 
-/**
- * Storage capability URLs arrive relative to the API base URL, so they follow
- * whatever origin `VITE_API_URL` points at. Absolute URLs pass through.
- */
 export function resolveApiPath(path: string) {
   return /^https?:\/\//.test(path) ? path : API_URL + path;
 }

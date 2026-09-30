@@ -8,11 +8,7 @@ type AttachmentPreviewsProps = {
   onRetry: (index: number) => void;
 };
 
-export function AttachmentPreviews({
-  attachments,
-  onRemove,
-  onRetry,
-}: AttachmentPreviewsProps) {
+export function AttachmentPreviews({ attachments, onRemove, onRetry }: AttachmentPreviewsProps) {
   if (attachments.length === 0) return null;
 
   return (

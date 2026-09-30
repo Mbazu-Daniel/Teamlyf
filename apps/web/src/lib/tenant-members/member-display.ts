@@ -1,4 +1,3 @@
-/** Minimal shape for display helpers — works for TenantMember and embedded members. */
 export type MemberLike = {
   id?: string;
   preferredName?: string | null;
@@ -13,10 +12,18 @@ export function getMemberDisplayName(member: MemberLike | null | undefined): str
   if (!member) return "Unknown member";
   const preferredName = member.preferredName?.trim();
   if (preferredName) return preferredName;
-  const fullName = [member.firstName, member.lastName].filter(Boolean).join(" ").trim();
+  const fullName = [member.firstName, member.lastName]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(" ");
   if (fullName) return fullName;
   if (member.name?.trim()) return member.name.trim();
   return member.email?.trim() || "Unknown member";
+}
+
+export function needsProfileSetup(member: MemberLike | null | undefined): boolean {
+  if (!member) return false;
+  return !member.firstName?.trim() || !member.lastName?.trim();
 }
 
 export function getMemberInitials(member: MemberLike | null | undefined): string {

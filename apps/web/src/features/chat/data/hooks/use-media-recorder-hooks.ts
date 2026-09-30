@@ -43,14 +43,13 @@ export function useMediaRecorder(props?: UseMediaRecorderProps) {
         }
       };
 
-       recorder.onstop = () => {
+      recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, {
           type: "audio/webm",
         });
         setAudioBlob(blob);
         onStopRef.current?.(blob);
 
-        // cleanup tracks
         stream.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       };

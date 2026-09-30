@@ -50,7 +50,6 @@ export function VoiceCallView({
       <RoomAudioRenderer />
       {/* ══ MAIN AREA ══════════════════════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col min-w-0 relative">
-
         <VoiceCallHeader
           layoutMode={layoutMode}
           controlsVisible={controlsVisible}
@@ -61,7 +60,6 @@ export function VoiceCallView({
 
         {/* ── Main content area ─────────────────────────────────────────────── */}
         <div className="flex-1 flex items-center justify-center overflow-hidden">
-
           {layoutMode === "presentation" && activeScreenShares.length > 0 && (
             <VoiceCallPresentationLayout
               activeScreenShares={activeScreenShares}

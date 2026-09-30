@@ -71,10 +71,18 @@ function DropdownMenuItem({ className, variant = "default", ...props }: Dropdown
 }
 
 function DropdownMenuGroup({ className, ...props }: MenuPrimitive.Group.Props) {
-  return <MenuPrimitive.Group data-slot="dropdown-menu-group" className={cn("flex flex-col", className)} {...props} />;
+  return (
+    <MenuPrimitive.Group
+      data-slot="dropdown-menu-group"
+      className={cn("flex flex-col", className)}
+      {...props}
+    />
+  );
 }
 
-type DropdownMenuLabelProps = Omit<MenuPrimitive.GroupLabel.Props, "className"> & { className?: string };
+type DropdownMenuLabelProps = Omit<MenuPrimitive.GroupLabel.Props, "className"> & {
+  className?: string;
+};
 
 function DropdownMenuLabel({ className, ...props }: DropdownMenuLabelProps) {
   return (

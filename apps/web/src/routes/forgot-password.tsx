@@ -78,7 +78,6 @@ function ForgotPassword() {
   );
 }
 
-/** Where the emailed link lands. Only read on submit, so `window` is safe. */
 function resetLink() {
   return `${window.location.origin}/reset-password`;
 }

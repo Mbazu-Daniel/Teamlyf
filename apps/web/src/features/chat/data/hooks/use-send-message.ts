@@ -16,10 +16,21 @@ interface MessageHandlerResponse {
   message: Message;
 }
 
-export function useSendMessage(tenantId: string, chatId: string, type: "channel" | "direct", token: string, parentMessageId?: string) {
+export function useSendMessage(
+  tenantId: string,
+  chatId: string,
+  type: "channel" | "direct",
+  token: string,
+  parentMessageId?: string,
+) {
   const queryClient = useQueryClient();
 
-  return (content: string, attachmentIds?: string[], clientTempId?: string, mentionedUserIds?: string[]): Promise<void> => {
+  return (
+    content: string,
+    attachmentIds?: string[],
+    clientTempId?: string,
+    mentionedUserIds?: string[],
+  ): Promise<void> => {
     return new Promise((resolve, reject) => {
       const socket = getSocket(token, tenantId);
 
@@ -63,7 +74,8 @@ export function useSendMessage(tenantId: string, chatId: string, type: "channel"
                   if (!m.id || typeof m.id !== "number" || m.id >= 0) return false;
                   if ((m.content || "").trim() !== (serverMsg.content || "").trim()) return false;
                   const localCount = (m.attachments || []).length;
-                  const serverCount = (serverMsg.attachments || serverMsg.attachmentIds || []).length || 0;
+                  const serverCount =
+                    (serverMsg.attachments || serverMsg.attachmentIds || []).length || 0;
                   return localCount === serverCount;
                 });
                 if (fallbackIdx !== -1) {
@@ -105,13 +117,12 @@ export function useSendMessage(tenantId: string, chatId: string, type: "channel"
                   if (!m.id || typeof m.id !== "number" || m.id >= 0) return false;
                   if ((m.content || "").trim() !== (serverMsg.content || "").trim()) return false;
                   const localCount = (m.attachments || []).length;
-                  const serverCount = (serverMsg.attachments || serverMsg.attachmentIds || []).length || 0;
+                  const serverCount =
+                    (serverMsg.attachments || serverMsg.attachmentIds || []).length || 0;
                   return localCount === serverCount;
                 };
 
-                const hasTemp = old?.pages?.some((p) =>
-                  p.messages?.some(tempMatch),
-                );
+                const hasTemp = old?.pages?.some((p) => p.messages?.some(tempMatch));
                 if (hasTemp) {
                   return upsertMessageInInfiniteData(old, serverMsg, tempMatch);
                 }
@@ -127,13 +138,15 @@ export function useSendMessage(tenantId: string, chatId: string, type: "channel"
         }
 
         if (serverMsg && mentionedUserIds && mentionedUserIds.length > 0) {
-          Promise.all(mentionedUserIds.map(userId =>
-            api.post(`/organization/${tenantId}/message-mentions`, {
-              messageId: serverMsg.id,
-              messageType: type,
-              mentionedUserId: userId
-            })
-          )).catch(err => logger.error("Failed to save mentions:", err));
+          Promise.all(
+            mentionedUserIds.map((userId) =>
+              api.post(`/organization/${tenantId}/message-mentions`, {
+                messageId: serverMsg.id,
+                messageType: type,
+                mentionedUserId: userId,
+              }),
+            ),
+          ).catch((err) => logger.error("Failed to save mentions:", err));
         }
 
         resolve();

@@ -2,7 +2,6 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { IconArrowLeft, IconHome, IconMapPinOff } from "@tabler/icons-react";
 import { Button } from "./ui/button";
 
-/** Router not-found fallback — styled from the shared design tokens in styles.css. */
 export function NotFound() {
   const { pathname } = useLocation();
 
@@ -30,13 +29,13 @@ export function NotFound() {
         </p>
 
         <h1 className="mt-3 text-2xl font-bold sm:text-3xl">This page wandered off</h1>
-        <p className="mt-3 text-muted-foreground">
+        {/* <p className="mt-3 text-muted-foreground">
           We couldn&apos;t find{" "}
           <code className="rounded bg-background-800 px-1.5 py-0.5 text-sm text-text-200 break-all">
             {pathname}
           </code>
           . It may have been moved, renamed, or never existed.
-        </p>
+        </p> */}
 
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Button render={<Link to="/" />}>

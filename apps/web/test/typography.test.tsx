@@ -14,16 +14,22 @@ describe("shared typography", () => {
     }
   });
 
-  it.each(["body", "heading"])("keeps the %s font linked to the shared font in every theme definition", (role) => {
-    const declarations = [...styles.matchAll(new RegExp(`--font-${role}:\\s*([^;]+);`, "g"))];
-    expect(declarations.length).toBeGreaterThan(0);
-    for (const [, value] of declarations) {
-      expect(value).toBe("var(--font-sans)");
-    }
-  });
+  it.each(["body", "heading"])(
+    "keeps the %s font linked to the shared font in every theme definition",
+    (role) => {
+      const declarations = [...styles.matchAll(new RegExp(`--font-${role}:\\s*([^;]+);`, "g"))];
+      expect(declarations.length).toBeGreaterThan(0);
+      for (const [, value] of declarations) {
+        expect(value).toBe("var(--font-sans)");
+      }
+    },
+  );
 
   it("applies typography at document level so portalled menus and dialogs inherit it", () => {
     expect(styles).toMatch(/html,\s*body\s*\{[^}]*font-family:\s*var\(--font-sans\)/);
-    expect(designSystem.fontFamily).toEqual({ heading: "var(--font-heading)", body: "var(--font-body)" });
+    expect(designSystem.fontFamily).toEqual({
+      heading: "var(--font-heading)",
+      body: "var(--font-body)",
+    });
   });
 });

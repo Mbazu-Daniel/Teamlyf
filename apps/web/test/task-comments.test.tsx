@@ -36,13 +36,12 @@ const otherComment: Comment = {
 
 type ThreadOptions = {
   comments: Comment[];
-  /** Override the 201 answer, e.g. to make the server reject the comment. */
+
   onPost?: (body: string) => Response | Promise<Response>;
-  /** Override the list answer, e.g. to fail the first read. */
+
   onGetComments?: () => Response | Promise<Response>;
 };
 
-/** Keeps one mutable thread in the stub so refetches see earlier writes. */
 function stubThread(options: ThreadOptions) {
   const commentPath = new RegExp(`${COMMENTS_URL}/[^/]+$`);
   const fetchMock = stubRoutes([
@@ -67,7 +66,6 @@ function readBody(init?: RequestInit) {
   return (JSON.parse(String(init?.body)) as { body: string }).body;
 }
 
-/** Posting appends, so the next refetch shows the new comment at the top. */
 function postComment(options: ThreadOptions, body: string) {
   if (options.onPost) return options.onPost(body);
   const now = new Date().toISOString();
@@ -98,7 +96,6 @@ function removeComment(options: ThreadOptions, url: string) {
   return null;
 }
 
-/** One place that reports an id the stub was never given. */
 function indexOfComment(options: ThreadOptions, commentId: string | null) {
   const index = options.comments.findIndex((comment) => comment.id === commentId);
   if (index < 0) throw new Error(`Unknown comment: ${commentId}`);
@@ -215,7 +212,7 @@ describe("TaskComments", () => {
     resolvePost(jsonResponse(serverRow, 201));
 
     await waitFor(() => expect(countCalls(fetchMock, "GET", COMMENTS_URL)).toBe(2));
-    // The draft is replaced by the server row: exactly one "Ship it" remains.
+
     await waitFor(() => expect(thread().getAllByText("Ship it")).toHaveLength(1));
     expect(screen.getByLabelText("Write a comment")).toHaveValue("");
   });

@@ -72,7 +72,7 @@ export function NoteEditor({
       void cache.invalidateQueries({ queryKey: ["note-snapshots", org, note.id] });
     },
   });
-  // Debounce only successful editable state. A conflict stays visible until the user resolves it.
+
   useEffect(() => {
     if (!dirty || save.isPending || save.error || !draft.title.trim()) return;
     const timer = setTimeout(() => save.mutate(draft), 1000);

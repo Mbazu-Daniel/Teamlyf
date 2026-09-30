@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { noteDocument, noteText } from "@/features/notes/rich-content";
-import { buildMyTasksRows } from "@/features/projects/use-my-tasks";
+import { ALL_ASSIGNEES, buildMyTasksRows } from "@/features/projects/use-my-tasks";
 import type { ProjectTask } from "@/lib/api";
 
 describe("note content", () => {
@@ -38,17 +38,19 @@ describe("workspace task scope", () => {
     statusesByProject: [[]],
     memberId: "me",
   };
-  it("retains the personal default and includes unassigned tasks only in workspace scope", () => {
+  it("retains the personal default and includes unassigned tasks only when everyone is selected", () => {
     expect(buildMyTasksRows(input)).toEqual([]);
-    expect(buildMyTasksRows({ ...input, scope: "all" })).toHaveLength(1);
+    expect(buildMyTasksRows({ ...input, assigneeId: ALL_ASSIGNEES })).toHaveLength(1);
   });
   it("combines project, text and priority filters", () => {
-    expect(buildMyTasksRows({ ...input, scope: "all", priority: "low" })).toEqual([]);
-    expect(buildMyTasksRows({ ...input, scope: "all", projectFilter: "other" })).toEqual([]);
+    expect(buildMyTasksRows({ ...input, assigneeId: ALL_ASSIGNEES, priority: "low" })).toEqual([]);
+    expect(
+      buildMyTasksRows({ ...input, assigneeId: ALL_ASSIGNEES, projectFilter: "other" }),
+    ).toEqual([]);
     expect(
       buildMyTasksRows({
         ...input,
-        scope: "all",
+        assigneeId: ALL_ASSIGNEES,
         priority: "high",
         query: "shared",
         projectFilter: "p1",

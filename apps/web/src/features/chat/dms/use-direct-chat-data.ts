@@ -37,15 +37,12 @@ export function useDirectChatData(chatId: string) {
 
   const conversation = useMemo(
     () =>
-      conversations.find(
-        (c: DirectMessagePreview) => String(c.otherMember.id) === String(chatId),
-      ),
+      conversations.find((c: DirectMessagePreview) => String(c.otherMember.id) === String(chatId)),
     [conversations, chatId],
   );
 
   const myMemberId = useMemo(
-    () =>
-      members?.records?.find((m: TenantMember) => String(m.userId) === String(userId))?.id,
+    () => members?.records?.find((m: TenantMember) => String(m.userId) === String(userId))?.id,
     [members, userId],
   );
 
@@ -56,9 +53,7 @@ export function useDirectChatData(chatId: string) {
   });
   const searchParams = useMemo(
     () =>
-      new URLSearchParams(
-        typeof __searchStr === "string" ? __searchStr.replace(/^\?/, "") : "",
-      ),
+      new URLSearchParams(typeof __searchStr === "string" ? __searchStr.replace(/^\?/, "") : ""),
     [__searchStr],
   );
   const threadId = searchParams.get("threadId");
@@ -80,9 +75,7 @@ export function useDirectChatData(chatId: string) {
         if (u.name) return u.name;
         if (u.firstName) return u.firstName;
         const id = u.id;
-        const member = members?.records?.find(
-          (m: TenantMember) => m.id === id || m.userId === id,
-        );
+        const member = members?.records?.find((m: TenantMember) => m.id === id || m.userId === id);
         return member?.firstName || conversation?.otherMember?.firstName || "Someone";
       });
   }, [typingUsers, myMemberId, userId, members, conversation]);

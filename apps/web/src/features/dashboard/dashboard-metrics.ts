@@ -1,20 +1,11 @@
 import type { Project, ProjectTask, Status } from "@/lib/api";
 import { dateGroupOf } from "../projects/task-groups";
 
-/**
- * The dashboard answers "how is this workspace doing" from tasks and their
- * status categories, never from a field on the project row: a project has no
- * status column, so task rollups are the only honest source of health.
- *
- * Every function here is pure and takes `today` as an argument, so a test can
- * pin the date instead of depending on the clock.
- */
-
 export type TaskRow = Readonly<{
   task: ProjectTask;
   status?: Status;
   projectId: string;
-  /** The project identifier — the slug every project route links by. */
+
   projectSlug: string;
   projectName: string;
   projectEmoji?: string | null;
@@ -26,8 +17,11 @@ type BuildRowsInput = {
   statusesByProject: readonly (readonly Status[] | undefined)[];
 };
 
-/** Every task of every project, tagged with its project and resolved status. */
-export function buildWorkspaceRows({ projects, tasksByProject, statusesByProject }: BuildRowsInput): TaskRow[] {
+export function buildWorkspaceRows({
+  projects,
+  tasksByProject,
+  statusesByProject,
+}: BuildRowsInput): TaskRow[] {
   const rows: TaskRow[] = [];
   projects.forEach((project, index) => {
     const statusById = new Map((statusesByProject[index] ?? []).map((item) => [item.id, item]));
@@ -47,7 +41,6 @@ export function buildWorkspaceRows({ projects, tasksByProject, statusesByProject
 
 export type StatusGroup = "backlog" | "todo" | "in_progress" | "done" | "cancelled" | "other";
 
-/** Order and palette for the distribution bar — a status name never changes a bucket. */
 const STATUS_GROUP_META: Record<StatusGroup, { label: string; color: string }> = {
   backlog: { label: "Backlog", color: "#94A3B8" },
   todo: { label: "To do", color: "#64748B" },
@@ -66,13 +59,11 @@ const STATUS_GROUP_ORDER: readonly StatusGroup[] = [
   "other",
 ];
 
-/** A custom status with an unknown `group` is still counted, under "Other". */
 function statusGroupOf(row: TaskRow): StatusGroup {
   const group = row.status?.group;
   return group && group in STATUS_GROUP_META ? (group as StatusGroup) : "other";
 }
 
-/** Done and cancelled work is off the books: it neither nags nor counts as open. */
 function isOpenWork(row: TaskRow): boolean {
   const group = statusGroupOf(row);
   return group !== "done" && group !== "cancelled";
@@ -80,7 +71,11 @@ function isOpenWork(row: TaskRow): boolean {
 
 function isAssignedTo(row: TaskRow, memberId: string | undefined): boolean {
   if (!memberId) return false;
-  return row.task.taskAssignees?.some((assignee) => assignee.kind === "member" && assignee.memberId === memberId) ?? false;
+  return (
+    row.task.taskAssignees?.some(
+      (assignee) => assignee.kind === "member" && assignee.memberId === memberId,
+    ) ?? false
+  );
 }
 
 export type DistributionSlice = Readonly<{
@@ -125,17 +120,25 @@ export function statusDistribution(rows: readonly TaskRow[]): DistributionSlice[
   })).filter((slice) => slice.count > 0);
 }
 
-export function projectRollups(projects: readonly Project[], rows: readonly TaskRow[]): ProjectRollup[] {
-  return projects.map((project) => {
-    const projectRows = rows.filter((row) => row.projectId === project.id);
-    const done = projectRows.filter((row) => statusGroupOf(row) === "done").length;
-    return {
-      project,
-      total: projectRows.length,
-      done,
-      percent: projectRows.length ? Math.round((done / projectRows.length) * 100) : 0,
-    };
-  }).sort((left, right) => right.percent - left.percent || left.project.name.localeCompare(right.project.name));
+export function projectRollups(
+  projects: readonly Project[],
+  rows: readonly TaskRow[],
+): ProjectRollup[] {
+  return projects
+    .map((project) => {
+      const projectRows = rows.filter((row) => row.projectId === project.id);
+      const done = projectRows.filter((row) => statusGroupOf(row) === "done").length;
+      return {
+        project,
+        total: projectRows.length,
+        done,
+        percent: projectRows.length ? Math.round((done / projectRows.length) * 100) : 0,
+      };
+    })
+    .sort(
+      (left, right) =>
+        right.percent - left.percent || left.project.name.localeCompare(right.project.name),
+    );
 }
 
 export function kpiTiles(
@@ -149,10 +152,26 @@ export function kpiTiles(
   const today = mine.filter((row) => dateGroupOf(row.task) === "today");
   const completed = rows.filter((row) => statusGroupOf(row) === "done");
   return [
-    { label: "Active projects", value: projects.length, caption: projects.length === 1 ? "1 project in workspace" : "Across your workspace" },
+    {
+      label: "Active projects",
+      value: projects.length,
+      caption: projects.length === 1 ? "1 project in workspace" : "Across your workspace",
+    },
     { label: "Open work", value: open.length, caption: "Tasks not yet complete" },
-    { label: "Due today", value: today.length, caption: overdue.length ? `${overdue.length} overdue` : "Assigned to you", tone: overdue.length ? "text-destructive" : undefined },
-    { label: "Completed", value: completed.length, caption: rows.length ? `${Math.round((completed.length / rows.length) * 100)}% of all tasks` : "No tasks yet", tone: "text-emerald-600 dark:text-emerald-400" },
+    {
+      label: "Due today",
+      value: today.length,
+      caption: overdue.length ? `${overdue.length} overdue` : "Assigned to you",
+      tone: overdue.length ? "text-destructive" : undefined,
+    },
+    {
+      label: "Completed",
+      value: completed.length,
+      caption: rows.length
+        ? `${Math.round((completed.length / rows.length) * 100)}% of all tasks`
+        : "No tasks yet",
+      tone: "text-emerald-600 dark:text-emerald-400",
+    },
   ];
 }
 
@@ -175,7 +194,10 @@ export function weeklyThroughput(rows: readonly TaskRow[], now = new Date()): We
   });
   const byWeek = new Map(weeks.map((week) => [weekKey(week.start), week]));
   for (const row of rows) {
-    for (const [kind, value] of [["created", row.task.createdAt], ["completed", row.task.completedAt]] as const) {
+    for (const [kind, value] of [
+      ["created", row.task.createdAt],
+      ["completed", row.task.completedAt],
+    ] as const) {
       if (!value) continue;
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) continue;
@@ -199,15 +221,28 @@ export function throughputSummary(weeks: readonly WeekThroughput[]): string {
 }
 
 export function todaysRows(rows: readonly TaskRow[], memberId: string | undefined): TaskRow[] {
-  return rows.filter((row) => isOpenWork(row) && isAssignedTo(row, memberId) && ["overdue", "today"].includes(dateGroupOf(row.task)))
+  return rows
+    .filter(
+      (row) =>
+        isOpenWork(row) &&
+        isAssignedTo(row, memberId) &&
+        ["overdue", "today"].includes(dateGroupOf(row.task)),
+    )
     .sort((left, right) => (left.task.targetDate ?? "").localeCompare(right.task.targetDate ?? ""));
 }
 
 export function dueSoonRows(rows: readonly TaskRow[], now = new Date()): TaskRow[] {
   const limit = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14).getTime();
-  return rows.filter((row) => {
-    if (!isOpenWork(row) || !row.task.targetDate) return false;
-    const due = new Date(row.task.targetDate).getTime();
-    return !Number.isNaN(due) && due >= new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() && due <= limit;
-  }).sort((left, right) => (left.task.targetDate ?? "").localeCompare(right.task.targetDate ?? "")).slice(0, 6);
+  return rows
+    .filter((row) => {
+      if (!isOpenWork(row) || !row.task.targetDate) return false;
+      const due = new Date(row.task.targetDate).getTime();
+      return (
+        !Number.isNaN(due) &&
+        due >= new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() &&
+        due <= limit
+      );
+    })
+    .sort((left, right) => (left.task.targetDate ?? "").localeCompare(right.task.targetDate ?? ""))
+    .slice(0, 6);
 }

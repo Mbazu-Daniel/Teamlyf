@@ -4,10 +4,6 @@ import { attachmentsApi, resolveApiPath, uploadTaskAttachment } from "@/lib/api"
 import { getErrorMessage } from "@/lib/error-message";
 import { queryKeys } from "@/lib/queryKeys";
 
-/**
- * One task's files plus the upload handshake behind them. The bytes travel
- * through a signed URL the API mints, so this hook only ever sees files.
- */
 export function useTaskAttachments(
   organizationId: string | undefined,
   projectId: string,

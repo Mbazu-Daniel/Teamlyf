@@ -4,7 +4,6 @@ import { cva } from "class-variance-authority";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/* Padding is asymmetric on purpose: the trailing circle sits flush inside the pill. */
 const pill = cva("group/pill", {
   variants: {
     size: {
@@ -32,15 +31,10 @@ const badge = cva(
 
 type ActionPillProps = Omit<ComponentProps<typeof Button>, "size"> & {
   size?: "sm" | "default" | "lg";
-  /** Replaces the trailing arrow when the action needs its own glyph. */
+
   badge?: ReactNode;
 };
 
-/**
- * The landing page's one primary-action shape: an ink pill whose trailing end
- * holds a brand-violet circle. Every CTA on the page wears it, so the eye only
- * learns it once and the brand colour lands exactly on the click.
- */
 export function ActionPill({
   children,
   badge: badgeContent,

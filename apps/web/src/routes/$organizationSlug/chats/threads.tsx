@@ -16,7 +16,6 @@ function RouteComponent() {
   return <ThreadsList />;
 }
 
-
-export const Route = createFileRoute('/$organizationSlug/chats/threads')({
+export const Route = createFileRoute("/$organizationSlug/chats/threads")({
   component: RouteComponent,
 });

@@ -16,7 +16,6 @@ function RouteComponent() {
   return <MentionsList />;
 }
 
-
-export const Route = createFileRoute('/$organizationSlug/chats/mentions')({
+export const Route = createFileRoute("/$organizationSlug/chats/mentions")({
   component: RouteComponent,
 });

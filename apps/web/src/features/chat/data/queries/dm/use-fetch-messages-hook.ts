@@ -19,8 +19,7 @@ export function useMessages(
       });
       data.messages = data.messages.sort(
         (a: Message, b: Message) =>
-          new Date(a.createdAt).getTime() -
-          new Date(b.createdAt).getTime()
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
       return data;
     },
@@ -36,6 +35,6 @@ export function useMessages(
     refetchOnMount: false, // WebSocket will update
     refetchOnReconnect: true,
     refetchInterval: false, // Disable polling, rely on WebSocket
-    ...options
+    ...options,
   });
 }

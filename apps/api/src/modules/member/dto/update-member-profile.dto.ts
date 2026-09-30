@@ -16,10 +16,6 @@ export class UpdateMemberProfileDto {
   @MaxLength(100)
   lastName?: string;
 
-  /**
-   * Workspace-scoped profile photo as a data URL. Stored on the membership,
-   * never on the global `user` record. Send `null` to clear it.
-   */
   @ApiPropertyOptional({ example: "data:image/webp;base64,UklGRi...", nullable: true })
   @IsOptional()
   @IsString()

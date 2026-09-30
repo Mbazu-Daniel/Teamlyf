@@ -59,36 +59,43 @@ export function ChatMessageItem({
           }
           return;
         }
-        if ((e.target as HTMLElement).closest('.actions-wrapper')) return;
-        onSetTappedMessageId(prev => (prev === msg.id ? null : msg.id));
+        if ((e.target as HTMLElement).closest(".actions-wrapper")) return;
+        onSetTappedMessageId((prev) => (prev === msg.id ? null : msg.id));
       }}
       className={cn(
         "flex gap-2.5 group relative px-2 py-1 hover:bg-sidebar-accent rounded-md cursor-pointer sm:cursor-default transition-colors",
         isSelectionMode && msg.sender.id === currentMemberId && "hover:bg-primary-button/10",
-        selectedIds.includes(msg.id) && "bg-primary-button/10 hover:bg-primary-button/15"
+        selectedIds.includes(msg.id) && "bg-primary-button/10 hover:bg-primary-button/15",
       )}
     >
       {isSelectionMode && msg.sender.id === currentMemberId && (
         <div className="flex items-center justify-center shrink-0 w-6">
-          <div className={cn(
-            "w-4 h-4 rounded border flex items-center justify-center transition-colors",
-            selectedIds.includes(msg.id)
-              ? "bg-primary-button border-primary-button text-white"
-              : "border-primary-button bg-background"
-          )}>
+          <div
+            className={cn(
+              "w-4 h-4 rounded border flex items-center justify-center transition-colors",
+              selectedIds.includes(msg.id)
+                ? "bg-primary-button border-primary-button text-white"
+                : "border-primary-button bg-background",
+            )}
+          >
             {selectedIds.includes(msg.id) && <IconCheck size={12} />}
           </div>
         </div>
       )}
 
       <button
-        onClick={() => msg.sender.id && useThreadStore.getState().setProfileMember({
-          id: msg.sender.id,
-          firstName: msg.sender.firstName,
-          lastName: msg.sender.lastName,
-          avatar: msg.sender.avatar,
-          userId: msg.sender.id,
-        }) && useThreadStore.getState().setIsProfileOpen(true)}
+        onClick={() =>
+          msg.sender.id &&
+          useThreadStore.getState().setProfileMember({
+            id: msg.sender.id,
+            firstName: msg.sender.firstName,
+            lastName: msg.sender.lastName,
+            avatar: msg.sender.avatar,
+            // The panel resolves "is this me" from the member list; a message
+            // sender only carries a member id, so it has nothing to add here.
+          }) &&
+          useThreadStore.getState().setIsProfileOpen(true)
+        }
         className="h-8 w-8 shrink-0 mt-0.5 rounded-md cursor-pointer"
       >
         <Avatar className="h-8 w-8 shrink-0 mt-0.5">
@@ -115,12 +122,28 @@ export function ChatMessageItem({
 
           {msg.status === "sending" && (
             <>
-              <span className="text-[10px] italic text-muted-foreground animate-pulse">Sending…</span>
-              <button onClick={(e) => { e.stopPropagation(); onCancelSend(msg.id); }} className="text-[10px] text-destructive hover:underline relative z-10 cursor-pointer">Cancel</button>
+              <span className="text-[10px] italic text-muted-foreground animate-pulse">
+                Sending…
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancelSend(msg.id);
+                }}
+                className="text-[10px] text-destructive hover:underline relative z-10 cursor-pointer"
+              >
+                Cancel
+              </button>
             </>
           )}
           {msg.status === "failed" && (
-            <button onClick={(e) => { e.stopPropagation(); onRetrySend(msg); }} className="text-[10px] text-destructive font-semibold hover:underline relative z-10 cursor-pointer">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRetrySend(msg);
+              }}
+              className="text-[10px] text-destructive font-semibold hover:underline relative z-10 cursor-pointer"
+            >
               Failed · Retry
             </button>
           )}
@@ -133,10 +156,15 @@ export function ChatMessageItem({
               if (match) {
                 const name = match[1];
                 const memberId = match[2];
-                const matchingMember = membersToUse?.find((m: TenantMember) => String(m.id) === String(memberId));
+                const matchingMember = membersToUse?.find(
+                  (m: TenantMember) => String(m.id) === String(memberId),
+                );
 
                 return (
-                  <span key={i} className="inline-flex items-center gap-1.5 font-semibold text-primary-button bg-chat-primary-bg border border-border/40 shadow-sm rounded-md px-1.5 py-0.5 -ml-0.5 mr-0.5 align-middle transition-colors hover:border-primary-button/30">
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1.5 font-semibold text-primary-button bg-chat-primary-bg border border-border/40 shadow-sm rounded-md px-1.5 py-0.5 -ml-0.5 mr-0.5 align-middle transition-colors hover:border-primary-button/30"
+                  >
                     <Avatar elevation="inner" className="h-4 w-4 shrink-0 -ml-0.5">
                       <AvatarImage src={matchingMember?.avatar || ""} />
                       <AvatarFallback
@@ -159,7 +187,10 @@ export function ChatMessageItem({
 
         {msg.hasThreadedMessage && (
           <button
-            onClick={(e) => { e.stopPropagation(); onOpenThread(msg); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenThread(msg);
+            }}
             className="group/replies mt-1 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/8 border border-primary/15 hover:border-primary/30 transition-all relative z-10"
           >
             <svg className="w-3 h-3" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -171,7 +202,9 @@ export function ChatMessageItem({
             <span className="text-muted-foreground group-hover/replies:hidden">
               · Last {formatTime(msg.lastReplyTime)}
             </span>
-            <span className="hidden group-hover/replies:inline text-muted-foreground">· View thread</span>
+            <span className="hidden group-hover/replies:inline text-muted-foreground">
+              · View thread
+            </span>
           </button>
         )}
 
@@ -196,11 +229,13 @@ export function ChatMessageItem({
           isVisible={tappedMessageId === msg.id}
           onReact={(emoji) => onAddReaction?.(msg.id, emoji)}
           onReply={() => onOpenThread(msg)}
-          onSave={() => { }}
-          onForward={() => { }}
-          onMore={() => { }}
+          onSave={() => {}}
+          onForward={() => {}}
+          onMore={() => {}}
           onDelete={msg.sender.id === currentMemberId ? () => onDeleteMessage?.(msg.id) : undefined}
-          onSelect={msg.sender.id === currentMemberId ? () => onEnterSelectionMode(msg.id) : undefined}
+          onSelect={
+            msg.sender.id === currentMemberId ? () => onEnterSelectionMode(msg.id) : undefined
+          }
         />
       </div>
     </div>

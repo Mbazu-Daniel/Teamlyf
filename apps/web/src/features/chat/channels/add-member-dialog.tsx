@@ -5,9 +5,7 @@ import { ProjectMember } from "@/features/chat/types/projects/types";
 import { TenantMember } from "@/features/chat/types/tenant-members/types";
 import { useMemo, useState } from "react";
 import { TenantMemberAvatar } from "@/components/tenant-members/tenant-member-avatar";
-import {
-  getMemberDisplayName,
-} from "@/lib/tenant-members/member-display";
+import { getMemberDisplayName } from "@/lib/tenant-members/member-display";
 import { cn } from "@/lib/utils";
 import { IconSearch, IconX } from "@tabler/icons-react";
 
@@ -36,9 +34,7 @@ export default function AddMemberDialogContent({
 
   const toggle = (user: TenantMember) => {
     setSelected((prev) =>
-      prev.some((u) => u.id === user.id)
-        ? prev.filter((u) => u.id !== user.id)
-        : [...prev, user],
+      prev.some((u) => u.id === user.id) ? prev.filter((u) => u.id !== user.id) : [...prev, user],
     );
   };
 
@@ -48,12 +44,7 @@ export default function AddMemberDialogContent({
       .filter((user) => !alreadyOnProject.has(String(user.id)))
       .filter((user) => {
         if (!q) return true;
-        const haystack = [
-          getMemberDisplayName(user),
-          user.email,
-          user.firstName,
-          user.lastName,
-        ]
+        const haystack = [getMemberDisplayName(user), user.email, user.firstName, user.lastName]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -62,14 +53,11 @@ export default function AddMemberDialogContent({
   }, [users, alreadyOnProject, searchMember]);
 
   const isAllSelected =
-    filteredUsers.length > 0 &&
-    filteredUsers.every((u) => selected.some((s) => s.id === u.id));
+    filteredUsers.length > 0 && filteredUsers.every((u) => selected.some((s) => s.id === u.id));
 
   const handleSelectAll = () => {
     if (isAllSelected) {
-      setSelected((prev) =>
-        prev.filter((p) => !filteredUsers.some((f) => f.id === p.id)),
-      );
+      setSelected((prev) => prev.filter((p) => !filteredUsers.some((f) => f.id === p.id)));
       return;
     }
     setSelected((prev) => {
@@ -106,14 +94,8 @@ export default function AddMemberDialogContent({
                 onClick={() => toggle(user)}
                 className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 py-0.5 pl-0.5 pr-2 text-xs font-medium text-foreground transition-colors hover:bg-primary/10"
               >
-                <TenantMemberAvatar
-                  member={user}
-                  className="h-5 w-5"
-                  fallbackSize="8px"
-                />
-                <span className="truncate">
-                  {getMemberDisplayName(user)}
-                </span>
+                <TenantMemberAvatar member={user} className="h-5 w-5" fallbackSize="8px" />
+                <span className="truncate">{getMemberDisplayName(user)}</span>
                 <IconX className="h-3 w-3 shrink-0 text-muted-foreground" />
               </button>
             ))}
@@ -137,9 +119,7 @@ export default function AddMemberDialogContent({
       <div className="min-h-0 flex-1 space-y-1 overflow-y-auto px-5 py-4 sm:px-6">
         {filteredUsers.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            {searchMember.trim()
-              ? "No matching members."
-              : "No members left to add."}
+            {searchMember.trim() ? "No matching members." : "No members left to add."}
           </p>
         ) : (
           filteredUsers.map((user) => {
@@ -150,26 +130,18 @@ export default function AddMemberDialogContent({
                 type="button"
                 className={cn(
                   "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors",
-                  isSelected
-                    ? "bg-primary/5"
-                    : "hover:bg-slate-50",
+                  isSelected ? "bg-primary/5" : "hover:bg-slate-50",
                 )}
                 onClick={() => toggle(user)}
               >
                 <Checkbox checked={isSelected} />
-                <TenantMemberAvatar
-                  member={user}
-                  className="h-8 w-8"
-                  fallbackSize="10px"
-                />
+                <TenantMemberAvatar member={user} className="h-8 w-8" fallbackSize="10px" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">
                     {getMemberDisplayName(user)}
                   </p>
                   {user.email ? (
-                    <p className="truncate text-xs text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                   ) : null}
                 </div>
               </button>
@@ -179,17 +151,9 @@ export default function AddMemberDialogContent({
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t px-5 py-4 sm:px-6">
-        <span className="text-xs text-muted-foreground">
-          {selected.length} selected
-        </span>
+        <span className="text-xs text-muted-foreground">{selected.length} selected</span>
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className=""
-            onClick={onClose}
-            disabled={isPending}
-          >
+          <Button size="sm" variant="outline" className="" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
           <Button
@@ -199,11 +163,7 @@ export default function AddMemberDialogContent({
             className=""
             onClick={() => onConfirm(selected)}
           >
-            {isPending
-              ? "Adding…"
-              : selected.length > 0
-                ? `Add ${selected.length}`
-                : "Add"}
+            {isPending ? "Adding…" : selected.length > 0 ? `Add ${selected.length}` : "Add"}
           </Button>
         </div>
       </div>

@@ -47,12 +47,7 @@ export const attachmentsApi = {
       body: JSON.stringify(input),
     });
   },
-  getDownloadUrl(
-    organizationId: string,
-    projectId: string,
-    taskId: string,
-    attachmentId: string,
-  ) {
+  getDownloadUrl(organizationId: string, projectId: string, taskId: string, attachmentId: string) {
     return client.request<{ url: string; fileName: string }>(
       `${attachmentPath(organizationId, projectId, taskId, attachmentId)}/download-url`,
     );
@@ -69,11 +64,6 @@ export const attachmentsApi = {
   },
 };
 
-/**
- * The full upload handshake: reserve a signed URL, PUT the bytes at it, then
- * record the attachment. A failed PUT never leaves a row behind because the
- * confirm call is what creates it.
- */
 export async function uploadTaskAttachment(
   organizationId: string,
   projectId: string,

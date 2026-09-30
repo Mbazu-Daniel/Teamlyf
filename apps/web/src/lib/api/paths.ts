@@ -1,4 +1,3 @@
-/** Paths omit the /api/v1 prefix — the client base URL carries it. */
 export const projectPath = (organizationId: string, projectId?: string) =>
   projectId
     ? `/organization/${organizationId}/projects/${projectId}`

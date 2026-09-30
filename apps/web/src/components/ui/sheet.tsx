@@ -1,36 +1,33 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
-import { IconX } from "@tabler/icons-react"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
+import { IconX } from "@tabler/icons-react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import {
   modalOverlayClassName,
   sidePanelCloseClassName,
   sidePanelContentClassName,
-} from "@/components/ui/side-panel"
+} from "@/components/ui/side-panel";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />
+  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
+  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
 }
 
-function SheetOverlay({
-  className,
-  ...props
-}: SheetPrimitive.Backdrop.Props) {
+function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(modalOverlayClassName, className)}
       {...props}
     />
-  )
+  );
 }
 
 const sheetContentVariants = cva("", {
@@ -45,7 +42,7 @@ const sheetContentVariants = cva("", {
     },
   },
   defaultVariants: { variant: "default" },
-})
+});
 
 function SheetContent({
   className,
@@ -55,9 +52,9 @@ function SheetContent({
   showCloseButton = true,
   ...props
 }: Omit<SheetPrimitive.Popup.Props, "className"> & {
-  className?: string
-  side?: "top" | "right" | "bottom" | "left"
-  showCloseButton?: boolean
+  className?: string;
+  side?: "top" | "right" | "bottom" | "left";
+  showCloseButton?: boolean;
 } & VariantProps<typeof sheetContentVariants>) {
   return (
     <SheetPortal>
@@ -84,7 +81,7 @@ function SheetContent({
             className={cn(
               side === "right"
                 ? sidePanelCloseClassName
-                : "absolute top-2 right-1 rounded-md p-1 transition-all text-muted hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                : "absolute top-2 right-1 rounded-md p-1 transition-all text-muted hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
             )}
           >
             <IconX className="h-4 w-4" />
@@ -93,7 +90,7 @@ function SheetContent({
         )}
       </SheetPrimitive.Popup>
     </SheetPortal>
-  )
+  );
 }
 
 const sheetHeaderVariants = cva("", {
@@ -105,7 +102,7 @@ const sheetHeaderVariants = cva("", {
     },
   },
   defaultVariants: { variant: "default" },
-})
+});
 
 function SheetHeader({
   className,
@@ -115,20 +112,16 @@ function SheetHeader({
   return (
     <div
       data-slot="sheet-header"
-      className={cn(
-        "flex flex-col gap-1.5 p-4",
-        sheetHeaderVariants({ variant }),
-        className,
-      )}
+      className={cn("flex flex-col gap-1.5 p-4", sheetHeaderVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }
 
 const sheetTitleVariants = cva("", {
   variants: { variant: { default: "", form: "text-xl tracking-[-0.02em]" } },
   defaultVariants: { variant: "default" },
-})
+});
 
 function SheetTitle({
   className,
@@ -141,17 +134,17 @@ function SheetTitle({
       className={cn("text-foreground font-semibold", sheetTitleVariants({ variant }), className)}
       {...props}
     />
-  )
+  );
 }
 
 function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
-  return <SheetPrimitive.Description data-slot="sheet-description" className={cn("text-sm leading-6 text-muted-foreground", className)} {...props} />;
+  return (
+    <SheetPrimitive.Description
+      data-slot="sheet-description"
+      className={cn("text-sm leading-6 text-muted-foreground", className)}
+      {...props}
+    />
+  );
 }
 
-export {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-}
+export { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription };

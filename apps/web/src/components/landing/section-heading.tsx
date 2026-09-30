@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Small muted kicker that opens a section — the page's shared section voice. */
 function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <p
@@ -23,10 +22,6 @@ type SectionHeadingProps = {
   className?: string;
 };
 
-/**
- * Eyebrow -> heading -> lede. Every landing section opens the same way, so the
- * page reads as one document instead of a stack of unrelated blocks.
- */
 export function SectionHeading({
   eyebrow,
   title,

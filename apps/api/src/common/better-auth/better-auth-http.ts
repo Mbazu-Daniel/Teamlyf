@@ -18,7 +18,11 @@ export function forwardSetCookies(res: Response, upstream: globalThis.Response):
 }
 
 function tryParse(text: string): unknown {
-  try { return JSON.parse(text); } catch { return text; }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 export async function readResponseBody(response: globalThis.Response): Promise<unknown> {

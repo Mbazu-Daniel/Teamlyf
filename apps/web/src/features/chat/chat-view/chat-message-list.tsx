@@ -85,29 +85,30 @@ export function ChatMessageList({
               </button>
             </div>
           )}
-          {messages.map((msg) =>
-            !msg.parentMessageId && (
-              <ChatMessageItem
-                key={msg.id}
-                msg={msg}
-                type={type}
-                chatId={chatId}
-                currentMemberId={currentMemberId}
-                membersToUse={membersToUse}
-                isSelectionMode={isSelectionMode}
-                selectedIds={selectedIds}
-                tappedMessageId={tappedMessageId}
-                onToggleSelection={onToggleSelection}
-                onEnterSelectionMode={onEnterSelectionMode}
-                onSetTappedMessageId={onSetTappedMessageId}
-                onCancelSend={onCancelSend}
-                onRetrySend={onRetrySend}
-                onAddReaction={onAddReaction}
-                onRemoveReaction={onRemoveReaction}
-                onDeleteMessage={onDeleteMessage}
-                onOpenThread={onOpenThread}
-              />
-            )
+          {messages.map(
+            (msg) =>
+              !msg.parentMessageId && (
+                <ChatMessageItem
+                  key={msg.id}
+                  msg={msg}
+                  type={type}
+                  chatId={chatId}
+                  currentMemberId={currentMemberId}
+                  membersToUse={membersToUse}
+                  isSelectionMode={isSelectionMode}
+                  selectedIds={selectedIds}
+                  tappedMessageId={tappedMessageId}
+                  onToggleSelection={onToggleSelection}
+                  onEnterSelectionMode={onEnterSelectionMode}
+                  onSetTappedMessageId={onSetTappedMessageId}
+                  onCancelSend={onCancelSend}
+                  onRetrySend={onRetrySend}
+                  onAddReaction={onAddReaction}
+                  onRemoveReaction={onRemoveReaction}
+                  onDeleteMessage={onDeleteMessage}
+                  onOpenThread={onOpenThread}
+                />
+              ),
           )}
           <div ref={bottomRef} className="h-2" />
         </div>

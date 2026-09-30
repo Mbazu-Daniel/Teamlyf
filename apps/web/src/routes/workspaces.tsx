@@ -28,7 +28,6 @@ const addressSchema = z
   .string()
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers and dashes.");
 
-/** Turn a display name into the workspace address the API stores. */
 function workspaceAddress(name: string) {
   return name
     .toLowerCase()
@@ -133,10 +132,12 @@ function WorkspacesPage() {
 
   return (
     <div className="flex min-h-svh flex-col bg-background text-foreground">
-        <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border/70 bg-card px-5 sm:px-8 lg:px-12">
-          <Brand />
-          <div className="ml-auto flex items-center gap-3">
-          <Link to="/account" className="text-sm font-medium text-primary">Your account</Link>
+      <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border/70 bg-card px-5 sm:px-8 lg:px-12">
+        <Brand />
+        <div className="ml-auto flex items-center gap-3">
+          <Link to="/account" className="text-sm font-medium text-primary">
+            Your account
+          </Link>
           <button
             type="button"
             onClick={() => void handleSignOut()}
@@ -145,28 +146,32 @@ function WorkspacesPage() {
             <IconLogout className="size-4" aria-hidden="true" />
             <span>Sign out</span>
           </button>
-          </div>
-        </header>
-      <main className="flex flex-1 items-center justify-center bg-gradient-to-b from-primary/[0.04] to-background px-4 py-12 sm:px-6 lg:py-20"><div className="w-full max-w-3xl">
-        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">Your Teamlyf</p>
-        <h1 className="mt-3 text-center text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
-          {workspaceHeading(workspaces.length, showCreate)}
-        </h1>
-        <p className="mx-auto mt-3 max-w-lg text-center text-sm leading-6 text-muted-foreground">
-          A workspace holds your projects, chat and people. Create one to open Teamlyf.
-        </p>
-
-        <ReceivedInvitations />
-        <div className="mt-8">
-          <WorkspaceBody
-            query={{ isPending, isError, refetch }}
-            workspaces={workspaces}
-            showCreate={showCreate}
-            onShowCreate={() => setCreating(true)}
-            onHideCreate={() => setCreating(false)}
-          />
         </div>
-      </div></main>
+      </header>
+      <main className="flex flex-1 items-center justify-center bg-gradient-to-b from-primary/[0.04] to-background px-4 py-12 sm:px-6 lg:py-20">
+        <div className="w-full max-w-3xl">
+          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
+            Your Teamlyf
+          </p>
+          <h1 className="mt-3 text-center text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
+            {workspaceHeading(workspaces.length, showCreate)}
+          </h1>
+          <p className="mx-auto mt-3 max-w-lg text-center text-sm leading-6 text-muted-foreground">
+            A workspace holds your projects, chat and people. Create one to open Teamlyf.
+          </p>
+
+          <ReceivedInvitations />
+          <div className="mt-8">
+            <WorkspaceBody
+              query={{ isPending, isError, refetch }}
+              workspaces={workspaces}
+              showCreate={showCreate}
+              onShowCreate={() => setCreating(true)}
+              onHideCreate={() => setCreating(false)}
+            />
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
@@ -177,7 +182,10 @@ function WorkspaceTile({ workspace }: Readonly<{ workspace: Organization }>) {
 
   function choose() {
     selectOrganization(workspace);
-    void navigate({ to: "/$organizationSlug/projects", params: { organizationSlug: workspace.slug || workspace.id } });
+    void navigate({
+      to: "/$organizationSlug/projects",
+      params: { organizationSlug: workspace.slug || workspace.id },
+    });
   }
 
   return (
@@ -204,7 +212,10 @@ function WorkspaceListSkeleton() {
   return (
     <div className="grid gap-3 sm:grid-cols-2" aria-hidden="true">
       {[0, 1].map((index) => (
-        <div key={index} className="h-[76px] animate-pulse rounded-xl border border-border bg-card" />
+        <div
+          key={index}
+          className="h-[76px] animate-pulse rounded-xl border border-border bg-card"
+        />
       ))}
     </div>
   );
@@ -220,9 +231,6 @@ async function createWorkspace(name: string, queryClient: QueryClient) {
     throw new Error("That name does not make a valid workspace address.");
   }
 
-  // The create endpoint may not include a usable organization payload. Read
-  // the collection directly: `fetchQuery` would reuse the five-minute cache
-  // from the initial empty workspace screen.
   await createOrganization({ name, slug: address });
   const fresh = await getOrganizations();
   queryClient.setQueryData(queryKeys.organizations, fresh);
@@ -254,7 +262,10 @@ function CreateWorkspaceForm({
 
         selectOrganization(created);
         toast.success(`${created.name} is ready.`);
-        await navigate({ to: "/$organizationSlug/projects", params: { organizationSlug: created.slug || created.id } });
+        await navigate({
+          to: "/$organizationSlug/projects",
+          params: { organizationSlug: created.slug || created.id },
+        });
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Could not create the workspace.");
       }

@@ -14,7 +14,7 @@ export function useChatMembers(chatId: string, type: "channel" | "direct") {
   });
 
   const membersToUse = useMemo(() => {
-    const raw = (type === "channel" && chatId) ? channelMembers : (allMembers?.records || []);
+    const raw = type === "channel" && chatId ? channelMembers : allMembers?.records || [];
     return (raw || []).map((m: TenantMember | ChannelMember) => {
       if ("tenantMember" in m) {
         return {

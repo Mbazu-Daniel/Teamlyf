@@ -63,13 +63,7 @@ const FIELD_LABELS: Record<string, string> = {
   assignees: "assignees",
 };
 
-/**
- * One readable sentence per activity row. Verbs and fields outside the known
- * set keep their own wording (humanized) instead of rendering as raw ids.
- */
 function describeActivity(activity: ActivityEntry): string {
-  // Relation rows reuse "created/deleted" verbs but link two tasks, so they
-  // need their own sentence instead of "created this task".
   if (activity.field === "relation") {
     const type = humanize(
       (activity.verb === "created" ? activity.newValue : activity.oldValue) ?? "",
@@ -99,7 +93,6 @@ function describeActivity(activity: ActivityEntry): string {
   return `${verb} ${subject} to ${activity.newValue}`;
 }
 
-/** statusId → "status id", due_date → "due date", so ids read as prose. */
 function humanize(value: string) {
   return value
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")

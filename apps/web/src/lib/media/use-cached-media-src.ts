@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import { getObjectUrl } from "./media-cache";
 import { isEphemeralMediaUrl } from "./media-cache-key";
 
-/**
- * Resolves a remote media URL to a cached blob: object URL.
- * Ephemeral/local URLs pass through unchanged.
- */
 export function useCachedMediaSrc(
   src?: string | null,
   cacheKey?: string | null,
@@ -28,7 +24,6 @@ export function useCachedMediaSrc(
         if (!cancelled) setCached({ src, cacheKey, url: objectUrl });
       })
       .catch(() => {
-        // Fall back to the live signed URL so the image can still attempt load.
         if (!cancelled) setCached({ src, cacheKey, url: src });
       });
 

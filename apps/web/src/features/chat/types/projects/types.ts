@@ -4,6 +4,6 @@ export interface ProjectMember {
   lastName: string;
   preferredName?: string | null;
   avatar?: string | null;
-  /** Project-scoped role — admin or member */
+
   role?: "admin" | "member";
 }

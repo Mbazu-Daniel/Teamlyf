@@ -1,52 +1,48 @@
-"use client"
+"use client";
 
-import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar"
-import { cva, type VariantProps } from "class-variance-authority"
+import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/lib/utils"
-import { useCachedMediaSrc } from "@/lib/media/use-cached-media-src"
+import { cn } from "@/lib/utils";
+import { useCachedMediaSrc } from "@/lib/media/use-cached-media-src";
 
-/** Corner-radius treatments shared by <Avatar> and <AvatarFallback>. */
 const roundedVariants = {
   full: "",
   md: "rounded-md",
   lg: "rounded-lg",
   "2xl": "rounded-2xl",
   "2.2rem": "rounded-[2.2rem]",
-}
+};
 
-const avatarVariants = cva(
-  "relative flex size-8 shrink-0 overflow-hidden rounded-full",
-  {
-    variants: {
-      rounded: roundedVariants,
-      border: {
-        none: "",
-        subtle: "border border-border/50",
-        background: "border-2 border-background",
-        "background-lg": "border-4 border-background",
-        strong: "border-2 border-border/60",
-      },
-      ring: {
-        none: "",
-        hairline: "ring-1 ring-border/20",
-      },
-      elevation: {
-        none: "",
-        sm: "shadow-sm",
-        lg: "shadow-lg",
-        "2xl": "shadow-2xl",
-        inner: "shadow-inner",
-      },
+const avatarVariants = cva("relative flex size-8 shrink-0 overflow-hidden rounded-full", {
+  variants: {
+    rounded: roundedVariants,
+    border: {
+      none: "",
+      subtle: "border border-border/50",
+      background: "border-2 border-background",
+      "background-lg": "border-4 border-background",
+      strong: "border-2 border-border/60",
     },
-    defaultVariants: {
-      rounded: "full",
-      border: "none",
-      ring: "none",
-      elevation: "none",
+    ring: {
+      none: "",
+      hairline: "ring-1 ring-border/20",
+    },
+    elevation: {
+      none: "",
+      sm: "shadow-sm",
+      lg: "shadow-lg",
+      "2xl": "shadow-2xl",
+      inner: "shadow-inner",
     },
   },
-)
+  defaultVariants: {
+    rounded: "full",
+    border: "none",
+    ring: "none",
+    elevation: "none",
+  },
+});
 
 const avatarFallbackVariants = cva(
   "bg-muted flex size-full items-center justify-center rounded-full",
@@ -80,8 +76,7 @@ const avatarFallbackVariants = cva(
         "primary-5": "bg-primary/5",
         "blue-100": "bg-blue-100",
         "primary-button": "bg-primary-button",
-        "blue-indigo-gradient":
-          "bg-gradient-to-br from-blue-500 to-indigo-600",
+        "blue-indigo-gradient": "bg-gradient-to-br from-blue-500 to-indigo-600",
       },
     },
     defaultVariants: {
@@ -92,7 +87,7 @@ const avatarFallbackVariants = cva(
       bg: "default",
     },
   },
-)
+);
 
 function Avatar({
   className,
@@ -105,13 +100,10 @@ function Avatar({
   return (
     <AvatarPrimitive.Root
       data-slot="avatar"
-      className={cn(
-        avatarVariants({ rounded, border, ring, elevation }),
-        className
-      )}
+      className={cn(avatarVariants({ rounded, border, ring, elevation }), className)}
       {...props}
     />
-  )
+  );
 }
 
 function AvatarImage({
@@ -120,16 +112,14 @@ function AvatarImage({
   cacheKey,
   ...props
 }: AvatarPrimitive.Image.Props & {
-  cacheKey?: string | null
+  cacheKey?: string | null;
 }) {
   const remoteSrc =
-    typeof src === "string" && src !== "default" && src.trim() !== ""
-      ? src
-      : undefined
-  const resolved = useCachedMediaSrc(remoteSrc, cacheKey)
+    typeof src === "string" && src !== "default" && src.trim() !== "" ? src : undefined;
+  const resolved = useCachedMediaSrc(remoteSrc, cacheKey);
 
   if (!remoteSrc || !resolved) {
-    return null
+    return null;
   }
 
   return (
@@ -139,7 +129,7 @@ function AvatarImage({
       className={cn("aspect-square size-full", className)}
       {...props}
     />
-  )
+  );
 }
 
 function AvatarFallback({
@@ -150,24 +140,18 @@ function AvatarFallback({
   tone = "default",
   bg = "default",
   ...props
-}: AvatarPrimitive.Fallback.Props &
-  VariantProps<typeof avatarFallbackVariants>) {
+}: AvatarPrimitive.Fallback.Props & VariantProps<typeof avatarFallbackVariants>) {
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
-      className={cn(
-        avatarFallbackVariants({ rounded, size, weight, tone, bg }),
-        className
-      )}
+      className={cn(avatarFallbackVariants({ rounded, size, weight, tone, bg }), className)}
       {...props}
     />
-  )
+  );
 }
 
-/** Border variant accepted by <Avatar> (forwarded by wrappers). */
-export type AvatarBorder = VariantProps<typeof avatarVariants>["border"]
-/** Size variant accepted by <AvatarFallback> (forwarded by wrappers). */
-export type AvatarFallbackSize =
-  VariantProps<typeof avatarFallbackVariants>["size"]
+export type AvatarBorder = VariantProps<typeof avatarVariants>["border"];
 
-export { Avatar, AvatarImage, AvatarFallback }
+export type AvatarFallbackSize = VariantProps<typeof avatarFallbackVariants>["size"];
+
+export { Avatar, AvatarImage, AvatarFallback };

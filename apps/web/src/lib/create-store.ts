@@ -64,7 +64,6 @@ function createStoreImpl<T extends object>(createState: StateCreator<T>): UseSto
   return useStore as UseStore<T>;
 }
 
-/** Zustand-compatible: `createStore<T>()(fn)` or `createStore<T>(fn)`. */
 export function createStore<T extends object>(): (createState: StateCreator<T>) => UseStore<T>;
 export function createStore<T extends object>(createState: StateCreator<T>): UseStore<T>;
 export function createStore<T extends object>(createState?: StateCreator<T>) {
