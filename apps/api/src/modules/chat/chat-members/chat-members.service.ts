@@ -17,17 +17,14 @@ export class ChatMembersService {
     private readonly presence: ChatPresenceService,
   ) {}
 
-  /**
-   * Workspaces fit in memory, so the page is cut after mapping: presence has
-   * to be stamped per member anyway, and one load serves every page.
-   */
   async list(organizationId: string, query: ChatMembersQueryDto): Promise<ChatMembersPage> {
     const page = Math.max(query.page ?? 1, 1);
     const limit = Math.min(Math.max(query.limit ?? 100, 1), 200);
 
     const sources = await loadChatMemberSources(this.db, organizationId);
+    const presence = await this.presence.presenceFor(sources.map((source) => source.member.id));
     const records = sources.map((source) =>
-      toChatTenantMember(source, this.presence.isOnline(source.member.id)),
+      toChatTenantMember(source, presence.get(source.member.id) ?? false),
     );
 
     const total = records.length;
@@ -39,8 +36,10 @@ export class ChatMembersService {
   }
 
   async me(organizationId: string, memberId: string) {
-    const [source] = await loadChatMemberSources(this.db, organizationId, { memberIds: [memberId] });
+    const [source] = await loadChatMemberSources(this.db, organizationId, {
+      memberIds: [memberId],
+    });
     if (!source) throw new NotFoundException("Member not found in this organization");
-    return toChatTenantMember(source, this.presence.isOnline(memberId));
+    return toChatTenantMember(source, await this.presence.isOnline(memberId));
   }
 }

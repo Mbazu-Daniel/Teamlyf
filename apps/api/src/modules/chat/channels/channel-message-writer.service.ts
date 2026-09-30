@@ -11,12 +11,12 @@ import { mapChannelMessages } from "./channel-messages.mapper";
 export type CreateChannelMessageArgs = {
   organizationId: string;
   channelId: string;
-  /** Member id of the author — `message.senderId`, never the auth user id. */
+
   senderId: string;
   content: string;
-  /** Message being replied to. Replying to a reply still lands on the thread root. */
+
   parentMessageId?: string;
-  /** Ids of the caller's pending `message_attachment` rows to claim. */
+
   attachmentIds?: string[];
 };
 
@@ -25,16 +25,6 @@ export type DeletedChannelMessage = {
   parentMessageId: string | null;
 };
 
-/**
- * Channel message writes, kept out of any HTTP controller so the socket layer
- * can call the exact same path as a future REST sender.
- *
- * The gateway seam: `createChannelMessage` inserts the row (thread replies set
- * `thread_root_id`), claims the caller's freshly uploaded attachments by
- * pointing them at the new message, and returns the fully mapped `ChatMessage`
- * the broadcast should carry. `deleteChannelMessage` soft-deletes and reports
- * the parent so subscribers can drop the message from a thread as well.
- */
 @Injectable()
 export class ChannelMessageWriterService {
   constructor(
@@ -42,18 +32,6 @@ export class ChannelMessageWriterService {
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
-  /**
-   * The gateway seam: insert one channel message and return the mapped DTO the
-   * broadcast should carry.
-   *
-   * - `parentMessageId` starts a thread reply; replying to a reply inherits the
-   *   original root so every reply of a thread shares one `thread_root_id`.
-   * - `attachmentIds` are the sender's pending `message_attachment` rows: they
-   *   are claimed only when they belong to this org, this sender, and are still
-   *   unlinked.
-   * - The DTO is fully mapped (senders, signed attachment URLs, reactions,
-   *   thread meta), so callers can emit it as-is.
-   */
   async createChannelMessage(args: CreateChannelMessageArgs): Promise<ChatMessageDto> {
     const { organizationId, channelId, senderId, content, parentMessageId, attachmentIds } = args;
 
@@ -102,11 +80,6 @@ export class ChannelMessageWriterService {
     return mapped;
   }
 
-  /**
-   * Soft-delete (`deleted_at`) — only the sender may delete their own message.
-   * Returns the thread root so the gateway can drop it from a thread view too
-   * (`null` when a root message was deleted).
-   */
   async deleteChannelMessage(
     organizationId: string,
     memberId: string,
@@ -130,7 +103,6 @@ export class ChannelMessageWriterService {
     return { messageId, parentMessageId: row.threadRootId };
   }
 
-  /** Root of the thread this reply belongs to: the parent, or the parent's own root. */
   private async resolveThreadRoot(channelId: string, parentMessageId: string): Promise<string> {
     const parent = await this.db.query.message.findFirst({
       where: and(eq(message.id, parentMessageId), eq(message.channelId, channelId)),

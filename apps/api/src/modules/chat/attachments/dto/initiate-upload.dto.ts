@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from "class-validator";
 
-/** Body the ported upload hook posts to `POST .../attachments/initiate`. */
 export class InitiateUploadDto {
   @ApiProperty({ description: "Original file name", example: "quarterly-report.pdf" })
   @IsString()

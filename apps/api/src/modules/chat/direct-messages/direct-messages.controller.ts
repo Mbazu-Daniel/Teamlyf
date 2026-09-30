@@ -13,7 +13,7 @@ import { DirectMessagesQueryDto } from "./dto/direct-messages-query.dto";
 @ApiTags("Chat")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)
-@Controller("organization/:orgId/direct-messages")
+@Controller("organization/:orgId/dm")
 export class DirectMessagesController {
   constructor(
     private readonly conversations: DirectMessagesConversationsService,

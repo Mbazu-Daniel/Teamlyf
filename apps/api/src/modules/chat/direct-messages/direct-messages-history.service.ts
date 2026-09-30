@@ -17,12 +17,6 @@ export class DirectMessagesHistoryService {
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
-  /**
-   * Cursor page of one conversation, newest page first and rows oldest →
-   * newest inside the page. `before` (the previous page's `nextCursor`) wins
-   * over `page`; one extra row is fetched to learn whether an older page
-   * exists without a second count.
-   */
   async getConversationHistory(
     organizationId: string,
     memberId: string,
@@ -67,7 +61,6 @@ export class DirectMessagesHistoryService {
   }
 }
 
-/** The cursor is an ISO timestamp of our own making; anything else is a bug. */
 function parseCursor(before?: string): Date | null {
   if (!before) return null;
   const parsed = new Date(before);

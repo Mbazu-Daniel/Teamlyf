@@ -1,40 +1,30 @@
 import { BadRequestException, Inject, Injectable, PayloadTooLargeException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { generateId, messageAttachment } from "@teamlyf/db";
+import { messageAttachment } from "@teamlyf/db";
 import type { ApiEnv } from "../../../common/config/env";
 import { API_ENV } from "../../../common/config/env.module";
 import { DATABASE } from "../../../common/db/db.provider";
+import { PresignedUploadService } from "../../../common/storage/presigned-upload.service";
 import { STORAGE_SERVICE, type StorageService } from "../../../common/storage/storage.types";
 import type { InitiateUploadDto } from "./dto/initiate-upload.dto";
 
 export type InitiateUploadResult = {
   attachmentId: string;
   uploadUrl: string;
+  fileKey: string;
+  headers: Record<string, string>;
+  expiresAt: Date;
 };
-
-/** Keys are server-built: no separators, no traversal, no surprise characters. */
-function safeFileName(fileName: string): string {
-  const base = fileName.split(/[\\/]/).pop() ?? "";
-  const cleaned = base
-    .replace(/[^A-Za-z0-9._-]+/g, "-")
-    .replace(/^[.-]+/, "")
-    .slice(0, 120);
-  return cleaned || "file";
-}
 
 @Injectable()
 export class MessageAttachmentsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
+    private readonly presigned: PresignedUploadService,
     @Inject(API_ENV) private readonly env: ApiEnv,
   ) {}
 
-  /**
-   * Inserts the attachment row unlinked (both message ids stay NULL until the
-   * message is actually sent) and hands back a capability URL the browser PUTs
-   * the bytes to. The key is generated here, so the client never picks a path.
-   */
   async initiateUpload(
     organizationId: string,
     memberId: string,
@@ -49,14 +39,19 @@ export class MessageAttachmentsService {
       );
     }
 
-    const key = `attachments/${organizationId}/${generateId()}/${safeFileName(dto.fileName)}`;
+    const target = await this.presigned.issueUploadUrl({
+      organizationId,
+      location: "chat",
+      fileName: dto.fileName,
+      contentType: dto.mimeType,
+    });
 
     const [row] = await this.db
       .insert(messageAttachment)
       .values({
         organizationId,
         memberId,
-        fileKey: key,
+        fileKey: target.fileKey,
         originalFileName: dto.fileName,
         mimeType: dto.mimeType,
         fileSize: dto.fileSize,
@@ -65,11 +60,12 @@ export class MessageAttachmentsService {
       })
       .returning({ id: messageAttachment.id });
 
-    const { uploadUrl } = await this.storage.createUploadUrl({
-      key,
-      contentType: dto.mimeType,
-    });
-
-    return { attachmentId: row.id, uploadUrl };
+    return {
+      attachmentId: row.id,
+      uploadUrl: target.uploadUrl,
+      fileKey: target.fileKey,
+      headers: target.headers,
+      expiresAt: target.expiresAt,
+    };
   }
 }

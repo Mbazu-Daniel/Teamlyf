@@ -23,13 +23,6 @@ import { RealtimeModule } from "./realtime/realtime.module";
 import { ThreadsController } from "./threads/threads.controller";
 import { ThreadsService } from "./threads/threads.service";
 
-/**
- * HTTP surface of chat: members, channels, direct messages, threads,
- * reactions, mentions and attachments. The socket side lives in
- * `RealtimeModule`, which is imported here rather than re-provided — it owns
- * the single `ChatPresenceService` instance, so both halves read the same
- * online/offline state.
- */
 @Module({
   imports: [DbModule, EnvModule, StorageModule, RealtimeModule],
   controllers: [

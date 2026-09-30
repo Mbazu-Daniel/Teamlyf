@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsString } from "class-validator";
 
-/** `POST /organization/:orgId/channels/:channelId/members` body. */
 export class AddChannelMembersDto {
   @ApiProperty({
     description: "Workspace member ids to add to the channel",

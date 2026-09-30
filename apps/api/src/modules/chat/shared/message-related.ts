@@ -1,7 +1,12 @@
 import type { Database } from "@teamlyf/db";
 import { directMessage, message, messageAttachment, messageReaction } from "@teamlyf/db";
 import { and, count, desc, eq, inArray, max, or } from "drizzle-orm";
-import type { ChatAttachmentRow, ChatMessageKind, ChatReactionRow, ChatThreadStats } from "./message.mapper";
+import type {
+  ChatAttachmentRow,
+  ChatMessageKind,
+  ChatReactionRow,
+  ChatThreadStats,
+} from "./message.mapper";
 
 type Ids = string[];
 
@@ -21,27 +26,40 @@ function toStatsMap(
   );
 }
 
-async function channelThreadStats(db: Database, rootIds: Ids): Promise<Map<string, ChatThreadStats>> {
+async function channelThreadStats(
+  db: Database,
+  rootIds: Ids,
+): Promise<Map<string, ChatThreadStats>> {
   if (rootIds.length === 0) return new Map();
   const rows = await db
-    .select({ rootId: message.threadRootId, replyCount: count(), lastReply: max(message.createdAt) })
+    .select({
+      rootId: message.threadRootId,
+      replyCount: count(),
+      lastReply: max(message.createdAt),
+    })
     .from(message)
     .where(inArray(message.threadRootId, rootIds))
     .groupBy(message.threadRootId);
   return toStatsMap(rows);
 }
 
-async function directThreadStats(db: Database, parentIds: Ids): Promise<Map<string, ChatThreadStats>> {
+async function directThreadStats(
+  db: Database,
+  parentIds: Ids,
+): Promise<Map<string, ChatThreadStats>> {
   if (parentIds.length === 0) return new Map();
   const rows = await db
-    .select({ rootId: directMessage.parentMessageId, replyCount: count(), lastReply: max(directMessage.createdAt) })
+    .select({
+      rootId: directMessage.parentMessageId,
+      replyCount: count(),
+      lastReply: max(directMessage.createdAt),
+    })
     .from(directMessage)
     .where(inArray(directMessage.parentMessageId, parentIds))
     .groupBy(directMessage.parentMessageId);
   return toStatsMap(rows);
 }
 
-/** Reply counts + last reply time for a page of root messages. */
 export function loadThreadStats(
   db: Database,
   kind: ChatMessageKind,
@@ -73,7 +91,9 @@ export async function loadAttachments(
       and(
         eq(messageAttachment.organizationId, organizationId),
         or(
-          channelIds.length > 0 ? inArray(messageAttachment.channelMessageId, channelIds) : undefined,
+          channelIds.length > 0
+            ? inArray(messageAttachment.channelMessageId, channelIds)
+            : undefined,
           directIds.length > 0 ? inArray(messageAttachment.directMessageId, directIds) : undefined,
         ),
       ),
@@ -112,7 +132,11 @@ export async function loadReactions(
   if (messageIds.length === 0) return new Map();
 
   const rows = await db
-    .select({ messageId: messageReaction.messageId, emoji: messageReaction.emoji, memberId: messageReaction.memberId })
+    .select({
+      messageId: messageReaction.messageId,
+      emoji: messageReaction.emoji,
+      memberId: messageReaction.memberId,
+    })
     .from(messageReaction)
     .where(
       and(

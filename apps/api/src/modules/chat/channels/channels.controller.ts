@@ -11,12 +11,6 @@ import { ChannelMessagesQueryDto } from "./dto/channel-messages-query.dto";
 import { ChannelSearchQueryDto } from "./dto/channel-search-query.dto";
 import { CreateChannelDto } from "./dto/create-channel.dto";
 
-/**
- * Channels slice of chat. The integrator registers this controller with
- * `ChannelsService`, `ChannelMembersService` and `ChannelMessagesService`;
- * message writes live in `ChannelMessageWriterService`, which the realtime
- * gateway injects (and `realtime.module.ts` already provides).
- */
 @ApiTags("Chat")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard, PermissionsGuard)

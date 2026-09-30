@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsUUID } from "class-validator";
 
-/** `?messageId=&messageType=` — one message's reactions, org-scoped by the service. */
 export class MessageReactionsQueryDto {
   @ApiProperty({
     description: "Channel or direct message id",

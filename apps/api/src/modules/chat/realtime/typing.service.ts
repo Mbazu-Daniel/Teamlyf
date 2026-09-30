@@ -1,77 +1,54 @@
 import { Injectable } from "@nestjs/common";
+import { RedisService } from "../../../common/redis/redis.service";
 
 /** A typing flag expires if the client never sends `typing-stop`. */
 const TYPING_TTL_MS = 5000;
+/** Abandoned room sets are dropped this long after their last write. */
+const ROOM_TTL_SECONDS = 30;
+
+const roomKey = (room: string) => `teamlyf:typing:${room}`;
 
 /**
- * Room typing state for `user-typing` broadcasts. Kept in this module (not in
- * `ChatPresenceService`) so one module owns the socket concern end to end.
+ * Room typing state for `user-typing` broadcasts, in Redis so a member typing
+ * on instance A shows up for readers served by instance B.
+ *
+ * One sorted set per room, scored by expiry. That single detail replaces the
+ * two in-process maps this used to need: expired flags are excluded by the
+ * range query and swept on read, so there is no reverse room index and no
+ * `clearMember` — a member who vanishes stops showing within the 5s TTL.
+ *
+ * Ordering matters: `set` must be awaited before `activeMemberIds`, or the
+ * sender can read the room before their own flag lands.
  */
 @Injectable()
 export class ChatTypingService {
-  private readonly expiryByRoom = new Map<string, Map<string, number>>();
-  private readonly roomsByMember = new Map<string, Set<string>>();
+  constructor(private readonly redis: RedisService) {}
 
-  set(room: string, memberId: string): void {
+  async set(room: string, memberId: string): Promise<void> {
+    const expiry = Date.now() + TYPING_TTL_MS;
+    await this.redis.soft("typing.set", undefined, async () => {
+      const pipeline = this.redis.client.pipeline();
+      pipeline.zadd(roomKey(room), expiry, memberId);
+      pipeline.expire(roomKey(room), ROOM_TTL_SECONDS);
+      await pipeline.exec();
+    });
+  }
+
+  async stop(room: string, memberId: string): Promise<void> {
+    await this.redis.soft("typing.stop", undefined, async () => {
+      await this.redis.client.zrem(roomKey(room), memberId);
+    });
+  }
+
+  /** Live typing member ids for one room, expired flags swept away. */
+  async activeMemberIds(room: string): Promise<string[]> {
     const now = Date.now();
-    let members = this.expiryByRoom.get(room);
-    if (!members) {
-      members = new Map();
-      this.expiryByRoom.set(room, members);
-    }
-    members.set(memberId, now + TYPING_TTL_MS);
-
-    let rooms = this.roomsByMember.get(memberId);
-    if (!rooms) {
-      rooms = new Set();
-      this.roomsByMember.set(memberId, rooms);
-    }
-    rooms.add(room);
-  }
-
-  stop(room: string, memberId: string): void {
-    const members = this.expiryByRoom.get(room);
-    if (members) {
-      members.delete(memberId);
-      if (members.size === 0) this.expiryByRoom.delete(room);
-    }
-    const stillTyping = [...(this.roomsByMember.get(memberId) ?? [])].filter((known) => known !== room);
-    if (stillTyping.length === 0) this.roomsByMember.delete(memberId);
-    else this.roomsByMember.set(memberId, new Set(stillTyping));
-  }
-
-  /** Drops every typing flag of a member that went fully offline. */
-  clearMember(memberId: string): void {
-    const rooms = this.roomsByMember.get(memberId);
-    this.roomsByMember.delete(memberId);
-    if (!rooms) return;
-    for (const room of rooms) {
-      const members = this.expiryByRoom.get(room);
-      if (!members) continue;
-      members.delete(memberId);
-      if (members.size === 0) this.expiryByRoom.delete(room);
-    }
-  }
-
-  /** Live typing member ids for one room, with expired flags swept away. */
-  activeMemberIds(room: string): string[] {
-    const members = this.expiryByRoom.get(room);
-    if (!members) return [];
-    const now = Date.now();
-    for (const [memberId, expiry] of members) {
-      if (expiry <= now) {
-        members.delete(memberId);
-        const rooms = this.roomsByMember.get(memberId);
-        if (rooms) {
-          rooms.delete(room);
-          if (rooms.size === 0) this.roomsByMember.delete(memberId);
-        }
-      }
-    }
-    if (members.size === 0) {
-      this.expiryByRoom.delete(room);
-      return [];
-    }
-    return [...members.keys()];
+    return this.redis.soft("typing.active", [] as string[], async () => {
+      const pipeline = this.redis.client.pipeline();
+      pipeline.zremrangebyscore(roomKey(room), "-inf", `(${now}`);
+      pipeline.zrangebyscore(roomKey(room), `(${now}`, "+inf");
+      const results = await pipeline.exec();
+      return (results?.[1]?.[1] as string[] | null) ?? [];
+    });
   }
 }

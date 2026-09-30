@@ -13,17 +13,11 @@ type MapChannelMessagesArgs = {
   storage: StorageService;
   organizationId: string;
   channel: { id: string; name: string };
-  /** Member id — drives `isCurrentUserMessage`. */
+
   currentMemberId: string;
   rows: MessageRow[];
 };
 
-/**
- * One page of stored rows → the `Message` DTOs the ported UI renders: senders,
- * signed attachment URLs, reactions and thread meta are fetched once for the
- * page, never per row. Channel messages keep `thread_root_id` in the DTO as
- * `parentMessageId` (`null` for roots).
- */
 export async function mapChannelMessages(args: MapChannelMessagesArgs): Promise<ChatMessageDto[]> {
   const { db, storage, organizationId, channel, currentMemberId, rows } = args;
   if (rows.length === 0) return [];

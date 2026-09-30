@@ -7,15 +7,8 @@ import { organizationFromNamespace } from "../shared/rooms";
 
 export type SocketData = { organizationId: string; memberId: string; userId: string };
 
-/** A socket past the handshake middleware, with org + member pinned down. */
 export type AuthenticatedSocket = Socket & { data: SocketData };
 
-/**
- * Namespace auth middleware, registered once in the gateway's `afterInit` and
- * inherited by every `/organization/:orgId/chat` child namespace (socket.io
- * copies parent `_fns` at child creation). Resolves the better-auth session
- * cookie to an org member — the same lookup `OrgMemberGuard` does for REST.
- */
 export function createChatAuthMiddleware(auth: AuthService, db: Database) {
   return async (socket: Socket, next: (error?: Error) => void): Promise<void> => {
     try {
@@ -25,7 +18,9 @@ export function createChatAuthMiddleware(auth: AuthService, db: Database) {
         next(new Error("Unauthorized"));
         return;
       }
-      const session = await auth.auth.api.getSession({ headers: new Headers({ cookie }) }).catch(() => null);
+      const session = await auth.auth.api
+        .getSession({ headers: new Headers({ cookie }) })
+        .catch(() => null);
       if (!session?.user?.id) {
         next(new Error("Unauthorized"));
         return;
@@ -37,7 +32,12 @@ export function createChatAuthMiddleware(auth: AuthService, db: Database) {
         next(new Error("Forbidden"));
         return;
       }
-      socket.data = { ...(socket.data as Partial<SocketData>), organizationId, memberId: found.id, userId: session.user.id };
+      socket.data = {
+        ...(socket.data as Partial<SocketData>),
+        organizationId,
+        memberId: found.id,
+        userId: session.user.id,
+      };
       next();
     } catch {
       next(new Error("Unauthorized"));

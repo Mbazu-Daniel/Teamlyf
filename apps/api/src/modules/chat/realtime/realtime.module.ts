@@ -9,13 +9,6 @@ import { ChatPresenceService } from "../shared/presence.service";
 import { ChatRealtimeGateway } from "./chat-realtime.gateway";
 import { ChatTypingService } from "./typing.service";
 
-/**
- * Socket layer for `/organization/:orgId/chat` plus the call-signaling REST
- * service it delegates to. Owns the gateway, the typing state and the
- * presence provider so future REST `ChatModule` code can import
- * `RealtimeModule` and reuse `ChatPresenceService` instead of re-providing it
- * (two instances would split online/offline state).
- */
 @Module({
   imports: [DbModule, StorageModule, CallsModule],
   providers: [

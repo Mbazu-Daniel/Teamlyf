@@ -2,7 +2,6 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsDateString, IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 
-/** `GET /organization/:orgId/channels/:channelId/messages/search?q=` filters. */
 export class ChannelSearchQueryDto {
   @ApiPropertyOptional({ description: "Substring of the message content" })
   @IsOptional()

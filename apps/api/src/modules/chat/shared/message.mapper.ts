@@ -4,13 +4,12 @@ import { toChatParticipant } from "./member.mapper";
 
 export type ChatMessageKind = "channel" | "direct";
 
-/** The subset both message tables share, so one mapper serves both. */
 export type ChatMessageRow = {
   id: string;
   content: string;
   createdAt: Date;
   editedAt: Date | null;
-  /** Channel messages call it `threadRootId`; direct messages `parentMessageId`. */
+
   parentMessageId: string | null;
   senderId: string;
   readAt?: Date | null;
@@ -78,11 +77,6 @@ async function toAttachmentUrls(
   );
 }
 
-/**
- * Shapes one stored message into the payload the ported UI renders — the same
- * DTO the source `MessageMapper` produced, with avatar URLs already resolved
- * through the storage seam instead of a media service.
- */
 export async function toChatMessage(args: ToChatMessageArgs): Promise<ChatMessageDto> {
   const { row, senderSource, storage, context } = args;
   const thread = args.thread ?? { count: 0, lastReplyTime: null };
