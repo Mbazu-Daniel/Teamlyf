@@ -7,9 +7,13 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:parity": "node test/parity.smoke.mjs"
+    "test:parity": "node test/parity.smoke.mjs",
+    "test:cross-instance": "node test/realtime-cross-instance.mjs",
+    "test:socket-payloads": "tsx test/socket-payloads.check.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1142.0",
+    "@aws-sdk/s3-request-presigner": "^3.1142.0",
     "@nestjs/common": "^12.0.3",
     "@nestjs/core": "^12.0.3",
     "@nestjs/platform-express": "^12.0.3",
@@ -17,6 +21,7 @@
     "@nestjs/swagger": "^12.0.1",
     "@nestjs/websockets": "^12.0.1",
     "@scalar/nestjs-api-reference": "^1.2.19",
+    "@socket.io/redis-adapter": "^8.3.0",
     "@teamlyf/db": "workspace:*",
     "@types/compression": "^1.8.1",
     "@types/morgan": "^1.9.10",
@@ -41,6 +46,7 @@
     "@nestjs/cli": "^12.0.3",
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.3",
+    "socket.io-client": "^4.8.4",
     "typescript": "^5.9.3"
   }
 }

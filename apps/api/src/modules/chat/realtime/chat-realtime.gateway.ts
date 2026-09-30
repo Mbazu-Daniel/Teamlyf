@@ -18,6 +18,8 @@ import { CallsService } from "../../calls/calls.service";
 import { OrganizationPermissionService } from "../../rbac/organization-permission.service";
 import { authorizeSocketPackets } from "./socket-authorization";
 import { DATABASE } from "../../../common/db/db.provider";
+import { webOrigins } from "../../../common/config/env";
+import { RealtimeAdapterService } from "../../../common/redis/realtime-adapter.service";
 import { ChannelMessageWriterService } from "../channels/channel-message-writer.service";
 import { DirectMessagesService } from "../direct-messages/direct-messages.service";
 import { MessageReactionsService } from "../reactions/message-reactions.service";
@@ -25,17 +27,7 @@ import { ChatPresenceService } from "../shared/presence.service";
 import { CHAT_NAMESPACE_PATTERN, CHAT_ROOMS } from "../shared/rooms";
 import { createChatAuthMiddleware, type AuthenticatedSocket } from "./ws-auth";
 import { ChatTypingService } from "./typing.service";
-import {
-  errorMessage,
-  type CallIdPayload,
-  type DeleteMessagePayload,
-  type InitiateCallPayload,
-  type JoinChannelPayload,
-  type ReactionPayload,
-  type SendChannelMessagePayload,
-  type SendDirectMessagePayload,
-  type TypingPayload,
-} from "./socket-payloads";
+import { errorMessage, parsePayloads } from "./socket-payloads";
 import {
   applyReaction,
   deleteMessage,
@@ -43,7 +35,13 @@ import {
   sendDirectMessage,
   type MessageSocketDeps,
 } from "./message-socket.handlers";
-import { acceptCall, endCall, initiateCall, rejectCall, type CallSocketDeps } from "./call-socket.handlers";
+import {
+  acceptCall,
+  endCall,
+  initiateCall,
+  rejectCall,
+  type CallSocketDeps,
+} from "./call-socket.handlers";
 import {
   emitTypingUsers,
   stopTypingBroadcast,
@@ -52,45 +50,40 @@ import {
   type TypingSocketDeps,
 } from "./typing-socket.handlers";
 
-const corsOrigins = (process.env.WEB_ORIGIN ?? "")
-  .split(",")
-  .map((entry) => entry.trim())
-  .filter(Boolean);
-
 /**
- * Single socket gateway for `/organization/:orgId/chat` — one class on the
- * namespace pattern on purpose: socket.io fans a RegExp namespace out to a
- * parent namespace, so a second gateway class would attach to an orphan parent
- * and never receive connections. All emits go through `client.nsp` (the real
- * child namespace) or `client.broadcast`; never through the parent server.
- *
- * Event contract (what the web client speaks):
- * - in:  join-channel, send-channel-message, send-direct-message,
- *        typing-start, typing-stop, add-reaction, remove-reaction,
- *        delete-message, initiate-call, accept-call, reject-call, end-call
- * - out: new-channel-message, new-direct-message, user-typing,
- *        reaction-added, reaction-removed, message-deleted,
- *        direct-message-deleted, call-initiated, call-accepted,
- *        call-rejected, call-ended
+ * Resolved while the decorator below is evaluated, which is the only moment
+ * Socket.IO accepts its options. `webOrigins()` runs `loadEnv()` first, so this
+ * reads the same `.env` the REST layer validates against instead of a raw
+ * `process.env` that may still be empty at this point.
  */
+const corsOrigins = webOrigins();
+
 @WebSocketGateway({
   namespace: CHAT_NAMESPACE_PATTERN as unknown as string,
-  cors: { origin: corsOrigins.length > 0 ? corsOrigins : true, credentials: true },
+  cors: {
+    // Empty means WEB_ORIGIN is unset. Deny every origin rather than reflect
+    // whatever asks: with `credentials` on, reflecting turns this into a
+    // cross-site socket hijack on any site that can make the browser connect.
+    origin: corsOrigins.length > 0 ? corsOrigins : false,
+    credentials: true,
+  },
   transports: ["websocket", "polling"],
+  // Socket.IO defaults to 1 MB per frame. Our own caps reject an 8 kB body long
+  // before this, so only a deliberate oversized blob reaches it.
+  maxHttpBufferSize: 100_000,
 })
-export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatRealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
   private readonly logger = new Logger(ChatRealtimeGateway.name);
 
-  /** Deps handed to `message-socket.handlers.ts` — plain functions, no `this`. */
   private readonly messageDeps: MessageSocketDeps;
 
-  /** Deps handed to `call-socket.handlers.ts` — plain functions, no `this`. */
   private readonly callDeps: CallSocketDeps;
 
-  /** Deps handed to `typing-socket.handlers.ts` — plain functions, no `this`. */
   private readonly typingDeps: TypingSocketDeps;
 
   constructor(
@@ -103,6 +96,7 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
     private readonly writer: ChannelMessageWriterService,
     private readonly reactions: MessageReactionsService,
     private readonly calls: CallsService,
+    private readonly realtime: RealtimeAdapterService,
   ) {
     this.typingDeps = { typing: this.typing, db: this.db };
     this.messageDeps = {
@@ -116,6 +110,10 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
   }
 
   afterInit(server: Server): void {
+    // Adapter before any connection arrives — it is cloned into each
+    // namespace as that namespace opens, and it is what makes every emit
+    // below cross instances.
+    this.realtime.attach(server);
     server.use(createChatAuthMiddleware(this.auth, this.db) as never);
   }
 
@@ -128,7 +126,7 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
 
     try {
       authorizeSocketPackets(client, this.auth, this.permissions);
-      this.presence.connect(organizationId, memberId, client.id);
+      await this.presence.connect(organizationId, memberId, client.id);
 
       const [orgChannels, memberships] = await Promise.all([
         this.db.query.channel.findMany({
@@ -145,7 +143,11 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
         .filter((row) => memberChannelIds.has(row.id))
         .map((row) => CHAT_ROOMS.channel(row.id));
 
-      await client.join([CHAT_ROOMS.organization(organizationId), CHAT_ROOMS.member(memberId), ...channelRooms]);
+      await client.join([
+        CHAT_ROOMS.organization(organizationId),
+        CHAT_ROOMS.member(memberId),
+        ...channelRooms,
+      ]);
       this.logger.log(`Chat socket connected: ${client.id} (member ${memberId})`);
     } catch (error) {
       this.logger.error(`Chat socket setup failed for ${client.id}: ${errorMessage(error)}`);
@@ -153,23 +155,25 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
     }
   }
 
-  handleDisconnect(client: AuthenticatedSocket): void {
-    const left = this.presence.disconnect(client.id);
-    if (left?.becameOffline) this.typing.clearMember(left.memberId);
+  async handleDisconnect(client: AuthenticatedSocket): Promise<void> {
+    await this.presence.disconnect(client.id);
     this.logger.log(`Chat socket disconnected: ${client.id}`);
   }
-  // ------------------------------------------------------------ chat events
 
+  // The declared payload types are erased at runtime, so each handler bounds
+  // its own body and returns `{ error }` rather than throwing into a disconnect.
   @SubscribeMessage("join-channel")
   async handleJoinChannel(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: JoinChannelPayload,
+    @MessageBody() raw: unknown,
   ): Promise<{ success: boolean; channelId: string } | { error: string }> {
     try {
-      const channelId = data?.channelId;
-      if (typeof channelId !== "string" || !channelId) return { error: "Channel ID is required" };
+      const { channelId } = parsePayloads.joinChannel(raw);
       const membership = await this.db.query.channelMember.findFirst({
-        where: and(eq(channelMember.channelId, channelId), eq(channelMember.memberId, client.data.memberId)),
+        where: and(
+          eq(channelMember.channelId, channelId),
+          eq(channelMember.memberId, client.data.memberId),
+        ),
       });
       if (!membership) return { error: "You are not a member of this channel" };
       await client.join(CHAT_ROOMS.channel(channelId));
@@ -182,34 +186,58 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
   @SubscribeMessage("send-channel-message")
   async handleSendChannelMessage(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: SendChannelMessagePayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return sendChannelMessage(client, data, this.messageDeps);
+    try {
+      return await sendChannelMessage(
+        client,
+        parsePayloads.sendChannelMessage(raw),
+        this.messageDeps,
+      );
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 
   @SubscribeMessage("send-direct-message")
   async handleSendDirectMessage(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: SendDirectMessagePayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return sendDirectMessage(client, data, this.messageDeps);
+    try {
+      return await sendDirectMessage(
+        client,
+        parsePayloads.sendDirectMessage(raw),
+        this.messageDeps,
+      );
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
-  // ---------------------------------------------------------------- typing
 
   @SubscribeMessage("typing-start")
   async handleTypingStart(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: TypingPayload,
+    @MessageBody() raw: unknown,
   ): Promise<{ success: boolean } | { error: string }> {
+    let data: ReturnType<typeof parsePayloads.typing>;
+    try {
+      data = parsePayloads.typing(raw);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
     const room = typingRoom(data);
     if (!room) return { error: "Channel ID or Recipient ID is required" };
-    try { await requireTypingTarget(this.db, client, data); }
-    catch (error) { return { error: errorMessage(error) }; }
-    this.typing.set(room, client.data.memberId);
+    try {
+      await requireTypingTarget(this.db, client, data);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
+    await this.typing.set(room, client.data.memberId);
     client.nsp.to(CHAT_ROOMS.member(client.data.memberId)).emit("user-typing", {
       typingUsers: [{ id: client.data.memberId }],
-      channelId: data?.channelId,
-      recipientId: data?.recipientId,
+      channelId: data.channelId,
+      recipientId: data.recipientId,
     });
     await emitTypingUsers(client, room, this.typingDeps);
     return { success: true };
@@ -218,73 +246,105 @@ export class ChatRealtimeGateway implements OnGatewayInit, OnGatewayConnection, 
   @SubscribeMessage("typing-stop")
   async handleTypingStop(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: TypingPayload,
-  ): Promise<{ success: boolean }> {
+    @MessageBody() raw: unknown,
+  ): Promise<{ success: boolean } | { error: string }> {
+    let data: ReturnType<typeof parsePayloads.typing>;
+    try {
+      data = parsePayloads.typing(raw);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
     const room = typingRoom(data);
     if (room) await stopTypingBroadcast(client, room, this.typingDeps);
     client.nsp.to(CHAT_ROOMS.member(client.data.memberId)).emit("user-typing", {
       typingUsers: [],
-      channelId: data?.channelId,
-      recipientId: data?.recipientId,
+      channelId: data.channelId,
+      recipientId: data.recipientId,
     });
     return { success: true };
   }
-  // ------------------------------------------------------------- reactions
 
   @SubscribeMessage("add-reaction")
   async handleAddReaction(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: ReactionPayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return applyReaction(client, data, true, this.messageDeps);
+    try {
+      return await applyReaction(client, parsePayloads.reaction(raw), true, this.messageDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 
   @SubscribeMessage("remove-reaction")
   async handleRemoveReaction(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: ReactionPayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return applyReaction(client, data, false, this.messageDeps);
+    try {
+      return await applyReaction(client, parsePayloads.reaction(raw), false, this.messageDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 
   @SubscribeMessage("delete-message")
   async handleDeleteMessage(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: DeleteMessagePayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return deleteMessage(client, data, this.messageDeps);
+    try {
+      return await deleteMessage(client, parsePayloads.deleteMessage(raw), this.messageDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
-  // ----------------------------------------------------------------- calls
 
   @SubscribeMessage("initiate-call")
   async handleInitiateCall(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: InitiateCallPayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return initiateCall(client, data, this.callDeps);
+    try {
+      return await initiateCall(client, parsePayloads.initiateCall(raw), this.callDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 
   @SubscribeMessage("accept-call")
   async handleAcceptCall(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: CallIdPayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return acceptCall(client, data, this.callDeps);
+    try {
+      return await acceptCall(client, parsePayloads.callId(raw), this.callDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 
   @SubscribeMessage("reject-call")
   async handleRejectCall(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: CallIdPayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return rejectCall(client, data, this.callDeps);
+    try {
+      return await rejectCall(client, parsePayloads.callId(raw), this.callDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 
   @SubscribeMessage("end-call")
   async handleEndCall(
     @ConnectedSocket() client: AuthenticatedSocket,
-    @MessageBody() data: CallIdPayload,
+    @MessageBody() raw: unknown,
   ): Promise<unknown> {
-    return endCall(client, data, this.callDeps);
+    try {
+      return await endCall(client, parsePayloads.callId(raw), this.callDeps);
+    } catch (error) {
+      return { error: errorMessage(error) };
+    }
   }
 }

@@ -1,3 +1,4 @@
+// fallow-ignore-file unused-file — exercised by test/tabs.test.tsx
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs";
@@ -16,7 +17,12 @@ const tabsListVariants = cva(
   },
 );
 
-function Tabs({ className, orientation = "horizontal", onValueChange, ...props }: TabsPrimitive.Root.Props) {
+function Tabs({
+  className,
+  orientation = "horizontal",
+  onValueChange,
+  ...props
+}: TabsPrimitive.Root.Props) {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
@@ -60,7 +66,13 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
 }
 
 function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
-  return <TabsPrimitive.Panel data-slot="tabs-content" className={cn("outline-none", className)} {...props} />;
+  return (
+    <TabsPrimitive.Panel
+      data-slot="tabs-content"
+      className={cn("outline-none", className)}
+      {...props}
+    />
+  );
 }
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };

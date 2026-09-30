@@ -24,7 +24,6 @@ export class MemberProfileService {
     });
   }
 
-  /** Creates the profile on first write so a PATCH is always safe to send. */
   async updateMemberProfile(orgId: string, memberId: string, dto: UpdateEmployeeProfileDto) {
     await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     const existing = await this.db.query.memberProfile.findFirst({
@@ -59,13 +58,11 @@ export class MemberProfileService {
     const profile = await this.db.query.memberProfile.findFirst({
       where: this.sameMember(orgId, memberId),
     });
-    // Defaults rather than four `?.`/`??` chains: a member with no profile row
-    // reads as two nulls, which is what the response promises anyway.
+
     const { emergencyContactName = null, emergencyContactPhone = null } = profile ?? {};
     return { memberId, name: emergencyContactName, phone: emergencyContactPhone };
   }
 
-  /** Creates the profile on first write so the first PATCH is always safe to send. */
   async updateEmergencyContact(orgId: string, memberId: string, dto: UpdateEmergencyContactDto) {
     await requireOrganizationMemberOrNotFound(this.db, orgId, memberId);
     const values = {

@@ -1,13 +1,8 @@
-import { IconAt, IconMessage, IconPhone, IconSettings } from "@tabler/icons-react";
+import { IconAt, IconMessage, IconPhone } from "@tabler/icons-react";
 import { NewChatModal } from "../new-chat-modals";
 import CreateGroupSidebar from "../channels/create-group-sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getAvatarColor } from "@/lib/utils/avatar-colors";
 import { QuickActionButton } from "./chat-sidebar-rail-parts";
-import {
-  ChannelsSection,
-  DirectMessagesSection,
-} from "./chat-sidebar-rail-sections";
+import { ChannelsSection, DirectMessagesSection } from "./chat-sidebar-rail-sections";
 import { useChatSidebarRail } from "./use-chat-sidebar-rail";
 
 export function ChatSidebarRail() {
@@ -81,43 +76,6 @@ export function ChatSidebarRail() {
           isActive={rail.isActive}
           onChatClick={rail.handleOnChatClick}
         />
-      </div>
-
-      <div className="shrink-0 border-t border-border/70 p-2.5">
-        <button
-          onClick={() =>
-            rail.router.push(`/${rail.subdomain}/settings?section=profile`)
-          }
-          className="flex w-full items-center gap-2.5 rounded-[10px] p-2 transition-colors hover:bg-muted/70"
-        >
-          <Avatar rounded="md" className="h-7 w-7">
-            <AvatarFallback
-              rounded="md"
-              tone="white"
-              size="10px"
-              weight="bold"
-              style={{ background: getAvatarColor(rail.user?.id || "me") }}
-            >
-              {rail.user?.name
-                ? rail.user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)
-                : "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 text-left min-w-0">
-            <p className="truncate text-[13px] font-semibold text-foreground">
-              {rail.user?.name || rail.user?.email || "User"}
-            </p>
-            <p className="truncate text-[10px] text-muted-foreground">
-              {rail.user?.email}
-            </p>
-          </div>
-          <IconSettings className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        </button>
       </div>
 
       <NewChatModal

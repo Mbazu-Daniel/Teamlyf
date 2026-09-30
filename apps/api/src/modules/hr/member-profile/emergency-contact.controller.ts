@@ -18,11 +18,6 @@ import { OrganizationPermissionService } from "../../rbac/organization-permissio
 import { UpdateEmergencyContactDto } from "./dto";
 import { MemberProfileService } from "./member-profile.service";
 
-/**
- * Self-service with an admin escape hatch (mirrors the reference API's `me` alias):
- * members read/update their own emergency contact; holders of the `hr` permission
- * can read/update anyone's.
- */
 @ApiTags("HR emergency contacts")
 @ApiBearerAuth()
 @UseGuards(SessionGuard, OrgMemberGuard)
@@ -62,7 +57,6 @@ export class EmergencyContactController {
     return this.profiles.updateEmergencyContact(orgId, target, body);
   }
 
-  /** Resolves the `me` alias and enforces self-or-`hr` access. */
   private async resolveTarget(
     orgId: string,
     current: SessionMember,

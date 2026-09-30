@@ -8,10 +8,6 @@ import type { LeaveBalance } from "./types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/**
- * Balances are derived, not stored: every policy grants `daysPerYear` and the
- * approved leave of the member is deducted from it. No balance table to drift.
- */
 @Injectable()
 export class LeaveBalanceService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}

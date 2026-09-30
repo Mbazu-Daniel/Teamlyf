@@ -8,7 +8,17 @@ import {
 } from "../../common/better-auth/better-auth-http";
 import { AuthService } from "./auth.service";
 import { DeleteAccountDto } from "./dto/delete-account.dto";
-import { SignUpDto, SignInDto, SignInSocialDto, UpdateUserDto, RevokeSessionDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, RefreshTokenDto } from "./dto";
+import {
+  SignUpDto,
+  SignInDto,
+  SignInSocialDto,
+  UpdateUserDto,
+  RevokeSessionDto,
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  RefreshTokenDto,
+} from "./dto";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -17,8 +27,16 @@ export class AuthController {
 
   @Post("delete-user")
   @ApiOperation({ summary: "Delete your account after removing all workspace memberships" })
-  async deleteAccount(@Body() body: DeleteAccountDto, @Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
-    const response = await this.authService.auth.api.deleteUser({ body, headers: toFetchHeaders(req), asResponse: true });
+  async deleteAccount(
+    @Body() body: DeleteAccountDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const response = await this.authService.auth.api.deleteUser({
+      body,
+      headers: toFetchHeaders(req),
+      asResponse: true,
+    });
     forwardSetCookies(res, response);
     res.status(response.status);
     return readResponseBody(response);
@@ -38,8 +56,7 @@ export class AuthController {
     const response = await this.authService.signUpEmail(body, headers);
 
     forwardSetCookies(res, response);
-    // Forward better-auth's status (201 on success, 400/409 on failure).
-    // Without this Nest defaults POST to 201 and failures look like successes.
+
     res.status(response.status);
     return readResponseBody(response);
   }
@@ -57,14 +74,17 @@ export class AuthController {
     const response = await this.authService.signInEmail(body, headers);
 
     forwardSetCookies(res, response);
-    // Forward better-auth's status (200 on success, 401 on bad credentials).
-    // Without this Nest defaults POST to 201 and a bad password looks like a success.
+
     res.status(response.status);
     return readResponseBody(response);
   }
 
-  @Get("session")
-  @ApiOperation({ summary: "Get current session" })
+  @Get(["get-session", "session"])
+  @ApiOperation({
+    summary: "Get current session",
+    description:
+      "Deprecated alias: `session`. Prefer `get-session`, which is what the Better Auth client calls.",
+  })
   @ApiResponse({ status: 200, description: "Session returned" })
   @ApiResponse({ status: 401, description: "Not authenticated" })
   async getSession(@Req() req: Request, @Res({ passthrough: true }) res: ExpressResponse) {
@@ -93,7 +113,6 @@ export class AuthController {
     const headers = toFetchHeaders(req);
     const response = await this.authService.signInSocial(body, headers);
 
-    // Carries better-auth's short-lived state cookie the callback validates.
     forwardSetCookies(res, response);
     res.status(response.status);
     return readResponseBody(response);
@@ -165,8 +184,6 @@ export class AuthController {
     const headers = toFetchHeaders(req);
     const response = await this.authService.getSessions(headers);
 
-    // better-auth may rotate the session cookie while authenticating, so this
-    // endpoint has to pass Set-Cookie through like every other auth call.
     forwardSetCookies(res, response);
     res.status(response.status);
     return readResponseBody(response);

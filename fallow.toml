@@ -4,12 +4,75 @@
 # Complexity severity stays `warn`: the chat/calls feature is a verbatim port
 # of the source-repo UI, so its findings remain visible in reports without
 # failing the gate. Promote to `error` once targeted refactors land.
-ignoreDependencies = ["@nestjs/platform-socket.io"]
+# These are resolved at runtime rather than by a static import, so the analyzer
+# cannot see the reference and reports them as unused. Removing any of them
+# breaks the realtime gateway or the Redis adapter at boot.
+ignoreDependencies = [
+  "@nestjs/platform-socket.io",
+  "@nestjs/websockets",
+  "@socket.io/redis-adapter",
+  "socket.io",
+]
 
 [rules]
 complexity-cyclomatic = "warn"
 complexity-cognitive = "warn"
 complexity-crap = "warn"
+
+# Nav helpers are consumed by the sidebar-nav test rather than by app code, so
+# they read as unused exports to the analyzer. Deleting them would delete the
+# only thing that pins the active-route behaviour.
+[[ignoreExports]]
+file = "apps/web/src/components/sidebar/nav-items.ts"
+exports = ["NAV_ITEMS", "NAV_HOME", "isNavItemActive"]
+
+# CHAT_ROOMS/CHAT_NAMESPACE_PATTERN are read by the Nest gateway through
+# reflection, which the analyzer does not follow; suppressed in that file.
+
+# Exported for the checks in apps/api/test, which is the only consumer. The
+# analyzer does not count test files, so these read as dead.
+[[ignoreExports]]
+file = "apps/api/src/common/storage/storage.types.ts"
+exports = ["sanitizeFileName", "buildObjectKey"]
+
+[[ignoreExports]]
+file = "apps/api/src/modules/email/templates/index.ts"
+exports = ["EMAIL_TEMPLATES"]
+
+# Exercised by test/sprints.test.tsx and test/custom-accent.test.tsx.
+[[ignoreExports]]
+file = "apps/web/src/features/projects/sprints.tsx"
+exports = ["sprintProgress", "sprintTiming"]
+
+[[ignoreExports]]
+file = "apps/web/src/lib/theme.ts"
+exports = ["accentForeground"]
+
+# Barrel re-exports. Each symbol is consumed through the barrel by app code or by
+# the project tests, which the analyzer does not follow into the re-export.
+[[ignoreExports]]
+file = "apps/web/src/features/projects/index.ts"
+exports = ["*"]
+
+[[ignoreExports]]
+file = "apps/web/src/features/projects/board.tsx"
+exports = ["StatusColumn"]
+
+[[ignoreExports]]
+file = "apps/web/src/features/notes/rich-content.tsx"
+exports = ["noteDocument"]
+
+[[ignoreExports]]
+file = "apps/web/src/lib/api/auth.ts"
+exports = ["updateUser"]
+
+[[ignoreExports]]
+file = "apps/web/src/routes/reset-password.tsx"
+exports = ["ResetPasswordForm"]
+
+[[ignoreExports]]
+file = "apps/web/src/features/projects/use-my-tasks.ts"
+exports = ["buildMyTasksRows"]
 
 [[ignoreExports]]
 file = "apps/api/src/modules/billing/billing.dto.ts"

@@ -5,8 +5,13 @@ import { LeavePolicyModule } from "./leave-policy/leave-policy.module";
 import { LeaveRequestModule } from "./leave-request/leave-request.module";
 import { MemberProfileModule } from "./member-profile/member-profile.module";
 
-/** Aggregates the HR submodules: profiles, departments, leave policies, leave requests, leave balances. */
 @Module({
-  imports: [MemberProfileModule, DepartmentModule, LeavePolicyModule, LeaveRequestModule, LeaveBalanceModule],
+  imports: [
+    MemberProfileModule,
+    DepartmentModule,
+    LeavePolicyModule,
+    LeaveRequestModule,
+    LeaveBalanceModule,
+  ],
 })
 export class HrModule {}

@@ -16,7 +16,6 @@ export class LeavePolicyService {
     });
   }
 
-  /** Resolves a policy inside the organization or fails with 404 — the seam other HR modules book against. */
   async getLeavePolicy(orgId: string, policyId: string) {
     const found = await this.db.query.leavePolicy.findFirst({
       where: and(eq(leavePolicy.id, policyId), eq(leavePolicy.organizationId, orgId)),

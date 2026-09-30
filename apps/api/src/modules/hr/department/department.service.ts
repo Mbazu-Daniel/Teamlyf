@@ -111,7 +111,6 @@ export class DepartmentService {
     }
   }
 
-  /** HR tables have no Drizzle relations, so members are hydrated with two queries. */
   private async withMembers(departments: DepartmentRow[]) {
     if (!departments.length) return [];
 

@@ -49,8 +49,6 @@ export class LeaveRequestController {
     return this.leaveRequests.updateLeaveRequestStatus(orgId, member.id, requestId, body);
   }
 
-  // Requester-only cancel is enforced in the service, so no route-level
-  // hr permission here (the creator may only hold hr:read).
   @Delete(":requestId")
   @ApiOperation({ summary: "Cancel your own leave request" })
   cancelLeaveRequest(
