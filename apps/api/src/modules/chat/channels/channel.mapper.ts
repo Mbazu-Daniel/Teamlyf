@@ -5,7 +5,6 @@ import type { ChatMemberSource } from "../shared/member.mapper";
 import { loadChatMemberSources, toChatParticipant } from "../shared/member.mapper";
 import type { ChannelMembershipRow, ChannelRow } from "./channel-access";
 
-/** `createdBy` — the workspace member behind `channel.createdById`. */
 export type ChannelCreatorDto = {
   id: string;
   createdAt: string;
@@ -17,7 +16,6 @@ export type ChannelCreatorDto = {
   updatedAt: string;
 };
 
-/** One `Channel` as the ported sidebar reads it: row + the caller's two flags. */
 export type ChannelDto = {
   id: string;
   createdAt: string;
@@ -26,14 +24,13 @@ export type ChannelDto = {
   description: string;
   createdById: string;
   updatedAt: string;
-  /** The target schema has no soft-delete column, so a channel is never tombstoned. */
+
   deletedAt: string | null;
   createdBy: ChannelCreatorDto;
   unreadCount: number;
   isMember: boolean;
 };
 
-/** `GET /channels/:channelId/members` row — `channel_member` has no surrogate key. */
 export type ChannelMemberDto = {
   id: string;
   channelId: string;
@@ -43,11 +40,10 @@ export type ChannelMemberDto = {
     id: string;
     firstName: string;
     lastName: string;
-    user: { image: string | null };
+    avatar: string | null;
   };
 };
 
-/** The `channel_member` row itself — what `POST :channelId/join` mirrors back. */
 export type ChannelMembershipDto = {
   id: string;
   channelId: string;
@@ -92,7 +88,12 @@ function toChannelCreator(creator: ChatMemberSource | null, row: ChannelRow): Ch
   };
 }
 
-export function toChannelDto({ row, creator, unreadCount, isMember }: ToChannelDtoArgs): ChannelDto {
+export function toChannelDto({
+  row,
+  creator,
+  unreadCount,
+  isMember,
+}: ToChannelDtoArgs): ChannelDto {
   return {
     id: row.id,
     createdAt: row.createdAt.toISOString(),
@@ -108,7 +109,10 @@ export function toChannelDto({ row, creator, unreadCount, isMember }: ToChannelD
   };
 }
 
-export function toChannelMemberDto(row: ChannelMembershipRow, source: ChatMemberSource): ChannelMemberDto {
+export function toChannelMemberDto(
+  row: ChannelMembershipRow,
+  source: ChatMemberSource,
+): ChannelMemberDto {
   const { firstName, lastName } = toChatParticipant(source);
   return {
     id: row.memberId,
@@ -119,7 +123,7 @@ export function toChannelMemberDto(row: ChannelMembershipRow, source: ChatMember
       id: source.member.id,
       firstName,
       lastName,
-      user: { image: source.user?.image ?? null },
+      avatar: source.member.avatar ?? null,
     },
   };
 }
@@ -137,24 +141,19 @@ export function toChannelMembershipDto(row: ChannelMembershipRow): ChannelMember
   };
 }
 
-/** One lookup serves a whole channel list: creators keyed by member id. */
 export async function loadChannelCreators(
   db: Database,
   organizationId: string,
   rows: ChannelRow[],
 ): Promise<Map<string, ChatMemberSource>> {
-  const ids = [...new Set(rows.map((row) => row.createdById).filter((id): id is string => id !== null))];
+  const ids = [
+    ...new Set(rows.map((row) => row.createdById).filter((id): id is string => id !== null)),
+  ];
   if (ids.length === 0) return new Map();
   const sources = await loadChatMemberSources(db, organizationId, { memberIds: ids });
   return new Map(sources.map((source) => [source.member.id, source]));
 }
 
-/**
- * Unread = messages posted after the caller's `channel_member.lastReadAt`, or
- * every message when they have never opened the channel. One grouped query
- * answers every channel on the list; memberships the caller does not hold are
- * simply absent from the result.
- */
 export async function loadUnreadCounts(
   db: Database,
   memberships: ChannelMembershipRow[],

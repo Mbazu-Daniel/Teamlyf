@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { member } from "@teamlyf/db/organization-schema";
 import { taskActivity, taskSubscriber } from "@teamlyf/db/project-schema";
@@ -12,12 +7,6 @@ import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateTaskSubscriberDto } from "../task/dto";
 
-/**
- * Task subscribers: organization members who opt in to notifications about a
- * task. The subscriber is stored as a member id — the same actor type the rest
- * of the task surface uses — and the member row is joined on read so the UI can
- * show a name without resolving users itself.
- */
 @Injectable()
 export class TaskSubscriberService {
   constructor(
@@ -28,10 +17,7 @@ export class TaskSubscriberService {
   async getSubscribers(orgId: string, projectId: string, taskId: string) {
     await this.access.requireTask(orgId, projectId, taskId);
     return this.db.query.taskSubscriber.findMany({
-      where: and(
-        eq(taskSubscriber.organizationId, orgId),
-        eq(taskSubscriber.taskId, taskId),
-      ),
+      where: and(eq(taskSubscriber.organizationId, orgId), eq(taskSubscriber.taskId, taskId)),
       with: {
         member: { columns: { id: true, firstName: true, lastName: true, userId: true } },
       },
@@ -48,8 +34,6 @@ export class TaskSubscriberService {
   ) {
     await this.access.requireTask(orgId, projectId, taskId);
 
-    // Only real organization members may subscribe; the id is validated against
-    // the org boundary before it ever reaches the table.
     const memberRow = await this.db.query.member.findFirst({
       where: and(eq(member.id, dto.memberId), eq(member.organizationId, orgId)),
       columns: { id: true },
@@ -57,14 +41,9 @@ export class TaskSubscriberService {
     if (!memberRow) throw new BadRequestException(`Member ${dto.memberId} not in organization`);
 
     const existing = await this.db.query.taskSubscriber.findFirst({
-      where: and(
-        eq(taskSubscriber.taskId, taskId),
-        eq(taskSubscriber.memberId, dto.memberId),
-      ),
+      where: and(eq(taskSubscriber.taskId, taskId), eq(taskSubscriber.memberId, dto.memberId)),
     });
     if (existing) {
-      // Re-subscribing is how preferences get edited; without a payload it is
-      // a no-op that simply confirms the subscription.
       if (!dto.preferences) return existing;
       const [updated] = await this.db
         .update(taskSubscriber)

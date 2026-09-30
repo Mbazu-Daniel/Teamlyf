@@ -13,12 +13,15 @@ import { MessageReactionsService } from "./message-reactions.service";
 export class MessageReactionsController {
   constructor(private readonly reactions: MessageReactionsService) {}
 
-  /** Literal route first: never let a later `:something` shadow `by-message`. */
   @Get("by-message")
   @RequirePermission("chat", "read")
   @ApiOperation({ summary: "Everyone's reactions on one message" })
   @ApiParam({ name: "orgId" })
-  byMessage(@Param("orgId") orgId: string, @Query() query: MessageReactionsQueryDto, @CurrentMember() member: SessionMember) {
+  byMessage(
+    @Param("orgId") orgId: string,
+    @Query() query: MessageReactionsQueryDto,
+    @CurrentMember() member: SessionMember,
+  ) {
     return this.reactions.listByMessage(orgId, query.messageId, query.messageType, member.id);
   }
 }

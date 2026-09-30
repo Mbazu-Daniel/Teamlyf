@@ -10,15 +10,19 @@ import { directMessage, messageAttachment } from "@teamlyf/db";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { STORAGE_SERVICE, type StorageService } from "../../../common/storage/storage.types";
-import { loadChatMemberSources, toChatParticipant, type ChatParticipant } from "../shared/member.mapper";
+import {
+  loadChatMemberSources,
+  toChatParticipant,
+  type ChatParticipant,
+} from "../shared/member.mapper";
 import type { ChatMessageDto } from "../shared/message.mapper";
 import { presentDirectMessages } from "./direct-message-presenter";
 
 export type CreateDirectMessageArgs = {
   organizationId: string;
-  /** Sending member's id (`member.id`, never the auth user id). */
+
   senderId: string;
-  /** Partner's member id — also reported back as `conversationId`. */
+
   recipientId: string;
   content: string;
   parentMessageId?: string;
@@ -34,13 +38,6 @@ export class DirectMessagesService {
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
-  /**
-   * Gateway seam: insert a direct message (as a thread reply when
-   * `parentMessageId` is given), link attachments the composer already
-   * uploaded, and return the fully mapped DTO. Free of socket and HTTP
-   * concerns so the gateway and the `POST /direct-messages` controller share
-   * one path.
-   */
   async createDirectMessage(args: CreateDirectMessageArgs): Promise<ChatMessageDto> {
     const { organizationId, senderId, recipientId, content } = args;
     if (senderId === recipientId) throw new BadRequestException("Cannot message yourself");
@@ -82,10 +79,6 @@ export class DirectMessagesService {
     return message;
   }
 
-  /**
-   * Gateway seam: soft-delete one of the caller's own messages. The parent id
-   * rides back so the gateway can refresh the thread the message hung from.
-   */
   async deleteDirectMessage(
     organizationId: string,
     memberId: string,
@@ -111,7 +104,6 @@ export class DirectMessagesService {
     return { messageId: found.id, parentMessageId: found.parentMessageId };
   }
 
-  /** Stamps `read_at` on every unread message the partner sent the caller. */
   async markConversationAsRead(
     organizationId: string,
     memberId: string,
@@ -158,7 +150,6 @@ export class DirectMessagesService {
     return parent;
   }
 
-  /** Only the sender's own unlinked uploads can be attached to a message. */
   private async linkAttachments(
     organizationId: string,
     senderId: string,

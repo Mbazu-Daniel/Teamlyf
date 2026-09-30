@@ -1,11 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsIn, IsUUID } from "class-validator";
 
-/**
- * The ported UI posts `mentionedUserId`, but the value it collects from the
- * mention picker is the *member* id (`member.id`), which is exactly what the
- * `message_mention.mentioned_member_id` column wants — no translation needed.
- */
 export class CreateMentionDto {
   @ApiProperty({
     description: "Message the mention was posted in",

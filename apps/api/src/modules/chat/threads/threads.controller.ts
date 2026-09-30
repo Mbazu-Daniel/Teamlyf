@@ -15,7 +15,9 @@ export class ThreadsController {
 
   @Get("threads")
   @RequirePermission("chat", "read")
-  @ApiOperation({ summary: "Threads the caller takes part in, across channels and direct messages" })
+  @ApiOperation({
+    summary: "Threads the caller takes part in, across channels and direct messages",
+  })
   @ApiParam({ name: "orgId" })
   list(
     @Param("orgId") orgId: string,

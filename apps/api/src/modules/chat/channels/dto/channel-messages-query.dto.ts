@@ -2,11 +2,6 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
 
-/**
- * `?page=&limit=&before=` — the infinite query sends `page=1` on the first load
- * and then swaps it for `before`, the ISO `createdAt` of the oldest message it
- * already holds.
- */
 export class ChannelMessagesQueryDto {
   @ApiPropertyOptional({ example: 1, minimum: 1, description: "Ignored once `before` is set" })
   @IsOptional()

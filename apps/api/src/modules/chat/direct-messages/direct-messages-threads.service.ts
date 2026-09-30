@@ -15,11 +15,6 @@ export class DirectMessagesThreadsService {
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
-  /**
-   * The replies hanging off one root message, oldest first. The replies are
-   * scoped to the pair as well as the parent, so a parent id from another
-   * conversation can never leak its thread into this one.
-   */
   async getThreadReplies(
     organizationId: string,
     memberId: string,

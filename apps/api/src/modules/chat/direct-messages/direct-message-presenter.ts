@@ -10,23 +10,14 @@ export type DirectMessageRow = typeof directMessage.$inferSelect;
 type PresentDirectMessagesArgs = {
   db: Database;
   organizationId: string;
-  /** The signed-in member — decides `isCurrentUserMessage`. */
+
   currentMemberId: string;
   rows: DirectMessageRow[];
   storage: StorageService;
-  /**
-   * The partner these rows belong to. Every conversation is the pair
-   * (caller, partner), so the same partner serves a whole page.
-   */
+
   conversationFor: (row: DirectMessageRow) => ChatParticipant;
 };
 
-/**
- * Loads senders, attachments, reactions and thread stats for a batch of direct
- * messages and maps them to the DTO the ported chat UI renders. The
- * conversation id reported on each message is the partner's member id, which
- * is what the UI navigates to — there is no conversation table.
- */
 export async function presentDirectMessages(
   args: PresentDirectMessagesArgs,
 ): Promise<ChatMessageDto[]> {

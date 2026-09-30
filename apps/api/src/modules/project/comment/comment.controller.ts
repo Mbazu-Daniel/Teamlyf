@@ -1,21 +1,7 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { SessionGuard } from "../../../common/better-auth/session.guard";
-import {
-  CurrentMember,
-  OrgMemberGuard,
-  PermissionsGuard,
-  RequirePermission,
-} from "../../rbac";
+import { CurrentMember, OrgMemberGuard, PermissionsGuard, RequirePermission } from "../../rbac";
 import type { SessionMember } from "../../../common/types";
 import { CreateCommentDto, UpdateCommentDto } from "./dto";
 import { CommentService } from "./comment.service";

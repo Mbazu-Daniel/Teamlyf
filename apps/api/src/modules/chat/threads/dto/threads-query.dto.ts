@@ -2,7 +2,6 @@ import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsInt, IsOptional, Max, Min } from "class-validator";
 
-/** `?page=&limit=` — the unified threads list is paged in the list envelope. */
 export class ThreadsQueryDto {
   @ApiPropertyOptional({ example: 1, minimum: 1 })
   @IsOptional()

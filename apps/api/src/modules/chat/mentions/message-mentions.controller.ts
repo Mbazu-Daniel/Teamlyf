@@ -30,7 +30,11 @@ export class MessageMentionsController {
   @ApiOperation({ summary: "A member's mentions, newest first" })
   @ApiParam({ name: "orgId" })
   @ApiParam({ name: "memberId" })
-  byMember(@Param("orgId") orgId: string, @Param("memberId") memberId: string, @CurrentMember() member: SessionMember) {
+  byMember(
+    @Param("orgId") orgId: string,
+    @Param("memberId") memberId: string,
+    @CurrentMember() member: SessionMember,
+  ) {
     if (member.id !== memberId) throw new ForbiddenException("You can only read your own mentions");
     return this.mentions.listByMember(orgId, memberId);
   }

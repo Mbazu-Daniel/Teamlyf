@@ -7,7 +7,6 @@ type UserRow = typeof user.$inferSelect;
 type MemberProfileRow = typeof memberProfile.$inferSelect;
 type DepartmentRow = typeof department.$inferSelect;
 
-/** Everything the ported chat UI reads off a workspace member. */
 export type ChatTenantMember = {
   id: string;
   tenantId: string;
@@ -28,7 +27,13 @@ export type ChatTenantMember = {
   employeeCode: string;
   employeeNumber: string | null;
   jobTitle: string | null;
-  address: { street: string | null; city: string | null; state: string | null; zip: string | null; country: string | null };
+  address: {
+    street: string | null;
+    city: string | null;
+    state: string | null;
+    zip: string | null;
+    country: string | null;
+  };
   street?: string | null;
   city?: string | null;
   state?: string | null;
@@ -44,7 +49,6 @@ export type ChatTenantMember = {
   updatedAt: string;
 };
 
-/** The `sender` / `otherMember` payload riding on every message. */
 export type ChatParticipant = {
   id: string;
   firstName: string;
@@ -61,7 +65,6 @@ export type ChatMemberSource = {
   department: Pick<DepartmentRow, "id" | "name"> | null;
 };
 
-/** better-auth stores one display name; the chat UI wants it split in two. */
 function splitDisplayName(fullName: string): { firstName: string; lastName: string } {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return { firstName: "", lastName: "" };
@@ -83,7 +86,7 @@ export function toChatParticipant(source: ChatMemberSource): ChatParticipant {
     firstName,
     lastName,
     preferredName: firstName,
-    avatar: source.user?.image ?? null,
+    avatar: source.member.avatar ?? null,
   };
 }
 
@@ -106,7 +109,7 @@ export function toChatTenantMember(source: ChatMemberSource, isOnline: boolean):
     presenceStatus: isOnline ? "online" : "offline",
     isOnline,
     customStatus: null,
-    avatar: source.user?.image ?? null,
+    avatar: source.member.avatar ?? null,
     email: source.user?.email ?? null,
     employeeCode: profile?.employeeNumber ?? "",
     employeeNumber: profile?.employeeNumber ?? null,
@@ -136,7 +139,6 @@ export function toChatTenantMember(source: ChatMemberSource, isOnline: boolean):
 
 export type LoadChatMembersOptions = { memberIds?: string[] };
 
-/** Senders arrive keyed by member id, which is what messages reference. */
 export async function loadChatMemberSourceMap(
   db: Database,
   organizationId: string,
@@ -146,11 +148,6 @@ export async function loadChatMemberSourceMap(
   return new Map(sources.map((source) => [source.member.id, source]));
 }
 
-/**
- * Loads member → user → HR profile → department for one organization. The
- * relational `with:` API is unavailable (these tables declare no relations),
- * so the four fetches stay explicit and are keyed together in memory.
- */
 export async function loadChatMemberSources(
   db: Database,
   organizationId: string,
@@ -187,7 +184,9 @@ export async function loadChatMemberSources(
 
   const usersById = new Map(userRows.map((row) => [row.id, row]));
   const profilesById = new Map(profileRows.map((row) => [row.memberId, row]));
-  const departmentsByMember = new Map(departmentRows.map((row) => [row.memberId, { id: row.departmentId, name: row.departmentName }]));
+  const departmentsByMember = new Map(
+    departmentRows.map((row) => [row.memberId, { id: row.departmentId, name: row.departmentName }]),
+  );
 
   return memberRows.map((memberRow) => ({
     member: memberRow,

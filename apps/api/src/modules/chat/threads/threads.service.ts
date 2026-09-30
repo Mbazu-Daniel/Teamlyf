@@ -5,11 +5,19 @@ import { and, count, eq, inArray, isNotNull, isNull, max, or } from "drizzle-orm
 import { DATABASE } from "../../../common/db/db.provider";
 import { STORAGE_SERVICE, type StorageService } from "../../../common/storage/storage.types";
 import { partnerIdOf } from "../direct-messages/conversation-partner";
-import { presentDirectMessages, type DirectMessageRow } from "../direct-messages/direct-message-presenter";
+import {
+  presentDirectMessages,
+  type DirectMessageRow,
+} from "../direct-messages/direct-message-presenter";
 import { loadChatMemberSourceMap, toChatParticipant } from "../shared/member.mapper";
 import { loadAttachments, loadReactions } from "../shared/message-related";
 import { parsePageParams, toListEnvelope, type ListEnvelope } from "../shared/pagination";
-import { toChatMessage, type ChatMessageDto, type ChatMessageRow, type ChatThreadStats } from "../shared/message.mapper";
+import {
+  toChatMessage,
+  type ChatMessageDto,
+  type ChatMessageRow,
+  type ChatThreadStats,
+} from "../shared/message.mapper";
 import type { ThreadsQueryDto } from "./dto/threads-query.dto";
 
 type ChannelRow = typeof message.$inferSelect;
@@ -34,11 +42,6 @@ export class ThreadsService {
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
-  /**
-   * Every root message with at least one reply that the caller can open —
-   * channel roots of channels they belong to and direct roots they send or
-   * receive — ordered by latest thread activity, paged for the threads screen.
-   */
   async getUnifiedThreads(
     organizationId: string,
     memberId: string,
@@ -74,8 +77,6 @@ export class ThreadsService {
     const channels = new Map(memberships.map((row) => [row.id, { id: row.id, name: row.name }]));
     const channelIds = [...channels.keys()];
 
-    // Only threaded channels matter, so the reply aggregate doubles as the
-    // candidate set: roots without replies never become records anyway.
     const replyStats = await this.db
       .select({ rootId: message.threadRootId, replies: count(), lastReply: max(message.createdAt) })
       .from(message)
@@ -165,13 +166,14 @@ export class ThreadsService {
       this.presentDirectThreads(pageRows.filter(isDirectThread), organizationId, memberId),
     ]);
 
-    // Re-interleave so the page keeps the activity order it was cut from.
     const records: ChatMessageDto[] = [];
     let channelIndex = 0;
     let directIndex = 0;
     for (const candidate of pageRows) {
       records.push(
-        candidate.kind === "channel" ? channelRecords[channelIndex++] : directRecords[directIndex++],
+        candidate.kind === "channel"
+          ? channelRecords[channelIndex++]
+          : directRecords[directIndex++],
       );
     }
     return records;
@@ -224,13 +226,14 @@ export class ThreadsService {
       conversationFor: (row) => {
         const partnerId = partnerIdOf(row, memberId);
         const source = partners.get(partnerId);
-        return source ? toChatParticipant(source) : { id: partnerId, firstName: "", lastName: "", avatar: null };
+        return source
+          ? toChatParticipant(source)
+          : { id: partnerId, firstName: "", lastName: "", avatar: null };
       },
     });
   }
 }
 
-/** Reply totals keyed by root; aggregate drivers disagree on both types. */
 function toStatsMap(rows: StatsRow[]): Map<string, ChatThreadStats> {
   const stats = new Map<string, ChatThreadStats>();
   for (const row of rows) {
@@ -247,7 +250,6 @@ function toDate(value: unknown): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-/** Threads rank by their newest reply, falling back to when the root was posted. */
 function activityOf(candidate: ThreadCandidate): number {
   return (candidate.stats.lastReplyTime ?? candidate.row.createdAt).getTime();
 }
@@ -260,7 +262,6 @@ function isDirectThread(candidate: ThreadCandidate): candidate is DirectThread {
   return candidate.kind === "direct";
 }
 
-/** The channel table calls the thread pointer `threadRootId`; the mapper reads `parentMessageId`. */
 function asChatMessageRow(row: ChannelRow): ChatMessageRow {
   return {
     id: row.id,

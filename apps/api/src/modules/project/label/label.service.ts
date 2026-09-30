@@ -35,7 +35,10 @@ export class LabelService {
     }
 
     for (const [index, id] of ids.entries()) {
-      await this.db.update(label).set({ sequence: (index + 1) * 1000 }).where(eq(label.id, id));
+      await this.db
+        .update(label)
+        .set({ sequence: (index + 1) * 1000 })
+        .where(eq(label.id, id));
     }
 
     return this.getLabels(orgId, projectId);
@@ -55,8 +58,7 @@ export class LabelService {
       .values({
         projectId,
         name: dto.name,
-        // Absent values are left off the statement so the column keeps its
-        // schema default (#60646C) rather than being re-typed here.
+
         color: dto.color,
         description: dto.description,
         parentId: dto.parentId,
@@ -66,7 +68,6 @@ export class LabelService {
     return created;
   }
 
-  /** The one lookup both the update and the delete start from. */
   private async requireLabel(projectId: string, labelId: string) {
     const found = await this.db.query.label.findFirst({
       where: and(eq(label.projectId, projectId), eq(label.id, labelId)),
@@ -91,8 +92,6 @@ export class LabelService {
     await this.access.requireProject(orgId, projectId);
     await this.requireLabel(projectId, labelId);
 
-    await this.db
-      .delete(label)
-      .where(and(eq(label.projectId, projectId), eq(label.id, labelId)));
+    await this.db.delete(label).where(and(eq(label.projectId, projectId), eq(label.id, labelId)));
   }
 }

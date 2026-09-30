@@ -1,12 +1,3 @@
-/**
- * Response envelopes the ported chat UI reads. Two shapes are used:
- *
- * - `ListEnvelope` — the `{name,size,limit,pageCount,page,previousPage,nextPage,
- *   totalItems,records}` list wrapper (conversations, threads, members).
- * - `MessagePage` — cursor-paginated message pages; the infinite query only
- *   advances while `hasMore && nextCursor` are both set.
- */
-
 export type ListEnvelope<T> = {
   name: string;
   size: number;
@@ -52,16 +43,11 @@ export type MessagePage<T> = {
   total: number;
   page: number;
   totalPages: number;
-  /** Oldest `createdAt` in this page — pass it back as `before` for the next one. */
+
   nextCursor: string | null;
   hasMore: boolean;
 };
 
-/**
- * Shapes an ascending list of messages (oldest first) plus one extra older row
- * — the caller fetches `limit + 1` to learn whether another page exists — into
- * the page envelope the UI consumes.
- */
 export function toMessagePage<T>(
   rows: T[],
   hasOlderRow: boolean,

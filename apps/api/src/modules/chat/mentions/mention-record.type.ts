@@ -1,10 +1,5 @@
 import type { ChatMessageKind } from "../shared/message.mapper";
 
-/**
- * Exactly what `apps/web/src/features/chat/data/chat-api.ts` reads as
- * `MessageMentionRecord`: newest first, `mentionedBy` always populated for a
- * live member, and only the message key that matches `messageType`.
- */
 export type MessageMentionRecord = {
   id: string;
   messageId: string;

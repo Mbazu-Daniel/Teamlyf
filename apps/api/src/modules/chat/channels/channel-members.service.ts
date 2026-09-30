@@ -10,7 +10,11 @@ import { channelMember } from "@teamlyf/db";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { loadChatMemberSources, type ChatMemberSource } from "../shared/member.mapper";
-import { requireChannelMembership, requireChannelRow, type ChannelMembershipRow } from "./channel-access";
+import {
+  requireChannelMembership,
+  requireChannelRow,
+  type ChannelMembershipRow,
+} from "./channel-access";
 import {
   toChannelMemberDto,
   toChannelMembershipDto,
@@ -18,14 +22,12 @@ import {
   type ChannelMembershipDto,
 } from "./channel.mapper";
 
-/** Membership rows joined with the member they belong to, for the members DTO. */
 type MemberRowWithSource = { row: ChannelMembershipRow; source: ChatMemberSource };
 
 @Injectable()
 export class ChannelMembersService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /** Join, idempotently — a second join returns the existing row unchanged. */
   async join(
     organizationId: string,
     memberId: string,
@@ -62,7 +64,6 @@ export class ChannelMembersService {
     }
   }
 
-  /** Everyone in the channel, oldest join first — a raw array, no envelope. */
   async getMembers(
     organizationId: string,
     memberId: string,
@@ -125,7 +126,6 @@ export class ChannelMembersService {
     });
   }
 
-  /** `lastReadAt = now()`, inserting the membership row when it does not exist yet. */
   async markRead(organizationId: string, memberId: string, channelId: string): Promise<void> {
     await requireChannelRow(this.db, organizationId, channelId);
     const now = new Date();
@@ -144,7 +144,6 @@ export class ChannelMembersService {
     });
   }
 
-  /** Member rows → member → user in one pass, dropping rows that resolve to nothing. */
   private async joinWithSources(
     organizationId: string,
     rows: ChannelMembershipRow[],

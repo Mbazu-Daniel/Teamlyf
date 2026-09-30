@@ -1,6 +1,13 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { channel, channelMember, directMessage, member, message, messageMention } from "@teamlyf/db";
+import {
+  channel,
+  channelMember,
+  directMessage,
+  member,
+  message,
+  messageMention,
+} from "@teamlyf/db";
 import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { requireMessageAccess } from "../shared/message-access";
 import { DATABASE } from "../../../common/db/db.provider";
@@ -29,18 +36,25 @@ type DirectMentionMessage = {
 export class MessageMentionsService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /**
-   * Records one mention after the message is sent. Re-posting the same mention
-   * (retry, double socket ack) returns the row that already exists instead of
-   * stacking duplicates — `message_mention` carries no natural key to conflict on.
-   */
   async create(
     organizationId: string,
     mentionedById: string,
     dto: CreateMentionDto,
   ): Promise<MessageMentionRow> {
-    await requireMessageAccess(this.db, organizationId, dto.messageType, dto.messageId, mentionedById);
-    await requireMessageAccess(this.db, organizationId, dto.messageType, dto.messageId, dto.mentionedUserId);
+    await requireMessageAccess(
+      this.db,
+      organizationId,
+      dto.messageType,
+      dto.messageId,
+      mentionedById,
+    );
+    await requireMessageAccess(
+      this.db,
+      organizationId,
+      dto.messageType,
+      dto.messageId,
+      dto.mentionedUserId,
+    );
     await this.requireMember(organizationId, dto.mentionedUserId);
 
     const [existing] = await this.db
@@ -71,7 +85,6 @@ export class MessageMentionsService {
     return created;
   }
 
-  /** The mentions inbox: hydrated rows, newest first. */
   async listByMember(organizationId: string, memberId: string): Promise<MessageMentionRecord[]> {
     const rows = await this.db
       .select()
@@ -84,7 +97,6 @@ export class MessageMentionsService {
       )
       .orderBy(desc(messageMention.createdAt));
 
-    // Text column: only the two kinds the UI understands become records.
     const mentions = rows.filter(
       (row): row is typeof row & { messageType: ChatMessageKind } =>
         row.messageType === "channel" || row.messageType === "direct",
@@ -116,41 +128,47 @@ export class MessageMentionsService {
     const channelByMessageId = new Map(channelRows.map((row) => [row.id, row]));
     const directByMessageId = new Map(directRows.map((row) => [row.id, row]));
 
-    return mentions.filter((mention) => mention.messageType === "channel" ? channelByMessageId.has(mention.messageId) : directByMessageId.has(mention.messageId)).map((mention): MessageMentionRecord => {
-      const record: MessageMentionRecord = {
-        id: mention.id,
-        messageId: mention.messageId,
-        messageType: mention.messageType,
-        createdAt: mention.createdAt.toISOString(),
-      };
+    return mentions
+      .filter((mention) =>
+        mention.messageType === "channel"
+          ? channelByMessageId.has(mention.messageId)
+          : directByMessageId.has(mention.messageId),
+      )
+      .map((mention): MessageMentionRecord => {
+        const record: MessageMentionRecord = {
+          id: mention.id,
+          messageId: mention.messageId,
+          messageType: mention.messageType,
+          createdAt: mention.createdAt.toISOString(),
+        };
 
-      const mentioner = mentionerByMemberId.get(mention.mentionedById);
-      if (mentioner) record.mentionedBy = mentioner;
+        const mentioner = mentionerByMemberId.get(mention.mentionedById);
+        if (mentioner) record.mentionedBy = mentioner;
 
-      if (mention.messageType === "channel") {
-        const channelMessage = channelByMessageId.get(mention.messageId);
-        if (channelMessage) {
-          record.channelMessage = {
-            id: channelMessage.id,
-            content: channelMessage.content,
-            channelId: channelMessage.channelId,
-            channel: { id: channelMessage.channelId, name: channelMessage.channelName },
-          };
+        if (mention.messageType === "channel") {
+          const channelMessage = channelByMessageId.get(mention.messageId);
+          if (channelMessage) {
+            record.channelMessage = {
+              id: channelMessage.id,
+              content: channelMessage.content,
+              channelId: channelMessage.channelId,
+              channel: { id: channelMessage.channelId, name: channelMessage.channelName },
+            };
+          }
+        } else {
+          const direct = directByMessageId.get(mention.messageId);
+          if (direct) {
+            record.directMessage = {
+              id: direct.id,
+              content: direct.content,
+              senderId: direct.senderId,
+              recipientId: direct.recipientId,
+            };
+          }
         }
-      } else {
-        const direct = directByMessageId.get(mention.messageId);
-        if (direct) {
-          record.directMessage = {
-            id: direct.id,
-            content: direct.content,
-            senderId: direct.senderId,
-            recipientId: direct.recipientId,
-          };
-        }
-      }
 
-      return record;
-    });
+        return record;
+      });
   }
 
   private loadChannelMessages(
@@ -168,8 +186,17 @@ export class MessageMentionsService {
       })
       .from(message)
       .innerJoin(channel, eq(channel.id, message.channelId))
-      .innerJoin(channelMember, and(eq(channelMember.channelId, channel.id), eq(channelMember.memberId, memberId)))
-      .where(and(inArray(message.id, messageIds), eq(channel.organizationId, organizationId), isNull(message.deletedAt)));
+      .innerJoin(
+        channelMember,
+        and(eq(channelMember.channelId, channel.id), eq(channelMember.memberId, memberId)),
+      )
+      .where(
+        and(
+          inArray(message.id, messageIds),
+          eq(channel.organizationId, organizationId),
+          isNull(message.deletedAt),
+        ),
+      );
   }
 
   private loadDirectMessages(
@@ -196,8 +223,6 @@ export class MessageMentionsService {
       );
   }
 
-
-  /** Keeps `mentioned_member_id` inside this workspace (the FK only checks existence). */
   private async requireMember(organizationId: string, memberId: string): Promise<void> {
     const [found] = await this.db
       .select({ id: member.id })

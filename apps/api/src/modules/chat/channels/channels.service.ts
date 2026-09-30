@@ -1,18 +1,29 @@
 import { ConflictException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { channel, channelMember, message, messageAttachment, messageMention, messageReaction } from "@teamlyf/db";
+import {
+  channel,
+  channelMember,
+  message,
+  messageAttachment,
+  messageMention,
+  messageReaction,
+} from "@teamlyf/db";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { DATABASE } from "../../../common/db/db.provider";
 import { loadChatMemberSources } from "../shared/member.mapper";
 import { requireChannelMembership, requireChannelRow } from "./channel-access";
-import { loadChannelCreators, loadUnreadCounts, toChannelDto, type ChannelDto } from "./channel.mapper";
+import {
+  loadChannelCreators,
+  loadUnreadCounts,
+  toChannelDto,
+  type ChannelDto,
+} from "./channel.mapper";
 import type { CreateChannelDto } from "./dto/create-channel.dto";
 
 @Injectable()
 export class ChannelsService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /** Every channel in the workspace, newest first, flagged with the caller's view of it. */
   async list(organizationId: string, memberId: string): Promise<ChannelDto[]> {
     const rows = await this.db
       .select()
@@ -50,7 +61,11 @@ export class ChannelsService {
     );
   }
 
-  async create(organizationId: string, memberId: string, dto: CreateChannelDto): Promise<ChannelDto> {
+  async create(
+    organizationId: string,
+    memberId: string,
+    dto: CreateChannelDto,
+  ): Promise<ChannelDto> {
     const existing = await this.db.query.channel.findFirst({
       where: and(eq(channel.organizationId, organizationId), eq(channel.name, dto.name)),
     });
@@ -68,14 +83,13 @@ export class ChannelsService {
           createdById: memberId,
         })
         .returning();
-      await tx
-        .insert(channelMember)
-        .values({ channelId: row.id, memberId })
-        .onConflictDoNothing();
+      await tx.insert(channelMember).values({ channelId: row.id, memberId }).onConflictDoNothing();
       return row;
     });
 
-    const [creator] = await loadChatMemberSources(this.db, organizationId, { memberIds: [memberId] });
+    const [creator] = await loadChatMemberSources(this.db, organizationId, {
+      memberIds: [memberId],
+    });
     return toChannelDto({ row: created, creator: creator ?? null, unreadCount: 0, isMember: true });
   }
 
@@ -101,15 +115,21 @@ export class ChannelsService {
     });
   }
 
-  /** The channel owner only. The schema has no tombstone, so the row goes away (cascading). */
-  async remove(organizationId: string, memberId: string, channelId: string): Promise<{ message: string }> {
+  async remove(
+    organizationId: string,
+    memberId: string,
+    channelId: string,
+  ): Promise<{ message: string }> {
     const channelRow = await requireChannelRow(this.db, organizationId, channelId);
     if (channelRow.createdById !== memberId) {
       throw new ForbiddenException("Only the channel owner can delete this channel");
     }
 
     await this.db.transaction(async (tx) => {
-      const rows = await tx.select({ id: message.id }).from(message).where(eq(message.channelId, channelId));
+      const rows = await tx
+        .select({ id: message.id })
+        .from(message)
+        .where(eq(message.channelId, channelId));
       const messageIds = rows.map((row) => row.id);
       if (messageIds.length > 0) {
         const byChannelMessage = and(

@@ -18,11 +18,6 @@ export class ChannelMessagesService {
     @Inject(STORAGE_SERVICE) private readonly storage: StorageService,
   ) {}
 
-  /**
-   * The newest page of root messages, oldest → newest inside the page. One row
-   * past `limit` tells the client whether an older page exists, and the page's
-   * oldest `createdAt` is the cursor for it.
-   */
   async list(
     organizationId: string,
     memberId: string,
@@ -46,7 +41,11 @@ export class ChannelMessagesService {
         .select()
         .from(message)
         .where(
-          and(eq(message.channelId, channelId), roots, cursor ? lt(message.createdAt, cursor) : undefined),
+          and(
+            eq(message.channelId, channelId),
+            roots,
+            cursor ? lt(message.createdAt, cursor) : undefined,
+          ),
         )
         .orderBy(desc(message.createdAt), desc(message.id))
         .limit(params.limit + 1),
@@ -59,7 +58,13 @@ export class ChannelMessagesService {
     const hasOlderRow = rows.length > params.limit;
     const pageRows = (hasOlderRow ? rows.slice(0, params.limit) : rows).reverse();
 
-    const messages = await this.mapPage(organizationId, channelRow.id, channelRow.name, memberId, pageRows);
+    const messages = await this.mapPage(
+      organizationId,
+      channelRow.id,
+      channelRow.name,
+      memberId,
+      pageRows,
+    );
     return toMessagePage(
       messages,
       hasOlderRow,
@@ -69,7 +74,6 @@ export class ChannelMessagesService {
     );
   }
 
-  /** Every reply to `parentMessageId`, oldest → newest, as `{ records }`. */
   async thread(
     organizationId: string,
     memberId: string,
@@ -96,10 +100,11 @@ export class ChannelMessagesService {
       )
       .orderBy(asc(message.createdAt), asc(message.id));
 
-    return { records: await this.mapPage(organizationId, channelRow.id, channelRow.name, memberId, rows) };
+    return {
+      records: await this.mapPage(organizationId, channelRow.id, channelRow.name, memberId, rows),
+    };
   }
 
-  /** Filtered message search over the channel, newest first. */
   async search(
     organizationId: string,
     memberId: string,
@@ -123,7 +128,10 @@ export class ChannelMessagesService {
     if (query.dateTo) conditions.push(lte(message.createdAt, new Date(query.dateTo)));
 
     const [totalRow, rows] = await Promise.all([
-      this.db.select({ total: count() }).from(message).where(and(...conditions)),
+      this.db
+        .select({ total: count() })
+        .from(message)
+        .where(and(...conditions)),
       this.db
         .select()
         .from(message)
@@ -133,7 +141,13 @@ export class ChannelMessagesService {
         .offset(offset),
     ]);
 
-    const messages = await this.mapPage(organizationId, channelRow.id, channelRow.name, memberId, rows);
+    const messages = await this.mapPage(
+      organizationId,
+      channelRow.id,
+      channelRow.name,
+      memberId,
+      rows,
+    );
     return { messages, total: Number(totalRow[0]?.total ?? 0), limit, offset };
   }
 
@@ -155,7 +169,6 @@ export class ChannelMessagesService {
   }
 }
 
-/** The cursor is the ISO `createdAt` of the last message the client holds. */
 function parseBeforeCursor(before?: string): Date | null {
   if (!before) return null;
   const cursor = new Date(before);
@@ -165,7 +178,6 @@ function parseBeforeCursor(before?: string): Date | null {
   return cursor;
 }
 
-/** Keeps `%` and `_` typed by a user from turning into LIKE wildcards. */
 function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (char) => `\\${char}`);
 }

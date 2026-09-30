@@ -17,10 +17,6 @@ import {
 import type { AuthenticatedSocket } from "./ws-auth";
 import { broadcastChannel } from "./channel-broadcast";
 
-/**
- * Dependencies the message handlers need — passed in by the gateway so these
- * stay plain functions instead of a second injectable.
- */
 export type MessageSocketDeps = {
   db: Database;
   writer: ChannelMessageWriterService;
@@ -37,7 +33,12 @@ export async function sendChannelMessage(
   try {
     const channelId = data?.channelId;
     const content = data?.content;
-    if (typeof channelId !== "string" || !channelId || typeof content !== "string" || !content.trim()) {
+    if (
+      typeof channelId !== "string" ||
+      !channelId ||
+      typeof content !== "string" ||
+      !content.trim()
+    ) {
       return { success: false, error: "channelId and content are required" };
     }
     const messageRow = await deps.writer.createChannelMessage({
@@ -67,7 +68,12 @@ export async function sendDirectMessage(
   try {
     const recipientId = data?.recipientId;
     const content = data?.content;
-    if (typeof recipientId !== "string" || !recipientId || typeof content !== "string" || !content.trim()) {
+    if (
+      typeof recipientId !== "string" ||
+      !recipientId ||
+      typeof content !== "string" ||
+      !content.trim()
+    ) {
       return { success: false, error: "recipientId and content are required" };
     }
     const messageRow = await deps.dm.createDirectMessage({
@@ -104,13 +110,22 @@ export async function deleteMessage(
       const deleted = await deps.writer.deleteChannelMessage(organizationId, memberId, messageId);
       const row = await deps.db.query.message.findFirst({ where: eq(message.id, messageId) });
       if (row?.channelId) {
-        await broadcastChannel(deps.db, client, row.channelId, "message-deleted", {
-          messageId: deleted.messageId,
-          parentMessageId: deleted.parentMessageId ?? undefined,
-        }, true);
+        await broadcastChannel(
+          deps.db,
+          client,
+          row.channelId,
+          "message-deleted",
+          {
+            messageId: deleted.messageId,
+            parentMessageId: deleted.parentMessageId ?? undefined,
+          },
+          true,
+        );
       }
     } else {
-      const row = await deps.db.query.directMessage.findFirst({ where: eq(directMessage.id, messageId) });
+      const row = await deps.db.query.directMessage.findFirst({
+        where: eq(directMessage.id, messageId),
+      });
       if (row && (row.senderId === memberId || row.recipientId === memberId)) {
         const deleted = await deps.dm.deleteDirectMessage(organizationId, memberId, messageId);
         for (const viewerId of [row.senderId, row.recipientId]) {
@@ -143,18 +158,30 @@ export async function applyReaction(
     const { messageId, messageType } = parsed;
     const { memberId, organizationId } = client.data;
     const args = { organizationId, messageType, messageId, memberId, reaction: data.reaction };
-    const event = add ? await deps.reactions.addReaction(args) : await deps.reactions.removeReaction(args);
+    const event = add
+      ? await deps.reactions.addReaction(args)
+      : await deps.reactions.removeReaction(args);
 
     if (messageType === "channel") {
       const row = await deps.db.query.message.findFirst({ where: eq(message.id, messageId) });
       if (row?.channelId) {
-        await broadcastChannel(deps.db, client, row.channelId, add ? "reaction-added" : "reaction-removed", event);
+        await broadcastChannel(
+          deps.db,
+          client,
+          row.channelId,
+          add ? "reaction-added" : "reaction-removed",
+          event,
+        );
       }
     } else {
-      const row = await deps.db.query.directMessage.findFirst({ where: eq(directMessage.id, messageId) });
+      const row = await deps.db.query.directMessage.findFirst({
+        where: eq(directMessage.id, messageId),
+      });
       if (row && (row.senderId === memberId || row.recipientId === memberId)) {
         const otherId = row.senderId === memberId ? row.recipientId : row.senderId;
-        client.nsp.to(CHAT_ROOMS.member(otherId)).emit(add ? "reaction-added" : "reaction-removed", event);
+        client.nsp
+          .to(CHAT_ROOMS.member(otherId))
+          .emit(add ? "reaction-added" : "reaction-removed", event);
       }
     }
     return { success: true };
@@ -167,7 +194,8 @@ function parseMessageKind(data: ReactionPayload | DeleteMessagePayload): {
   messageId: string;
   messageType: "channel" | "direct";
 } | null {
-  const messageId = typeof data?.messageId === "string" && data.messageId ? data.messageId : undefined;
+  const messageId =
+    typeof data?.messageId === "string" && data.messageId ? data.messageId : undefined;
   const messageType = data?.messageType;
   if (!messageId || (messageType !== "channel" && messageType !== "direct")) return null;
   return { messageId, messageType };
