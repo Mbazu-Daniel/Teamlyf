@@ -1,10 +1,6 @@
 import { index, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { member } from "../organization/member";
 
-/**
- * Polymorphic over message kinds: `messageId` is a channel message id or a
- * direct message id, told apart by `messageType`, so it carries no foreign key.
- */
 export const messageReaction = pgTable(
   "message_reaction",
   {

@@ -19,7 +19,9 @@ import { aiProviderSource } from "./provider-source";
 export const aiUsage = pgTable(
   "ai_usage",
   {
-    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
+    id: uuid("id")
+      .$defaultFn(() => generateId())
+      .primaryKey(),
     organizationId: organizationReference(),
     memberId: uuid("member_id").notNull(),
     agentId: uuid("agent_id"),
@@ -44,12 +46,18 @@ export const aiUsage = pgTable(
       foreignColumns: [agent.organizationId, agent.id],
       name: "ai_usage_organization_agent_fk",
     }),
-    check("ai_usage_tokens_total_check", sql`${t.totalTokens} = ${t.inputTokens} + ${t.outputTokens}`),
+    check(
+      "ai_usage_tokens_total_check",
+      sql`${t.totalTokens} = ${t.inputTokens} + ${t.outputTokens}`,
+    ),
     check("ai_usage_tokens_non_negative_check", sql`${t.inputTokens} >= 0`),
     check("ai_usage_output_tokens_non_negative_check", sql`${t.outputTokens} >= 0`),
     check("ai_usage_total_tokens_non_negative_check", sql`${t.totalTokens} >= 0`),
     check("ai_usage_allowance_non_negative_check", sql`${t.allowanceConsumed} >= 0`),
-    check("ai_usage_cost_non_negative_check", sql`${t.estimatedCostUsd} IS NULL OR ${t.estimatedCostUsd} >= 0`),
+    check(
+      "ai_usage_cost_non_negative_check",
+      sql`${t.estimatedCostUsd} IS NULL OR ${t.estimatedCostUsd} >= 0`,
+    ),
     index("ai_usage_organization_id_idx").on(t.organizationId),
     index("ai_usage_member_id_idx").on(t.memberId),
     index("ai_usage_agent_id_idx").on(t.agentId),

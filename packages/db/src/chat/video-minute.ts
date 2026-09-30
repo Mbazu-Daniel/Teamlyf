@@ -2,7 +2,6 @@ import { bigint, integer, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { organization } from "../organization/organization";
 
-/** Monthly video-minute allowance + burn for one organization. */
 export const videoMinutePeriod = pgTable("video_minute_period", {
   id: uuid("id").primaryKey().$defaultFn(generateId),
   organizationId: uuid("organization_id")
@@ -16,7 +15,6 @@ export const videoMinutePeriod = pgTable("video_minute_period", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** One row per ended call, charged in participant-minutes. */
 export const videoMinuteUsageEvent = pgTable("video_minute_usage_event", {
   id: uuid("id").primaryKey().$defaultFn(generateId),
   organizationId: uuid("organization_id")

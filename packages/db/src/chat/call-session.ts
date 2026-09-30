@@ -1,4 +1,13 @@
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { generateId } from "../id";
 import { organization } from "../organization/organization";
 import { member } from "../organization/member";
@@ -21,7 +30,7 @@ export const callSession = pgTable(
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     roomId: uuid("room_id").references(() => callRoom.id, { onDelete: "set null" }),
-    /** LiveKit room name — unique so joins address one live session. */
+
     roomName: text("room_name").notNull(),
     callType: text("call_type").notNull().default("direct"),
     status: text("status").notNull().default("initiated"),

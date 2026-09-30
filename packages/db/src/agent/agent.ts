@@ -5,7 +5,9 @@ import { organizationReference } from "../organization/membership-columns";
 export const agent = pgTable(
   "agent",
   {
-    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
+    id: uuid("id")
+      .$defaultFn(() => generateId())
+      .primaryKey(),
     organizationId: organizationReference(),
     name: text("name").notNull(),
     description: text("description"),

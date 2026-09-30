@@ -22,4 +22,3 @@ export const member = pgTable(
     uniqueIndex("member_organization_id_id_idx").on(t.organizationId, t.id),
   ],
 );
-

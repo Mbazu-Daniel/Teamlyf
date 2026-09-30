@@ -16,7 +16,9 @@ import { organizationReference } from "../organization/membership-columns";
 export const aiProviderConfig = pgTable(
   "ai_provider_config",
   {
-    id: uuid("id").$defaultFn(() => generateId()).primaryKey(),
+    id: uuid("id")
+      .$defaultFn(() => generateId())
+      .primaryKey(),
     organizationId: organizationReference(),
     provider: text("provider").notNull(),
     model: text("model").notNull(),
