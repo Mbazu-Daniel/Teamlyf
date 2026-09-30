@@ -1,12 +1,30 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
-import { callParticipant, callSession, channel, channelMember, generateId, member } from "@teamlyf/db";
+import {
+  callParticipant,
+  callSession,
+  channel,
+  channelMember,
+  generateId,
+  member,
+} from "@teamlyf/db";
 import { and, eq, inArray } from "drizzle-orm";
 import type { ApiEnv } from "../../common/config/env";
 import { API_ENV } from "../../common/config/env.module";
 import { DATABASE } from "../../common/db/db.provider";
 import { toCallSessionDto } from "./call.mapper";
-import { getCallHistory, loadMemberSummaries, loadMissedCalls, loadParticipants } from "./calls-history.mapper";
+import {
+  getCallHistory,
+  loadMemberSummaries,
+  loadMissedCalls,
+  loadParticipants,
+} from "./calls-history.mapper";
 import { issueCallToken, signCallToken } from "./calls-token";
 import type {
   CallHistoryRecord,
@@ -18,7 +36,6 @@ import type {
 } from "./calls.types";
 import { VideoMinutesService } from "./video-minutes.service";
 
-// Types stay importable from this path for existing consumers; canonical home is ./calls.types.
 export type * from "./calls.types";
 
 @Injectable()
@@ -29,13 +46,6 @@ export class CallsService {
     private readonly videoMinutes: VideoMinutesService,
   ) {}
 
-  // ------------------------------------------------------------- lifecycle
-
-  /**
-   * Creates the ringing call: one `call_session` row plus pending participants,
-   * returns the DTO the `initiate-call` ack carries. Channel calls require the
-   * caller to be a channel member; DM calls require both members in the org.
-   */
   async initiate(args: InitiateCallArgs): Promise<CallSessionDto> {
     const { organizationId, initiatorId } = args;
     const callType = args.callType === "video" ? "video" : "voice";
@@ -54,7 +64,9 @@ export class CallsService {
         where: and(eq(channelMember.channelId, channelId), eq(channelMember.memberId, initiatorId)),
       });
       if (!membership) throw new ForbiddenException("You must be a member of this channel");
-      invited = [...new Set(args.participantIds ?? [])].filter((id) => typeof id === "string" && id && id !== initiatorId);
+      invited = [...new Set(args.participantIds ?? [])].filter(
+        (id) => typeof id === "string" && id && id !== initiatorId,
+      );
     } else if (args.recipientId) {
       recipientId = args.recipientId;
       if (recipientId === initiatorId) throw new BadRequestException("Cannot call yourself");
@@ -93,25 +105,22 @@ export class CallsService {
       })
       .returning();
 
-    await this.db
-      .insert(callParticipant)
-      .values(
-        [initiatorId, ...invited].map((memberId) => ({ callSessionId: id, memberId, status: "pending" as const })),
-      );
+    await this.db.insert(callParticipant).values(
+      [initiatorId, ...invited].map((memberId) => ({
+        callSessionId: id,
+        memberId,
+        status: "pending" as const,
+      })),
+    );
 
     const participants = await loadParticipants(this.db, [id]);
     return toCallSessionDto(row, participants.get(id) ?? []);
   }
 
-  /**
-   * Marks the caller/accepter joined and issues the LiveKit room token.
-   * Backs both the `accept-call` ack and `POST /calls/:callId/join`.
-   */
   async join(callId: string, organizationId: string, memberId: string): Promise<JoinCallResult> {
     const row = await this.requireActiveSession(callId, organizationId);
     await this.requireCanJoin(row, organizationId, memberId);
 
-    // Validate media configuration before persisting a successful join.
     const summary = (await loadMemberSummaries(this.db, organizationId, [memberId])).get(memberId);
     const participantName = summary ? displayName(summary) : memberId;
     const token = signCallToken(this.env, memberId, participantName, row.roomName);
@@ -128,7 +137,9 @@ export class CallsService {
           .where(eq(callParticipant.id, existing.id));
       }
     } else {
-      await this.db.insert(callParticipant).values({ callSessionId: callId, memberId, status: "joined", joinedAt: now });
+      await this.db
+        .insert(callParticipant)
+        .values({ callSessionId: callId, memberId, status: "joined", joinedAt: now });
     }
 
     const participants = await loadParticipants(this.db, [callId]);
@@ -141,11 +152,7 @@ export class CallsService {
       participantName,
     };
   }
-  /**
-   * Records a rejection. A rejected 1:1 call also ends the session (the UI
-   * treats it as terminal); channel calls keep ringing for everyone else.
-   * Tolerates an already-ended session so socket retries stay harmless.
-   */
+
   async reject(callId: string, organizationId: string, memberId: string): Promise<CallSessionDto> {
     const row = await this.requireSession(callId, organizationId);
     await this.requireCanJoin(row, organizationId, memberId);
@@ -153,7 +160,10 @@ export class CallsService {
     if (row.status === "active") {
       const now = new Date();
       const existing = await this.db.query.callParticipant.findFirst({
-        where: and(eq(callParticipant.callSessionId, callId), eq(callParticipant.memberId, memberId)),
+        where: and(
+          eq(callParticipant.callSessionId, callId),
+          eq(callParticipant.memberId, memberId),
+        ),
       });
       if (existing) {
         if (existing.status === "pending") {
@@ -182,7 +192,6 @@ export class CallsService {
     return toCallSessionDto(refreshed, participants.get(callId) ?? []);
   }
 
-  /** Ends the call, stamps duration and the actor's `left` participant row. Idempotent. */
   async end(callId: string, organizationId: string, memberId: string): Promise<CallSessionDto> {
     const row = await this.requireSession(callId, organizationId);
     await this.requireCanJoin(row, organizationId, memberId);
@@ -196,7 +205,10 @@ export class CallsService {
         .where(eq(callSession.id, callId));
 
       const existing = await this.db.query.callParticipant.findFirst({
-        where: and(eq(callParticipant.callSessionId, callId), eq(callParticipant.memberId, memberId)),
+        where: and(
+          eq(callParticipant.callSessionId, callId),
+          eq(callParticipant.memberId, memberId),
+        ),
       });
       if (existing && existing.status === "joined") {
         await this.db
@@ -219,26 +231,18 @@ export class CallsService {
     const participants = await loadParticipants(this.db, [callId]);
     return toCallSessionDto(refreshed, participants.get(callId) ?? []);
   }
-  // -------------------------------------------------------- history + tokens
 
-  /** Sessions I started, received, or was invited to, newest first. */
   async getHistory(organizationId: string, memberId: string): Promise<CallHistoryRecord[]> {
     return getCallHistory(this.db, organizationId, memberId);
   }
 
-  /**
-   * Ended sessions I never joined that were addressed to me: a 1:1 call where
-   * I was the recipient, or a channel call with my invite pending/rejected.
-   */
   async getMissedCalls(organizationId: string, memberId: string): Promise<CallHistoryRecord[]> {
     return loadMissedCalls(this.db, organizationId, memberId);
   }
 
-  /** Pre-refactor `POST .../calls/token`: LiveKit JWT for an arbitrary room name. */
   issueToken(organizationId: string, memberId: string, roomName: string, participantName?: string) {
     return issueCallToken(this.env, organizationId, memberId, roomName, participantName);
   }
-  // ---------------------------------------------------------------- private
 
   private async requireSession(callId: string, organizationId: string): Promise<CallSessionRow> {
     const row = await this.db.query.callSession.findFirst({
@@ -248,14 +252,20 @@ export class CallsService {
     return row;
   }
 
-  private async requireActiveSession(callId: string, organizationId: string): Promise<CallSessionRow> {
+  private async requireActiveSession(
+    callId: string,
+    organizationId: string,
+  ): Promise<CallSessionRow> {
     const row = await this.requireSession(callId, organizationId);
     if (row.status !== "active") throw new BadRequestException("Call has ended");
     return row;
   }
 
-  /** Initiator, recipient, invited participant, or a member of the call's channel. */
-  private async requireCanJoin(row: CallSessionRow, organizationId: string, memberId: string): Promise<void> {
+  private async requireCanJoin(
+    row: CallSessionRow,
+    organizationId: string,
+    memberId: string,
+  ): Promise<void> {
     if (row.initiatorId === memberId || row.recipientId === memberId) return;
     const participant = await this.db.query.callParticipant.findFirst({
       where: and(eq(callParticipant.callSessionId, row.id), eq(callParticipant.memberId, memberId)),
@@ -263,7 +273,10 @@ export class CallsService {
     if (participant) return;
     if (row.channelId) {
       const membership = await this.db.query.channelMember.findFirst({
-        where: and(eq(channelMember.channelId, row.channelId), eq(channelMember.memberId, memberId)),
+        where: and(
+          eq(channelMember.channelId, row.channelId),
+          eq(channelMember.memberId, memberId),
+        ),
       });
       if (membership) return;
     }

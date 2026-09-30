@@ -3,14 +3,13 @@ import type { callParticipant, callSession } from "@teamlyf/db";
 export type CallSessionRow = typeof callSession.$inferSelect;
 export type CallParticipantRow = typeof callParticipant.$inferSelect;
 
-/** Initiate input the gateway hands over (socket payload already normalized). */
 export type InitiateCallArgs = {
   organizationId: string;
   initiatorId: string;
   callType?: string;
   channelId?: string;
   recipientId?: string;
-  /** Invited member ids — gateway merges `participantIds` + `recipientIds`. */
+
   participantIds?: string[];
 };
 
@@ -34,7 +33,7 @@ export type CallMemberSummary = {
   lastName: string | null;
   preferredName: string | null;
   photoUrl: string | null;
-  user: { name: string; email: string; image: string | null };
+  user: { name: string; email: string };
 };
 
 export type CallSessionDto = {

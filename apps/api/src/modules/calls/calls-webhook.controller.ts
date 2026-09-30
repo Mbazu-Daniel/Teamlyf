@@ -1,4 +1,13 @@
-import { BadRequestException, Controller, Headers, Inject, Logger, Post, Req, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Controller,
+  Headers,
+  Inject,
+  Logger,
+  Post,
+  Req,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { Database } from "@teamlyf/db";
 import { callSession } from "@teamlyf/db";
@@ -12,13 +21,6 @@ import { VideoMinutesService } from "./video-minutes.service";
 
 type RawRequest = Request & { rawBody?: Buffer };
 
-/**
- * LiveKit's server-to-server webhooks, signed with the API key/secret. Runs
- * without session guards (the signature is the auth), mirroring the billing
- * webhook. Its job: finalize sessions nobody ended from the UI — everyone
- * dropped, browser crashed — so history never shows a call stuck "active",
- * and charge the participant-minutes once.
- */
 @ApiTags("Calls")
 @Controller("webhooks/livekit")
 export class CallsWebhookController {
@@ -58,13 +60,16 @@ export class CallsWebhookController {
     return { success: true };
   }
 
-  /** Closes the session the room belonged to and bills it exactly once. */
   private async finalizeRoom(roomName: string): Promise<void> {
-    const row = await this.db.query.callSession.findFirst({ where: eq(callSession.roomName, roomName) });
+    const row = await this.db.query.callSession.findFirst({
+      where: eq(callSession.roomName, roomName),
+    });
     if (!row || row.status === "ended") return;
 
     const now = new Date();
-    const duration = row.startedAt ? Math.floor((now.getTime() - row.startedAt.getTime()) / 1000) : row.duration;
+    const duration = row.startedAt
+      ? Math.floor((now.getTime() - row.startedAt.getTime()) / 1000)
+      : row.duration;
     await this.db
       .update(callSession)
       .set({ status: "ended", endedAt: now, duration, updatedAt: now })
@@ -78,6 +83,8 @@ export class CallsWebhookController {
       duration,
       createdAt: row.createdAt,
     });
-    this.logger.log(`Session ${row.id} ended by room_finished; charged ${minutes} participant-minutes`);
+    this.logger.log(
+      `Session ${row.id} ended by room_finished; charged ${minutes} participant-minutes`,
+    );
   }
 }
