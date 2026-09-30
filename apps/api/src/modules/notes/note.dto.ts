@@ -50,5 +50,9 @@ export class UpdateNoteDto {
   taskId?: string | null;
 }
 
-export class NoteFavoriteDto { @IsBoolean() enabled!: boolean; }
-export class RestoreNoteDto { @IsInt() @Min(1) revision!: number; }
+export class NoteFavoriteDto {
+  @IsBoolean() enabled!: boolean;
+}
+export class RestoreNoteDto {
+  @IsInt() @Min(1) revision!: number;
+}

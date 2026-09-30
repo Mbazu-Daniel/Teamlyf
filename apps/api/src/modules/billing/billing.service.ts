@@ -50,7 +50,11 @@ export class BillingService {
   async summary(organizationId: string) {
     await this.requireOrganization(organizationId);
     const [current, members] = await this.loadSummaryData(organizationId);
-    return { ...this.buildSummary(current, Number(members[0]?.total ?? 0)), plans: planEntitlements, checkoutAvailable: Boolean(this.env.BACHS_API_URL && this.env.BACHS_API_KEY) };
+    return {
+      ...this.buildSummary(current, Number(members[0]?.total ?? 0)),
+      plans: planEntitlements,
+      checkoutAvailable: Boolean(this.env.BACHS_API_URL && this.env.BACHS_API_KEY),
+    };
   }
 
   async checkout(organizationId: string, dto: CheckoutDto) {
@@ -58,22 +62,19 @@ export class BillingService {
     const apiKey = this.env.BACHS_API_KEY;
     if (!baseUrl || !apiKey) throw new BadRequestException("Billing provider is not configured");
 
-    const response = await fetch(
-      `${baseUrl.replace(/\/$/, "")}/checkout/sessions`,
-      {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          organizationId,
-          plan: dto.plan,
-          successUrl: dto.successUrl,
-          cancelUrl: dto.cancelUrl,
-        }),
+    const response = await fetch(`${baseUrl.replace(/\/$/, "")}/checkout/sessions`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        organizationId,
+        plan: dto.plan,
+        successUrl: dto.successUrl,
+        cancelUrl: dto.cancelUrl,
+      }),
+    });
 
     if (!response.ok) throw new BadRequestException("Unable to create checkout session");
     return response.json();
@@ -100,7 +101,10 @@ export class BillingService {
       this.db.query.subscription.findFirst({
         where: eq(subscription.organizationId, organizationId),
       }),
-      this.db.select({ total: count() }).from(member).where(eq(member.organizationId, organizationId)),
+      this.db
+        .select({ total: count() })
+        .from(member)
+        .where(eq(member.organizationId, organizationId)),
     ]);
   }
 

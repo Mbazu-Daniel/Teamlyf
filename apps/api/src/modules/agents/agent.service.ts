@@ -1,9 +1,28 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException, type OnModuleInit, type OnModuleDestroy } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  type OnModuleInit,
+  type OnModuleDestroy,
+} from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 import { validateOrReject } from "class-validator";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import type { Database } from "@teamlyf/db";
-import { agent, agentRun, aiProviderConfig, aiUsage, billingSchema, member, project, task, taskComment } from "@teamlyf/db";
+import {
+  agent,
+  agentRun,
+  aiProviderConfig,
+  aiUsage,
+  billingSchema,
+  member,
+  project,
+  task,
+  taskComment,
+} from "@teamlyf/db";
 
 const { subscription } = billingSchema;
 import { and, count, eq } from "drizzle-orm";
@@ -11,7 +30,13 @@ import { API_ENV } from "../../common/config/env.module";
 import type { ApiEnv } from "../../common/config/env";
 import { DATABASE } from "../../common/db/db.provider";
 import type { SessionMember } from "../../common/types";
-import type { CreateAgentDto, CreateAgentRunDto, RecordUsageDto, UpdateAgentDto, UpsertProviderConfigDto } from "./agent.dto";
+import type {
+  CreateAgentDto,
+  CreateAgentRunDto,
+  RecordUsageDto,
+  UpdateAgentDto,
+  UpsertProviderConfigDto,
+} from "./agent.dto";
 import { planEntitlements, type BillingPlan } from "../billing/plan-entitlements";
 import { OrganizationPermissionService } from "../rbac/organization-permission.service";
 import { TaskService } from "../project/task/task.service";
@@ -32,7 +57,9 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit() {
-    this.timer = setInterval(() => { void this.pollRuns(); }, 500);
+    this.timer = setInterval(() => {
+      void this.pollRuns();
+    }, 500);
     this.timer.unref();
   }
 
@@ -62,19 +89,24 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
 
   async create(organizationId: string, dto: CreateAgentDto) {
     await this.assertAgentCapacity(organizationId);
-    const [created] = await this.db.insert(agent).values({
-      organizationId,
-      name: dto.name.trim(),
-      description: dto.description?.trim() || null,
-    }).returning();
+    const [created] = await this.db
+      .insert(agent)
+      .values({
+        organizationId,
+        name: dto.name.trim(),
+        description: dto.description?.trim() || null,
+      })
+      .returning();
     return created;
   }
 
   async update(organizationId: string, agentId: string, dto: UpdateAgentDto) {
     await this.requireAgent(organizationId, agentId);
-    const [updated] = await this.db.update(agent).set(this.buildUpdateValues(dto)).where(
-      and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)),
-    ).returning();
+    const [updated] = await this.db
+      .update(agent)
+      .set(this.buildUpdateValues(dto))
+      .where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)))
+      .returning();
     return updated;
   }
 
@@ -87,12 +119,15 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     const target = await this.requireAgent(organizationId, agentId);
     if (!target.enabled) throw new ForbiddenException("Agent is disabled");
 
-    const [run] = await this.db.insert(agentRun).values({
-      organizationId,
-      agentId,
-      memberId: member.id,
-      input: dto.input === undefined ? null : dto.input,
-    }).returning();
+    const [run] = await this.db
+      .insert(agentRun)
+      .values({
+        organizationId,
+        agentId,
+        memberId: member.id,
+        input: dto.input === undefined ? null : dto.input,
+      })
+      .returning();
 
     return run;
   }
@@ -105,8 +140,14 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     });
 
     for (const candidate of queued) {
-      const [claimed] = await this.db.update(agentRun)
-        .set({ status: "running", startedAt: new Date(), attemptCount: candidate.attemptCount + 1, updatedAt: new Date() })
+      const [claimed] = await this.db
+        .update(agentRun)
+        .set({
+          status: "running",
+          startedAt: new Date(),
+          attemptCount: candidate.attemptCount + 1,
+          updatedAt: new Date(),
+        })
         .where(and(eq(agentRun.id, candidate.id), eq(agentRun.status, "queued")))
         .returning();
       if (claimed) {
@@ -146,21 +187,36 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
 
       const provider = await this.resolveProvider(run.organizationId);
       await this.requireRunPermission(runId, "read", taskId);
-      const result = await this.runModel(provider, target, taskRecord, projectRecord, input, run.memberId, runId, signal);
-      await this.db.update(agentRun).set({
-        status: "completed",
-        output: result,
-        completedAt: new Date(),
-        updatedAt: new Date(),
-      }).where(and(eq(agentRun.id, runId), eq(agentRun.status, "running")));
+      const result = await this.runModel(
+        provider,
+        target,
+        taskRecord,
+        projectRecord,
+        input,
+        run.memberId,
+        runId,
+        signal,
+      );
+      await this.db
+        .update(agentRun)
+        .set({
+          status: "completed",
+          output: result,
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(agentRun.id, runId), eq(agentRun.status, "running")));
     } catch (error) {
-      await this.db.update(agentRun).set({
-        status: "failed",
-        errorCode: "execution_failed",
-        errorMessage: error instanceof Error ? error.message : "Agent execution failed",
-        completedAt: new Date(),
-        updatedAt: new Date(),
-      }).where(and(eq(agentRun.id, runId), eq(agentRun.status, "running")));
+      await this.db
+        .update(agentRun)
+        .set({
+          status: "failed",
+          errorCode: "execution_failed",
+          errorMessage: error instanceof Error ? error.message : "Agent execution failed",
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(agentRun.id, runId), eq(agentRun.status, "running")));
     }
   }
 
@@ -168,9 +224,20 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     const run = await this.db.query.agentRun.findFirst({ where: eq(agentRun.id, runId) });
     if (!run || run.status !== "running") throw new Error("Agent run is no longer active");
     const target = await this.requireAgent(run.organizationId, run.agentId);
-    const requester = await this.db.query.member.findFirst({ where: and(eq(member.id, run.memberId), eq(member.organizationId, run.organizationId)) });
-    if (!target.enabled || !requester) throw new Error("Agent or requesting member is no longer available");
-    if (!await this.permissions.checkAgentPermission(run.organizationId, run.agentId, "pm", action, taskId)) {
+    const requester = await this.db.query.member.findFirst({
+      where: and(eq(member.id, run.memberId), eq(member.organizationId, run.organizationId)),
+    });
+    if (!target.enabled || !requester)
+      throw new Error("Agent or requesting member is no longer available");
+    if (
+      !(await this.permissions.checkAgentPermission(
+        run.organizationId,
+        run.agentId,
+        "pm",
+        action,
+        taskId,
+      ))
+    ) {
       throw new Error(`Agent requires a pm:${action} tool grant for this task`);
     }
     return run;
@@ -179,15 +246,20 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
   // fallow-ignore-next-line complexity -- provider resolution intentionally validates source, provider and credential requirements together
   private async resolveProvider(organizationId: string) {
     const configs = await this.db.query.aiProviderConfig.findMany({
-      where: and(eq(aiProviderConfig.organizationId, organizationId), eq(aiProviderConfig.isActive, true)),
+      where: and(
+        eq(aiProviderConfig.organizationId, organizationId),
+        eq(aiProviderConfig.isActive, true),
+      ),
       orderBy: (row, { desc }) => desc(row.createdAt),
     });
     const config = configs[0];
     if (!config) throw new Error("No active AI provider is configured for this organization");
-    if (config.provider !== "openai") throw new Error("The agent runtime currently supports the OpenAI provider");
-    const apiKey = config.source === "byok"
-      ? this.decryptApiKey(config.encryptedApiKey)
-      : this.env.AGENT_MANAGED_API_KEY;
+    if (config.provider !== "openai")
+      throw new Error("The agent runtime currently supports the OpenAI provider");
+    const apiKey =
+      config.source === "byok"
+        ? this.decryptApiKey(config.encryptedApiKey)
+        : this.env.AGENT_MANAGED_API_KEY;
     if (!apiKey) throw new Error("AI provider credentials are not configured");
     return { model: config.model, apiKey, baseUrl: this.env.AGENT_OPENAI_BASE_URL };
   }
@@ -196,7 +268,15 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
   private async runModel(
     provider: { model: string; apiKey: string; baseUrl: string },
     target: { name: string; description: string | null },
-    taskRecord: { id: string; name: string; description: string | null; priority: string; targetDate: Date | null; statusId: string; status: { name: string } },
+    taskRecord: {
+      id: string;
+      name: string;
+      description: string | null;
+      priority: string;
+      targetDate: Date | null;
+      statusId: string;
+      status: { name: string };
+    },
     projectRecord: { id: string; name: string; description: string | null },
     input: Record<string, unknown>,
     memberId: string,
@@ -204,17 +284,55 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     signal: AbortSignal,
   ) {
     const tools = [
-      { type: "function", function: { name: "update_task", description: "Update the assigned task. Only change fields needed to complete the work.", parameters: {
-        type: "object", properties: { name: { type: "string" }, description: { type: "string" }, priority: { type: "string", enum: ["urgent","high","medium","low","none"] }, statusId: { type: "string" }, targetDate: { type: "string" } }, additionalProperties: false,
-      }}},
-      { type: "function", function: { name: "add_comment", description: "Add a progress or completion comment to the assigned task.", parameters: {
-        type: "object", properties: { body: { type: "string" } }, required: ["body"], additionalProperties: false,
-      }}},
+      {
+        type: "function",
+        function: {
+          name: "update_task",
+          description: "Update the assigned task. Only change fields needed to complete the work.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              description: { type: "string" },
+              priority: { type: "string", enum: ["urgent", "high", "medium", "low", "none"] },
+              statusId: { type: "string" },
+              targetDate: { type: "string" },
+            },
+            additionalProperties: false,
+          },
+        },
+      },
+      {
+        type: "function",
+        function: {
+          name: "add_comment",
+          description: "Add a progress or completion comment to the assigned task.",
+          parameters: {
+            type: "object",
+            properties: { body: { type: "string" } },
+            required: ["body"],
+            additionalProperties: false,
+          },
+        },
+      },
     ];
 
     const messages: Array<Record<string, unknown>> = [
-      { role: "system", content: "You are an organization AI agent inside Teamlyf. Work only on the assigned task. Do not invent facts or claim actions you did not perform. Use tools for task changes. Finish with a concise summary and blockers.\n\nAgent role: " + (target.description ?? target.name) },
-      { role: "user", content: JSON.stringify({ project: projectRecord, task: taskRecord, instruction: input.instruction ?? "Work on this task.", context: input }) },
+      {
+        role: "system",
+        content:
+          "You are an organization AI agent inside Teamlyf. Work only on the assigned task. Do not invent facts or claim actions you did not perform. Use tools for task changes. Finish with a concise summary and blockers.\n\nAgent role: " +
+          (target.description ?? target.name),
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          project: projectRecord,
+          task: taskRecord,
+          instruction: input.instruction ?? "Work on this task.",
+          context: input,
+        }),
+      },
     ];
 
     for (let step = 0; step < 8; step += 1) {
@@ -224,10 +342,16 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
         signal: AbortSignal.any([signal, AbortSignal.timeout(30_000)]),
         method: "POST",
         headers: { "content-type": "application/json", authorization: "Bearer " + provider.apiKey },
-        body: JSON.stringify({ model: provider.model, messages, tools, tool_choice: "auto", temperature: 0.2 }),
+        body: JSON.stringify({
+          model: provider.model,
+          messages,
+          tools,
+          tool_choice: "auto",
+          temperature: 0.2,
+        }),
       });
       if (!response.ok) throw new Error("AI provider returned HTTP " + response.status);
-      const payload = await response.json() as OpenAIResponse;
+      const payload = (await response.json()) as OpenAIResponse;
       const message = payload.choices?.[0]?.message;
       if (!message) throw new Error("AI provider returned no message");
 
@@ -240,7 +364,13 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
         let output: unknown;
         if (call.function.name === "update_task") {
           const run = await this.requireRunPermission(runId, "update", taskRecord.id);
-          output = await this.updateTaskFromAgent(run.organizationId, projectRecord.id, taskRecord.id, memberId, args);
+          output = await this.updateTaskFromAgent(
+            run.organizationId,
+            projectRecord.id,
+            taskRecord.id,
+            memberId,
+            args,
+          );
         } else if (call.function.name === "add_comment") {
           await this.requireRunPermission(runId, "create", taskRecord.id);
           output = await this.addCommentFromAgent(taskRecord.id, memberId, args);
@@ -253,19 +383,37 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     throw new Error("Agent reached the maximum execution steps");
   }
 
-  private async updateTaskFromAgent(organizationId: string, projectId: string, taskId: string, memberId: string, args: Record<string, unknown>) {
+  private async updateTaskFromAgent(
+    organizationId: string,
+    projectId: string,
+    taskId: string,
+    memberId: string,
+    args: Record<string, unknown>,
+  ) {
     const allowed = ["name", "description", "priority", "statusId", "targetDate"] as const;
     const values: Record<string, unknown> = {};
     for (const key of allowed) if (typeof args[key] === "string") values[key] = args[key];
     const dto = plainToInstance(UpdateTaskDto, values);
-    try { await validateOrReject(dto); } catch { throw new Error("Agent returned invalid task fields"); }
+    try {
+      await validateOrReject(dto);
+    } catch {
+      throw new Error("Agent returned invalid task fields");
+    }
     await this.tasks.updateTask(organizationId, projectId, taskId, dto, memberId);
     return { updated: true, fields: Object.keys(values) };
   }
 
-  private async addCommentFromAgent(taskId: string, memberId: string, args: Record<string, unknown>) {
-    if (typeof args.body !== "string" || !args.body.trim()) throw new Error("Comment body is required");
-    const [comment] = await this.db.insert(taskComment).values({ taskId, actorId: memberId, body: args.body.trim() }).returning({ id: taskComment.id });
+  private async addCommentFromAgent(
+    taskId: string,
+    memberId: string,
+    args: Record<string, unknown>,
+  ) {
+    if (typeof args.body !== "string" || !args.body.trim())
+      throw new Error("Comment body is required");
+    const [comment] = await this.db
+      .insert(taskComment)
+      .values({ taskId, actorId: memberId, body: args.body.trim() })
+      .returning({ id: taskComment.id });
     return { created: true, commentId: comment.id };
   }
 
@@ -274,7 +422,11 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     const secret = this.env.AGENT_ENCRYPTION_SECRET;
     if (!secret) throw new Error("Agent encryption is not configured");
     const [iv, tag, ciphertext] = value.split(":").map((part) => Buffer.from(part, "base64url"));
-    const decipher = createDecipheriv("aes-256-gcm", createHash("sha256").update(secret).digest(), iv);
+    const decipher = createDecipheriv(
+      "aes-256-gcm",
+      createHash("sha256").update(secret).digest(),
+      iv,
+    );
     decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
   }
@@ -328,43 +480,44 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async recordUsage(
-    organizationId: string,
-    memberId: string,
-    dto: RecordUsageDto,
-  ) {
+  async recordUsage(organizationId: string, memberId: string, dto: RecordUsageDto) {
     await this.requireAgent(organizationId, dto.agentId);
     const totalTokens = dto.inputTokens + dto.outputTokens;
     const allowanceConsumed = dto.source === "managed" ? totalTokens : 0;
 
-    const [usage] = await this.db.insert(aiUsage).values({
-      organizationId,
-      memberId,
-      agentId: dto.agentId,
-      provider: dto.provider.trim(),
-      model: dto.model.trim(),
-      source: dto.source,
-      inputTokens: dto.inputTokens,
-      outputTokens: dto.outputTokens,
-      totalTokens,
-      estimatedCostUsd: dto.estimatedCostUsd ?? null,
-      allowanceConsumed,
-    }).returning();
+    const [usage] = await this.db
+      .insert(aiUsage)
+      .values({
+        organizationId,
+        memberId,
+        agentId: dto.agentId,
+        provider: dto.provider.trim(),
+        model: dto.model.trim(),
+        source: dto.source,
+        inputTokens: dto.inputTokens,
+        outputTokens: dto.outputTokens,
+        totalTokens,
+        estimatedCostUsd: dto.estimatedCostUsd ?? null,
+        allowanceConsumed,
+      })
+      .returning();
 
     return usage;
   }
 
   async deleteAgent(organizationId: string, agentId: string) {
     await this.requireAgent(organizationId, agentId);
-    // agent_run and ai_usage both carry FKs to agent with no ON DELETE rule:
-    // detach usage rows (keeps billing history) and drop runs with the agent.
+
     return this.db.transaction(async (tx) => {
-      await tx.update(aiUsage)
+      await tx
+        .update(aiUsage)
         .set({ agentId: null })
         .where(and(eq(aiUsage.organizationId, organizationId), eq(aiUsage.agentId, agentId)));
-      await tx.delete(agentRun)
+      await tx
+        .delete(agentRun)
         .where(and(eq(agentRun.organizationId, organizationId), eq(agentRun.agentId, agentId)));
-      const [deleted] = await tx.delete(agent)
+      const [deleted] = await tx
+        .delete(agent)
         .where(and(eq(agent.organizationId, organizationId), eq(agent.id, agentId)))
         .returning();
       return deleted;
@@ -384,7 +537,8 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     if (run.status !== "queued" && run.status !== "running") {
       throw new BadRequestException("Only queued or running runs can be cancelled");
     }
-    const [updated] = await this.db.update(agentRun)
+    const [updated] = await this.db
+      .update(agentRun)
       .set({ status: "cancelled", completedAt: new Date(), updatedAt: new Date() })
       .where(and(eq(agentRun.id, runId), eq(agentRun.status, run.status)))
       .returning();
@@ -397,10 +551,7 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     const [deleted] = await this.db
       .delete(aiProviderConfig)
       .where(
-        and(
-          eq(aiProviderConfig.organizationId, organizationId),
-          eq(aiProviderConfig.id, configId),
-        ),
+        and(eq(aiProviderConfig.organizationId, organizationId), eq(aiProviderConfig.id, configId)),
       )
       .returning({
         id: aiProviderConfig.id,
@@ -454,22 +605,26 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     encryptedApiKey: string | null,
   ) {
     const keyVersion = encryptedApiKey ? "v1" : null;
-    return this.db.insert(aiProviderConfig).values({
-      organizationId,
-      provider: dto.provider.trim(),
-      model: dto.model.trim(),
-      source: dto.source,
-      encryptedApiKey,
-      keyVersion,
-    }).onConflictDoUpdate({
-      target: [
-        aiProviderConfig.organizationId,
-        aiProviderConfig.source,
-        aiProviderConfig.provider,
-        aiProviderConfig.model,
-      ],
-      set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
-    }).returning();
+    return this.db
+      .insert(aiProviderConfig)
+      .values({
+        organizationId,
+        provider: dto.provider.trim(),
+        model: dto.model.trim(),
+        source: dto.source,
+        encryptedApiKey,
+        keyVersion,
+      })
+      .onConflictDoUpdate({
+        target: [
+          aiProviderConfig.organizationId,
+          aiProviderConfig.source,
+          aiProviderConfig.provider,
+          aiProviderConfig.model,
+        ],
+        set: { encryptedApiKey, keyVersion, isActive: true, updatedAt: new Date() },
+      })
+      .returning();
   }
 
   private async requireAgent(organizationId: string, agentId: string) {
@@ -485,7 +640,10 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
       this.db.query.subscription.findFirst({
         where: eq(subscription.organizationId, organizationId),
       }),
-      this.db.select({ total: count() }).from(agent).where(eq(agent.organizationId, organizationId)),
+      this.db
+        .select({ total: count() })
+        .from(agent)
+        .where(eq(agent.organizationId, organizationId)),
     ]);
 
     const limit = this.resolveAgentLimit(currentSubscription);
@@ -507,12 +665,22 @@ export class AgentService implements OnModuleInit, OnModuleDestroy {
     const cipher = createCipheriv("aes-256-gcm", key, iv);
     const ciphertext = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
     const tag = cipher.getAuthTag();
-    return [iv.toString("base64url"), tag.toString("base64url"), ciphertext.toString("base64url")].join(":");
+    return [
+      iv.toString("base64url"),
+      tag.toString("base64url"),
+      ciphertext.toString("base64url"),
+    ].join(":");
   }
 }
 
 type OpenAIResponse = {
-  choices?: Array<{ message?: { role: "assistant"; content?: string; tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }> } }>;
+  choices?: Array<{
+    message?: {
+      role: "assistant";
+      content?: string;
+      tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }>;
+    };
+  }>;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
