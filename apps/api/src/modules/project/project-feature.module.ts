@@ -11,6 +11,17 @@ import { AttachmentModule } from "./attachment/attachment.module";
 import { RelationModule } from "./relation/relation.module";
 
 @Module({
-  imports: [ProjectModule, StatusModule, LabelModule, TaskModule, CommentModule, MilestoneModule, ProjectMemberModule, SprintModule, AttachmentModule, RelationModule],
+  imports: [
+    ProjectModule,
+    StatusModule,
+    LabelModule,
+    TaskModule,
+    CommentModule,
+    MilestoneModule,
+    ProjectMemberModule,
+    SprintModule,
+    AttachmentModule,
+    RelationModule,
+  ],
 })
 export class ProjectFeatureModule {}

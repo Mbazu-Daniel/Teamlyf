@@ -23,7 +23,12 @@ export class MilestoneService {
     });
   }
 
-  async createMilestone(orgId: string, projectId: string, dto: CreateMilestoneDto, memberId: string) {
+  async createMilestone(
+    orgId: string,
+    projectId: string,
+    dto: CreateMilestoneDto,
+    memberId: string,
+  ) {
     await this.access.requireProject(orgId, projectId);
 
     const [created] = await this.db
@@ -82,12 +87,7 @@ export class MilestoneService {
       .where(and(eq(milestone.projectId, projectId), eq(milestone.id, milestoneId)));
   }
 
-  async createMilestoneTask(
-    orgId: string,
-    projectId: string,
-    milestoneId: string,
-    taskId: string,
-  ) {
+  async createMilestoneTask(orgId: string, projectId: string, milestoneId: string, taskId: string) {
     await this.access.requireTask(orgId, projectId, taskId);
 
     const found = await this.db.query.milestone.findFirst({
@@ -102,12 +102,7 @@ export class MilestoneService {
     return created;
   }
 
-  async deleteMilestoneTask(
-    orgId: string,
-    projectId: string,
-    milestoneId: string,
-    taskId: string,
-  ) {
+  async deleteMilestoneTask(orgId: string, projectId: string, milestoneId: string, taskId: string) {
     await this.access.requireTask(orgId, projectId, taskId);
 
     await this.db

@@ -48,7 +48,10 @@ export class TaskService {
     }
 
     for (const [index, id] of ids.entries()) {
-      await this.db.update(task).set({ sortOrder: (index + 1) * 1000 }).where(eq(task.id, id));
+      await this.db
+        .update(task)
+        .set({ sortOrder: (index + 1) * 1000 })
+        .where(eq(task.id, id));
     }
 
     return this.getTasks(orgId, projectId);
@@ -66,11 +69,21 @@ export class TaskService {
   async createTask(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
     return this.db.transaction(async (tx) => {
       const db = tx as unknown as Database;
-      return new TaskService(db, new ProjectAccessService(db)).createTaskInTransaction(orgId, projectId, dto, memberId);
+      return new TaskService(db, new ProjectAccessService(db)).createTaskInTransaction(
+        orgId,
+        projectId,
+        dto,
+        memberId,
+      );
     });
   }
 
-  private async createTaskInTransaction(orgId: string, projectId: string, dto: CreateTaskDto, memberId: string) {
+  private async createTaskInTransaction(
+    orgId: string,
+    projectId: string,
+    dto: CreateTaskDto,
+    memberId: string,
+  ) {
     await this.db.execute(sql`select pg_advisory_xact_lock(hashtext(${projectId}))`);
     await this.validateRelations(projectId, dto);
     await this.access.requireProject(orgId, projectId);
@@ -103,7 +116,7 @@ export class TaskService {
         targetDate: toDate(dto.targetDate),
         sequenceId: nextValue(last?.sequenceId),
         sortOrder: nextValue(lastSorted?.sortOrder),
-        // Left off the statement when absent, so the column keeps its default.
+
         parentId: dto.parentId,
         sprintId: dto.sprintId,
         description: dto.description,
@@ -123,10 +136,22 @@ export class TaskService {
     });
   }
 
-  async updateTask(orgId: string, projectId: string, taskId: string, dto: UpdateTaskDto, memberId: string) {
+  async updateTask(
+    orgId: string,
+    projectId: string,
+    taskId: string,
+    dto: UpdateTaskDto,
+    memberId: string,
+  ) {
     return this.db.transaction(async (tx) => {
       const db = tx as unknown as Database;
-      return new TaskService(db, new ProjectAccessService(db)).updateTaskInTransaction(orgId, projectId, taskId, dto, memberId);
+      return new TaskService(db, new ProjectAccessService(db)).updateTaskInTransaction(
+        orgId,
+        projectId,
+        taskId,
+        dto,
+        memberId,
+      );
     });
   }
 
@@ -166,36 +191,50 @@ export class TaskService {
   }
 
   private async validateRelations(projectId: string, dto: UpdateTaskDto, taskId?: string) {
-    if (dto.name !== undefined && !dto.name.trim()) throw new BadRequestException("Task name is required");
+    if (dto.name !== undefined && !dto.name.trim())
+      throw new BadRequestException("Task name is required");
     if (dto.sprintId) {
-      const record = await this.db.query.sprint.findFirst({ where: and(eq(sprint.id, dto.sprintId), eq(sprint.projectId, projectId)) });
+      const record = await this.db.query.sprint.findFirst({
+        where: and(eq(sprint.id, dto.sprintId), eq(sprint.projectId, projectId)),
+      });
       if (!record) throw new BadRequestException("Sprint must belong to this project");
     }
     let parentId = dto.parentId;
     const visited = new Set(taskId ? [taskId] : []);
     while (parentId) {
-      if (visited.has(parentId)) throw new BadRequestException("Task hierarchy cannot contain cycles");
+      if (visited.has(parentId))
+        throw new BadRequestException("Task hierarchy cannot contain cycles");
       visited.add(parentId);
-      const parent = await this.db.query.task.findFirst({ where: and(eq(task.id, parentId), eq(task.projectId, projectId)) });
+      const parent = await this.db.query.task.findFirst({
+        where: and(eq(task.id, parentId), eq(task.projectId, projectId)),
+      });
       if (!parent) throw new BadRequestException("Parent task must belong to this project");
       parentId = parent.parentId ?? undefined;
     }
     if (dto.labelIds?.length) {
       const ids = [...new Set(dto.labelIds)];
-      const found = await this.db.select({ id: label.id }).from(label).where(and(eq(label.projectId, projectId), inArray(label.id, ids)));
-      if (found.length !== ids.length) throw new BadRequestException("Labels must belong to this project");
+      const found = await this.db
+        .select({ id: label.id })
+        .from(label)
+        .where(and(eq(label.projectId, projectId), inArray(label.id, ids)));
+      if (found.length !== ids.length)
+        throw new BadRequestException("Labels must belong to this project");
       dto.labelIds = ids;
     }
     if (dto.milestoneIds?.length) {
       const ids = [...new Set(dto.milestoneIds)];
-      const found = await this.db.select({ id: milestone.id }).from(milestone).where(and(eq(milestone.projectId, projectId), inArray(milestone.id, ids)));
-      if (found.length !== ids.length) throw new BadRequestException("Milestones must belong to this project");
+      const found = await this.db
+        .select({ id: milestone.id })
+        .from(milestone)
+        .where(and(eq(milestone.projectId, projectId), inArray(milestone.id, ids)));
+      if (found.length !== ids.length)
+        throw new BadRequestException("Milestones must belong to this project");
       dto.milestoneIds = ids;
     }
-    if (dto.assignees) dto.assignees = [...new Map(dto.assignees.map((a) => [a.kind + ":" + a.id, a])).values()];
+    if (dto.assignees)
+      dto.assignees = [...new Map(dto.assignees.map((a) => [a.kind + ":" + a.id, a])).values()];
   }
 
-  /** A status change must name a status that belongs to this project. */
   private async resolveStatus(projectId: string, statusId: string | undefined) {
     if (!statusId) return null;
     const record = await this.db.query.status.findFirst({
@@ -205,10 +244,6 @@ export class TaskService {
     return record;
   }
 
-  /**
-   * Relations are replaced only when the payload mentions them: an update that
-   * says nothing about labels must not empty the task.
-   */
   private async applyRelations(orgId: string, taskId: string, dto: UpdateTaskDto) {
     if (dto.assignees) await this.updateTaskAssignees(orgId, taskId, dto.assignees);
     if (dto.labelIds) await this.updateTaskLabels(taskId, dto.labelIds);
@@ -311,17 +346,14 @@ export class TaskService {
   }
 }
 
-/** The next value in a 1-based run; an empty project starts at 1. */
 function nextValue(previous: number | null | undefined) {
   return (previous ?? 0) + 1;
 }
 
-/** ISO date in, Date out. Absent stays absent so drizzle omits the column. */
 function toDate(value: string | undefined) {
   return value ? new Date(value) : undefined;
 }
 
-/** Entering the done group stamps completion; leaving it keeps what was there. */
 function completedFor(group: string | undefined, previous: Date | null) {
   return group === "done" ? new Date() : previous;
 }

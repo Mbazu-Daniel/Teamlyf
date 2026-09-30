@@ -7,6 +7,11 @@ export class CreateSprintDto {
   name!: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  goal?: string;
+
+  @IsOptional()
   @IsDateString()
   startDate?: string;
 

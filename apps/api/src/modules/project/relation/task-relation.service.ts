@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { Database } from "@teamlyf/db";
 import { task, taskActivity, taskRelation } from "@teamlyf/db/project-schema";
 import { and, eq, or } from "drizzle-orm";
@@ -11,11 +6,6 @@ import { DATABASE } from "../../../common/db/db.provider";
 import { ProjectAccessService } from "../project-access.service";
 import type { CreateTaskRelationDto } from "../task/dto";
 
-/**
- * Cross-task links (blockers, related, duplicates). Direction is stored once:
- * source --relationType--> target, and both parties see the row, so the list
- * query matches either side and deletion is allowed from either side too.
- */
 @Injectable()
 export class TaskRelationService {
   constructor(
@@ -50,8 +40,6 @@ export class TaskRelationService {
       throw new BadRequestException("A task cannot relate to itself");
     }
 
-    // The target must be a task in this project: no cross-project links that
-    // the requester has no way to see or audit.
     const target = await this.db.query.task.findFirst({
       where: and(eq(task.id, dto.targetTaskId), eq(task.projectId, projectId)),
       columns: { id: true },

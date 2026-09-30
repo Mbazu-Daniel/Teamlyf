@@ -35,7 +35,10 @@ export class StatusService {
     }
 
     for (const [index, id] of ids.entries()) {
-      await this.db.update(status).set({ sequence: (index + 1) * 1000 }).where(eq(status.id, id));
+      await this.db
+        .update(status)
+        .set({ sequence: (index + 1) * 1000 })
+        .where(eq(status.id, id));
     }
 
     return this.getStatuses(orgId, projectId);
@@ -55,8 +58,7 @@ export class StatusService {
       .values({
         projectId,
         name: dto.name,
-        // Absent values are left off the statement so the column keeps its
-        // schema default (#60646C, todo) rather than being re-typed here.
+
         color: dto.color,
         group: dto.group,
         sequence: (last?.sequence ?? 0) + 15000,
@@ -65,7 +67,6 @@ export class StatusService {
     return created;
   }
 
-  /** The one lookup both the update and the delete start from. */
   private async requireStatus(projectId: string, statusId: string) {
     const found = await this.db.query.status.findFirst({
       where: and(eq(status.projectId, projectId), eq(status.id, statusId)),

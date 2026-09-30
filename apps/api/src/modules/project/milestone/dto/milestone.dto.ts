@@ -1,7 +1,14 @@
 import { IsDateString, IsIn, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 
-const MILESTONE_STATUSES = ["backlog", "planned", "in-progress", "paused", "completed", "cancelled"] as const;
+const MILESTONE_STATUSES = [
+  "backlog",
+  "planned",
+  "in-progress",
+  "paused",
+  "completed",
+  "cancelled",
+] as const;
 
 export class CreateMilestoneDto {
   @ApiProperty({ example: "v1.0 Release" })

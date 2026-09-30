@@ -43,16 +43,19 @@ export class ProjectMemberService {
     const newIds = requested.filter((memberId) => !existingIds.has(memberId));
 
     if (newIds.length > 0) {
-      await this.db.insert(projectMember).values(
-        newIds.map((memberId) => ({
-          projectId,
-          organizationId: orgId,
-          memberId,
-          role: "member",
-        })),
-      ).onConflictDoNothing({
-        target: [projectMember.projectId, projectMember.memberId],
-      });
+      await this.db
+        .insert(projectMember)
+        .values(
+          newIds.map((memberId) => ({
+            projectId,
+            organizationId: orgId,
+            memberId,
+            role: "member",
+          })),
+        )
+        .onConflictDoNothing({
+          target: [projectMember.projectId, projectMember.memberId],
+        });
     }
 
     return this.getMembers(orgId, projectId);

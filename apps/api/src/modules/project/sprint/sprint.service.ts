@@ -25,7 +25,11 @@ export class SprintService {
   async getSprint(orgId: string, projectId: string, sprintId: string) {
     await this.access.requireProject(orgId, projectId);
     const found = await this.db.query.sprint.findFirst({
-      where: and(eq(sprint.organizationId, orgId), eq(sprint.projectId, projectId), eq(sprint.id, sprintId)),
+      where: and(
+        eq(sprint.organizationId, orgId),
+        eq(sprint.projectId, projectId),
+        eq(sprint.id, sprintId),
+      ),
     });
     if (!found) throw new NotFoundException("Sprint not found");
     return found;
@@ -35,37 +39,62 @@ export class SprintService {
     await this.access.requireProject(orgId, projectId);
     this.validateDates(dto.startDate, dto.endDate);
     if (!dto.name.trim()) throw new BadRequestException("Sprint name is required");
-    const [created] = await this.db.insert(sprint).values({
-      organizationId: orgId,
-      projectId,
-      name: dto.name,
-      startDate: dto.startDate ? new Date(dto.startDate) : null,
-      endDate: dto.endDate ? new Date(dto.endDate) : null,
-      status: dto.status ?? "planned",
-    }).returning();
+    const [created] = await this.db
+      .insert(sprint)
+      .values({
+        organizationId: orgId,
+        projectId,
+        name: dto.name,
+        goal: dto.goal?.trim() || null,
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+        status: dto.status ?? "planned",
+      })
+      .returning();
     return created;
   }
 
   async updateSprint(orgId: string, projectId: string, sprintId: string, dto: UpdateSprintDto) {
     const current = await this.getSprint(orgId, projectId, sprintId);
     this.validateDates(dto.startDate ?? current.startDate, dto.endDate ?? current.endDate);
-    if (dto.name !== undefined && !dto.name.trim()) throw new BadRequestException("Sprint name is required");
-    const [updated] = await this.db.update(sprint).set({
-      name: dto.name,
-      startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-      endDate: dto.endDate ? new Date(dto.endDate) : undefined,
-      status: dto.status,
-      updatedAt: new Date(),
-    }).where(and(eq(sprint.id, sprintId), eq(sprint.projectId, projectId), eq(sprint.organizationId, orgId))).returning();
+    if (dto.name !== undefined && !dto.name.trim())
+      throw new BadRequestException("Sprint name is required");
+    const [updated] = await this.db
+      .update(sprint)
+      .set({
+        name: dto.name,
+        goal: dto.goal === undefined ? undefined : dto.goal.trim() || null,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+        status: dto.status,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(sprint.id, sprintId),
+          eq(sprint.projectId, projectId),
+          eq(sprint.organizationId, orgId),
+        ),
+      )
+      .returning();
     return updated;
   }
 
   async deleteSprint(orgId: string, projectId: string, sprintId: string) {
     await this.getSprint(orgId, projectId, sprintId);
-    await this.db.delete(sprint).where(and(eq(sprint.id, sprintId), eq(sprint.projectId, projectId), eq(sprint.organizationId, orgId)));
+    await this.db
+      .delete(sprint)
+      .where(
+        and(
+          eq(sprint.id, sprintId),
+          eq(sprint.projectId, projectId),
+          eq(sprint.organizationId, orgId),
+        ),
+      );
   }
 
   private validateDates(start?: string | Date | null, end?: string | Date | null) {
-    if (start && end && new Date(end) < new Date(start)) throw new BadRequestException("Sprint end date must not precede start date");
+    if (start && end && new Date(end) < new Date(start))
+      throw new BadRequestException("Sprint end date must not precede start date");
   }
 }
