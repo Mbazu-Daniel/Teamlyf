@@ -66,10 +66,11 @@ export class InvalidPayloadError extends Error {
 }
 
 function requireRecord(data: unknown): Record<string, unknown> {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+  const record = data as Record<string, unknown>;
+  if (typeof record !== "object" || record === null || Array.isArray(record)) {
     throw new InvalidPayloadError("Malformed payload: expected an object");
   }
-  return data;
+  return record;
 }
 
 /** Non-strings are rejected rather than coerced, so nothing untrusted reaches `eq()`. */
