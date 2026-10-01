@@ -35,6 +35,8 @@ seeders/
 *.mjs
 !apps/api/test/parity.smoke.mjs
 !apps/web/test/realtime.smoke.mjs
+!apps/web/scripts/cf-deploy.mjs
+!apps/web/scripts/generate-build-version.mjs
 briefcase-test.svg
 *txt
 brag-output*

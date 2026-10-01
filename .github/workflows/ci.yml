@@ -56,10 +56,57 @@ jobs:
         with:
           sarif_file: fallow-results.sarif
 
+  changes:
+    name: Detect changed apps
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      # An image only rebuilds when a file it actually packages changed. Shared
+      # inputs (lockfile, workspace config) rebuild both. Docs-only pushes build
+      # nothing but still deploy the webhook, so main/dev never diverge.
+      - name: Compare against the previous commit
+        id: filter
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "api=false" >> "$GITHUB_OUTPUT"
+            echo "web=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CHANGED="$(git diff --name-only HEAD~1 HEAD)"
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          SHARED='^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|\.dockerignore|\.github/workflows/ci\.yml)$'
+          if echo "$CHANGED" | grep -qE "$SHARED"; then
+            echo "Shared build input changed; both images rebuild."
+            echo "api=true" >> "$GITHUB_OUTPUT"
+            echo "web=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # apps/api and packages/db are both copied into the API image.
+          if echo "$CHANGED" | grep -qE '^(apps/api/|packages/db/)'; then
+            echo "api=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "api=false" >> "$GITHUB_OUTPUT"
+          fi
+          if echo "$CHANGED" | grep -qE '^apps/web/'; then
+            echo "web=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web=false" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy-api:
     name: Build and push API image
-    needs: ci
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    needs: [ci, changes]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -146,8 +193,8 @@ jobs:
 
   deploy-web:
     name: Build and push web image
-    needs: ci
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    needs: [ci, changes]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
