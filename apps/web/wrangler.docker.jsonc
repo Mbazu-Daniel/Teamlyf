@@ -1,0 +1,18 @@
+{
+  // Runtime config for the container image only (apps/web/Dockerfile).
+  // wrangler.jsonc names the *source* entry because the Cloudflare build
+  // compiles it; this image runs the already-built bundle, so main/assets must
+  // point at dist/. ASSETS is the binding TanStack Start uses to serve
+  // static files from the Worker.
+  "name": "teamlyf-web",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "dist/server/index.js",
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

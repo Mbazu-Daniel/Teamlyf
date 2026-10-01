@@ -1,0 +1,26 @@
+# Overrides the repo-root .dockerignore when building with
+# `-f apps/web/Dockerfile`. The root file ignores apps/web because the API
+# image does not need it; this image is exactly that directory, so the rules
+# are inverted here.
+**/node_modules
+**/dist
+**/.turbo
+**/.wrangler
+**/.tanstack
+**/.env
+**/.env.*
+!.env.example
+
+# Web sources are the build input.
+!apps/web/**
+
+# Not inputs to this image.
+apps/api
+packages
+seeders
+brag-output*
+video
+*.log
+*.txt
+*.mjs
+*.bat

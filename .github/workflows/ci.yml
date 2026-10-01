@@ -143,3 +143,101 @@ jobs:
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
             exit 22
           fi
+
+  deploy-web:
+    name: Build and push web image
+    needs: ci
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # GHCR rejects capitals, and the image name is fixed so the Dokploy app
+      # can pin one value instead of tracking the repository name.
+      - name: Resolve image name
+        run: |
+          echo "IMAGE=ghcr.io/${{ secrets.WEB_IMAGE_NAME }}" >> $GITHUB_ENV
+
+      - name: Resolve public env for branch
+        id: env
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "api_url=https://api.getteamlyf.com" >> "$GITHUB_OUTPUT"
+          else
+            echo "api_url=https://api-dev.getteamlyf.com" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+
+      - name: Build and push web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # VITE_* are inlined at build time, so they must be build args.
+          build-args: |
+            VITE_API_URL=${{ steps.env.outputs.api_url }}
+            VITE_WS_URL=${{ steps.env.outputs.api_url }}
+            VITE_LIVEKIT_URL=${{ vars.VITE_LIVEKIT_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Prune untagged manifests
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ secrets.WEB_IMAGE_NAME }}
+          package-type: container
+          delete-only-untagged-versions: true
+          min-versions-to-keep: 5
+
+      # A missing webhook fails here on purpose: the image is pushed but nothing
+      # deploys it, and a silent skip hides that until someone checks Dokploy.
+      - name: Trigger Dokploy webhook
+        env:
+          DOKPLOY_WEB_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEB_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DOKPLOY_WEB_WEBHOOK_URL" ]; then
+            echo "::error::DOKPLOY_WEB_WEBHOOK_URL is not set; image pushed but nothing deployed"
+            exit 1
+          fi
+          IMAGE="${IMAGE}:${GITHUB_REF_NAME}"
+          BODY=$(jq -nc \
+            --arg url "$IMAGE" \
+            --arg id "${GITHUB_SHA}" \
+            --arg msg "CI deploy ${GITHUB_SHA:0:7} (${GITHUB_REF_NAME})" \
+            '{
+              head_commit: {id: $id, message: $msg},
+              registry_package: {package_version: {package_url: $url}}
+            }')
+          RESP=$(curl -sS -w "\n%{http_code}" -X POST "$DOKPLOY_WEB_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: registry_package" \
+            -d "$BODY")
+          CODE=$(echo "$RESP" | tail -n1)
+          BODY_OUT=$(echo "$RESP" | sed '$d')
+          echo "Dokploy response ($CODE) for $IMAGE: $BODY_OUT"
+          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+            exit 22
+          fi
