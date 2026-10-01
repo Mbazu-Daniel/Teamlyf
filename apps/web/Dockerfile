@@ -46,6 +46,15 @@ COPY --from=builder /app/apps/web/dist ./dist
 # which names the source entry for the Cloudflare build.
 COPY apps/web/wrangler.docker.jsonc ./wrangler.docker.jsonc
 
+# wrangler creates a scratch dir and miniflare a cache dir before it binds a
+# port. Both arrive owned by root from the COPY layers, so the unprivileged
+# runtime user cannot create them and the container exits with EACCES.
+# Pre-created and handed over here; chown -R node_modules would rewrite a
+# thousand-layer tree for nothing.
+RUN mkdir -p .wrangler/tmp node_modules/.mf \
+    && chown -R node:node .wrangler \
+    && chown node:node node_modules/.mf
+
 USER node
 # workerd is the runtime the bundle was compiled against; plain `node dist/...`
 # cannot execute it. --ip 0.0.0.0 so Traefik can reach it inside the container.
