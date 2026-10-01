@@ -6,6 +6,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { useResetSession } from "@/lib/session";
 import { useOrganization } from "@/lib/organization";
 import { useGetCurrentUser } from "@/features/chat/data/queries/use-get-current-user-hook";
+import { getMemberDisplayName } from "@/lib/tenant-members/member-display";
 import { ThemeAppearance } from "@/components/theme-switcher";
 import {
   DropdownMenu,
@@ -62,10 +63,13 @@ export function UserFooter({ collapsed, compact = false }: UserFooterProps) {
   const resetSession = useResetSession();
   const { organization, reset: resetWorkspace } = useOrganization();
   const user = useCurrentUser();
-  // The workspace photo lives on the membership, not on the global auth record.
+  // The workspace identity (photo *and* name) lives on the membership, not on
+  // the global auth record. `user.name` is one string shared by every workspace
+  // this person belongs to, so it is only the fallback while the member row
+  // loads or before onboarding fills the name in.
   const me = useGetCurrentUser(organization?.id ?? null);
   const avatar = me.data?.avatar ?? null;
-  const name = accountName(user);
+  const name = me.data ? getMemberDisplayName(me.data) : accountName(user);
   async function logOut() {
     try {
       await signOut();

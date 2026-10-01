@@ -72,6 +72,37 @@ Start the development server:
 pnpm dev
 ```
 
+## Demo environment
+
+A shared staging deployment is running for review:
+
+| | |
+| --- | --- |
+| Web app | https://dev.getteamlyf.com |
+| API | https://api-dev.getteamlyf.com (docs at `/docs`, health at `/health`) |
+
+Sign in with the demo account:
+
+| Email | Password |
+| --- | --- |
+| `demo@gmail.com` | `demo1234` |
+
+The workspace `demo-workspace` is pre-seeded with a `demo-general` channel.
+
+Re-seed it at any time (creates the workspace and channel only if missing):
+
+```bash
+TEAMLYF_EMAIL=demo@gmail.com TEAMLYF_PASSWORD=demo1234 \
+  node seeders/deploy-and-seed.mjs --backend https://api-dev.getteamlyf.com --skip-deploy
+```
+
+`--skip-deploy` leaves the Cloudflare Worker alone, since staging web is served
+by Dokploy. Add `--dry-run` to print the plan without touching anything.
+
+> The seeder reads credentials from `TEAMLYF_EMAIL` / `TEAMLYF_PASSWORD` (or
+> `seeders/.env.local`) rather than hardcoding them, so it stays safe to commit
+> and easy to point at a different account.
+
 ## Usage
 
 Once the development server is running, the API will be available on port 9001 by default. You can navigate to the API documentation route at `/docs` in your browser to explore the available endpoints.

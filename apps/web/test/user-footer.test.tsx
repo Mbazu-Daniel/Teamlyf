@@ -10,6 +10,9 @@ import { UserFooter } from "@/components/sidebar/user-footer";
 const ORG: Organization = { id: "org-a", name: "Acme Inc", slug: "acme" };
 const AVATAR = "data:image/webp;base64,UklGRg==";
 const ME = { id: "member-1", firstName: "Ada", lastName: "Lovelace", avatar: AVATAR };
+/** Account handle from signup, deliberately unlike the workspace name below: the
+ *  dropdown must show the member name, never this. */
+const ACCOUNT_NAME = "ada_l_1847";
 /** Cold-start environment creation can eat the default 1s `findByRole` window. */
 const FIND_TIMEOUT = { timeout: 5_000 };
 
@@ -63,31 +66,51 @@ beforeEach(() => {
   );
   mocks.getOrganizations.mockResolvedValue([ORG]);
   mocks.getSession.mockResolvedValue({
-    user: { id: "user-1", name: "Ada Lovelace", email: "ada@example.com" },
+    user: { id: "user-1", name: ACCOUNT_NAME, email: "ada@example.com" },
   });
   mocks.signOut.mockResolvedValue(undefined);
 });
 
 describe("UserFooter", () => {
-  it("showsTheSignedInIdentity_whenSessionLoaded_rendersNameAndEmail", async () => {
+  it("prefersTheWorkspaceMemberName_overTheAccountHandle", async () => {
+    renderFooter();
+
+    const trigger = await screen.findByRole("button", { name: /Ada Lovelace/ }, FIND_TIMEOUT);
+    // `user.name` is one string shared by every workspace; the member row is
+    // the per-workspace identity and is the one people recognise.
+    expect(trigger).not.toHaveTextContent(ACCOUNT_NAME);
+  });
+
+  it("fallsBackToTheAccountName_whenTheMembershipHasNoNameYet", async () => {
+    // Onboarding gate: the member row exists but first/last are still empty.
+    mocks.request.mockImplementation((path: string) =>
+      Promise.resolve(
+        path.includes("/members/me")
+          ? { id: "member-1", firstName: "", lastName: "", avatar: AVATAR }
+          : ORG,
+      ),
+    );
     renderFooter();
 
     const trigger = await screen.findByRole(
       "button",
-      { name: /Ada Lovelace/ },
+      { name: new RegExp(ACCOUNT_NAME) },
       FIND_TIMEOUT,
     );
+    expect(trigger).toHaveTextContent("ada@example.com");
+  });
+
+  it("showsTheSignedInIdentity_whenSessionLoaded_rendersNameAndEmail", async () => {
+    renderFooter();
+
+    const trigger = await screen.findByRole("button", { name: /Ada Lovelace/ }, FIND_TIMEOUT);
     expect(trigger).toHaveTextContent("ada@example.com");
   });
 
   it("rendersTheWorkspaceAvatar_whenMembershipHasOne_showsTheStoredPhoto", async () => {
     const { container } = renderFooter();
 
-    const trigger = await screen.findByRole(
-      "button",
-      { name: /Ada Lovelace/ },
-      FIND_TIMEOUT,
-    );
+    const trigger = await screen.findByRole("button", { name: /Ada Lovelace/ }, FIND_TIMEOUT);
     // The photo comes from `member.avatar`, never from the global user record.
     await waitFor(() => expect(container.querySelector(`img[src="${AVATAR}"]`)).not.toBeNull());
     expect(trigger).toBeInTheDocument();
