@@ -164,11 +164,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # GHCR rejects capitals, and the image name is fixed so the Dokploy app
-      # can pin one value instead of tracking the repository name.
-      - name: Resolve image name
+      # GHCR rejects capitals in a repository name and this repo is `Teamlyf`.
+      # The owner comes from the repository so a fork deploys under its own
+      # namespace; the package suffix is fixed at `teamlyf-client` so the
+      # Dokploy app pins one stable value.
+      - name: Lowercase repository name
         run: |
-          echo "IMAGE=ghcr.io/${{ secrets.WEB_IMAGE_NAME }}" >> $GITHUB_ENV
+          REPO_LC=${GITHUB_REPOSITORY,,}
+          echo "OWNER=${REPO_LC%%/*}" >> $GITHUB_ENV
+          echo "IMAGE=ghcr.io/${REPO_LC%%/*}/teamlyf-client" >> $GITHUB_ENV
 
       - name: Resolve public env for branch
         id: env
@@ -178,6 +182,16 @@ jobs:
           else
             echo "api_url=https://api-dev.getteamlyf.com" >> "$GITHUB_OUTPUT"
           fi
+
+      # A blank image reference builds `ghcr.io/:dev`, which is an invalid tag
+      # and fails the whole push. Fail here with the name spelled out instead.
+      - name: Guard image reference
+        run: |
+          if [ -z "${IMAGE}" ] || [ "${IMAGE}" = "ghcr.io//teamlyf-client" ]; then
+            echo "::error::IMAGE resolved to '${IMAGE}'. Expected ghcr.io/<owner>/teamlyf-client."
+            exit 1
+          fi
+          echo "Building ${IMAGE}:${GITHUB_REF_NAME}"
 
       - name: Extract Docker metadata
         id: meta
@@ -207,7 +221,7 @@ jobs:
       - name: Prune untagged manifests
         uses: actions/delete-package-versions@v5
         with:
-          package-name: ${{ secrets.WEB_IMAGE_NAME }}
+          package-name: teamlyf-client
           package-type: container
           delete-only-untagged-versions: true
           min-versions-to-keep: 5
